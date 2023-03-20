@@ -9,6 +9,7 @@
     "start": "node .output/server/index.mjs"
   },
   "devDependencies": {
+    "@sidebase/nuxt-auth": "^0.4.4",
     "nuxt": "^3.2.3"
   },
   "dependencies": {
