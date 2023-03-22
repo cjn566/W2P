@@ -1,10 +1,14 @@
 <template>
   <div>
-    <NuxtPage />
+    Home
+    <pre>
+      {{ session }}
+    </pre>
   </div>
 </template>
 
 <script setup>
   // const res = await $fetch('/api/hello')
-  console.log('Hello')
+  console.log("index")
+  const session = useSession()
 </script>
