@@ -6,5 +6,5 @@
 
 <script setup>
   // const res = await $fetch('/api/hello')
-  console.log('Hello')
+  console.log('App')
 </script>

@@ -8,7 +8,8 @@
 </template>
 
 <script setup>
-  // const res = await $fetch('/api/hello')
-  console.log("index")
+  const res = await $fetch('/api/hello')
+  console.log("home")
   const session = useSession()
+  console.log("home page session: ", session)
 </script>

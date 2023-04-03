@@ -1,7 +1,7 @@
 import query from '../db'
-export default defineEventHandler(async (event) => {
+export default defineAuthenticatedEventHandler(async (event, session) => {
 
-    console.log(event.node.req.rawHeaders)
+    console.log("Hello API session: ", session)
 
     const res = (await query('SELECT * FROM app.games WHERE entry_id = $1', [2])).rows[0]
     return {
