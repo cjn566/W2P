@@ -5,7 +5,7 @@ export function defineAuthenticatedEventHandler( handler ) {
       const session = await getServerSession(event)
       if(!session){
         console.log('authHandler Unauthorized')
-        throw Error("Unauthorized")
+        sendRedirect(event, '/')
       }
       console.log('authHandler Authorized')
       return handler(event, session)
