@@ -1,5 +1,6 @@
 <template>
   <div>
+    <button @click="logOut">Sign Out</button>
     Home
     <pre>
       {{ session }}
@@ -11,5 +12,9 @@
   const res = await $fetch('/api/hello')
   console.log("home")
   const session = useSession()
-  console.log("home page session: ", session)
+
+  const logOut =  () => {
+    console.log('loggin out')
+    session.signOut()
+  }
 </script>
