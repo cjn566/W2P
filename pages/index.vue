@@ -1,12 +1,20 @@
 <template>
   <div>
-    index
-    <NuxtLink to="home">Home page</NuxtLink>
+    Hi. Welcome to my app.
+    <NuxtLink to="/home">Sign Up or Log In</NuxtLink>
   </div>
 </template>
 
 <script setup>
-  
-  definePageMeta({ auth: false })
-  console.log("index")
+
+  definePageMeta({ 
+    auth: {
+      unauthenticatedOnly: true,
+      navigateAuthenticatedTo: '/home',
+    },
+    layout: false
+  })
+
+  const { signIn } = useAuth()
+
 </script>
