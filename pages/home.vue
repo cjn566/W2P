@@ -2,7 +2,7 @@
   <div>
     Home
     <pre>
-      {{ session }}
+      {{  session }}
     </pre>
   </div>
 </template>

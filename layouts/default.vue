@@ -1,7 +1,9 @@
 <template>
     <div>
-        <button @click="signOut({callbackUrl: '/'})">Log Out</button>
-        <slot />
+        <span>
+            <Menu />
+            <slot />
+        </span>
     </div>
 </template>
 

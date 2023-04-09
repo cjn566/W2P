@@ -1,6 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-    modules: ['@sidebase/nuxt-auth'],
+    css: [
+      '@/assets/main.css',      
+      '@fortawesome/fontawesome-svg-core/styles.css'
+    ],
+    modules: ['@sidebase/nuxt-auth'],    
     auth: {
       // The module is enabled. Change this to disable the module
       isEnabled: true,
