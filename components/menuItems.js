@@ -9,29 +9,38 @@ export default {
     },
     items: [{
             id: 0,
-            title: 'Home',
+            title: 'My Collection',
             // <font-awesome-icon icon="fa-solid fa-house-user" />
-            icon: 'fa-house-user',
+            icon: 'dice',
             onClick() {
-                console.log('Home')
+                navigateTo('/home')
             }
         },
         {
             id: 1,
-            title: 'Reports',
+            title: 'Freinds',
             // <font-awesome-icon icon="fa-regular fa-screwdriver-wrench" />
-            icon: 'fa-screwdriver-wrench',
+            icon: 'users',
             onClick() {
-                console.log('Reports')
+                navigateTo('/friends')
+            }
+        },
+        {
+            id: 1,
+            title: 'Events',
+            // <font-awesome-icon icon="fa-regular fa-screwdriver-wrench" />
+            icon: 'calendar-days',
+            onClick() {
+                navigateTo('/events')
             }
         },
         {
             id: 2,
             title: 'About',
             // <font-awesome-icon icon="fa-solid fa-fire" />
-            icon: 'fa-fire',
+            icon: 'circle-question',
             onClick() {
-                console.log('About')
+                navigateTo('/about')
             }
         },
         {

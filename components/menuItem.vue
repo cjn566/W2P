@@ -3,7 +3,7 @@
         <div class="item">
             <client-only>
                 <div class="item__icon">
-                    <font-awesome-icon :icon="['fa-solid', props.item.icon]" size="2x" />
+                    <font-awesome-icon :icon="['fas', props.item.icon]" size="2x" />
                 </div>
             </client-only>
             <!-- solo mostrar que no collapsed -->
