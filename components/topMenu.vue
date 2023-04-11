@@ -1,6 +1,6 @@
 <template>
     <!-- clase menu, y si es verdadero collapsed va a aplicar clase collapsed, sino expanded -->
-    <aside :class="['menu', collapsed ? 'collapsed' : 'expanded']">
+    <header :class="['menu']">
         <nav>
             <div class="header">
                 <button class="menu-button" @click.prevent="collapsed = !collapsed">
@@ -22,7 +22,7 @@
                 </ul>
             </div>
         </nav>
-    </aside>
+    </header>
 </template>
 
 <script setup>
@@ -35,20 +35,10 @@
 
 .menu {
     background-color: var(--colorNegro);
-    height: 100vh;
     transition: width .3s;
     position: fixed;
-    left: 0;
     top: 0;
-}
-
-.collapsed {
-    width: 7rem;
-    /* height: 4.4rem; */
-}
-
-.expanded {
-    width: 35rem;
+    width: 100%;
 }
 
 .header {

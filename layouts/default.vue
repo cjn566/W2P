@@ -1,7 +1,7 @@
 <template>
     <div>
         <span>
-            <Menu />
+            <TopMenu />
             <div class="content">
                 <slot />
             </div>
@@ -10,7 +10,6 @@
 </template>
 
 <script setup>
-    const { signOut } = useAuth()
 </script>
 
 <style>

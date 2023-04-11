@@ -3,6 +3,11 @@
     Home
     <pre>
       {{  session }}
+      
+      {{  session }}
+      {{  session }}
+      {{  session }}
+      {{  session }}
     </pre>
   </div>
 </template>
