@@ -1,11 +1,9 @@
 <template>
     <div>
-        <span>
-            <TopMenu />
-            <div class="content">
-                <slot />
-            </div>
-        </span>
+        <Header />
+        <div class="content">
+            <slot />
+        </div>
     </div>
 </template>
 
@@ -13,7 +11,7 @@
 </script>
 
 <style>
-    .content {
-        padding-left: 8rem;
-    }
+.content {
+    padding-top: calc(var(--nav-height) + 1rem);
+}
 </style>

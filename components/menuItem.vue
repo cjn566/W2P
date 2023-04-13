@@ -6,16 +6,12 @@
                     <font-awesome-icon :icon="['fas', props.item.icon]" size="2x" />
                 </div>
             </client-only>
-            <!-- solo mostrar que no collapsed -->
-            <div class="item__title" v-if="!collapsed">
-                {{ props.item.title }}
-            </div>
         </div>
     </a>
 </template>
 
 <script setup>
-    const props = defineProps(['item', 'collapsed'])
+    const props = defineProps(['item'])
 </script>
 
 <style scoped>

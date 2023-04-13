@@ -6,12 +6,13 @@ import {
     faDice,
     faUsers,
     faCalendarDays,
-    faCircleQuestion
+    faCircleQuestion,
+    faGear,
 
 } from '@fortawesome/free-solid-svg-icons';
 
 /* add icons to the library */
-library.add( faCircleQuestion, faCalendarDays, faUsers, faDice, faBars, faRightFromBracket)
+library.add( faGear, faCircleQuestion, faCalendarDays, faUsers, faDice, faBars, faRightFromBracket)
 
 config.autoAddCss = false
 

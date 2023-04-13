@@ -1,17 +1,12 @@
 <template>
   <div>
     Home
-    <pre>
-      {{  session }}
-      
-      {{  session }}
-      {{  session }}
-      {{  session }}
-      {{  session }}
-    </pre>
   </div>
 </template>
 
 <script setup>
-  const session = useAuth()
+  const auth = useAuth()
+
+  const session = await auth.getSession()
+  console.log(session)
 </script>
