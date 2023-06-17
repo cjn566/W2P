@@ -2,13 +2,17 @@
     <header class="header">
         <ul class="menu">
             <MenuItem v-for="item in headerContent.navPages" :key="item.id" :item="item" />
-        </ul>        
-        
-        <a href="#">
-            <div class="item">
-                <img :src="session.user.image" alt="profile image">
-            </div>
-        </a>
+        </ul>
+
+        <div class="header__profile dropdown">
+            <a role="button" data-bs-toggle="dropdown" href="#">
+                <div class="profile-image" :style="`background-image:url(${session.user.image})`">
+                </div>
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                <MenuItem class="dropdown-item" v-for="item in headerContent.menuItems" :key="item.id" :item="item" />
+            </ul>
+        </div>
 
     </header>
 </template>
@@ -23,13 +27,17 @@
                         
             <MenuItem v-for="item in headerContent.menuItems" :key="item.id" :item="item" />
 
+
+                    <img :src="session.user.image" alt="profile image">
+
+
+
 */
 
 import headerContent from './headerContent'
 
 const { getSession } = useAuth()
 const session = await getSession()
-console.log(session)
 
 
 </script>
@@ -37,10 +45,25 @@ console.log(session)
 <style scoped>
 .header {
     display: flex;
-    background-color: var(--colorNegro);
+    align-items: center;
+    justify-content: flex-end;
+    background-color: rgb(53, 53, 56);
     width: 100%;
 }
 
+.header__profile {
+    justify-self: end;
+}
+
+.profile-image {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
 
 .menu {
     display: flex;
@@ -88,7 +111,6 @@ console.log(session)
     text-transform: capitalize;
 }
 
-.menu__item {}
 
 .menu__item ul {
     padding: 0;

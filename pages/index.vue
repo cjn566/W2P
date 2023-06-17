@@ -14,7 +14,4 @@
     },
     layout: false
   })
-
-  const { signIn } = useAuth()
-
 </script>
