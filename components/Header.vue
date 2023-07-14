@@ -1,5 +1,5 @@
 <template>
-    <header class="header">
+    <header v-if="isAuthenticated" class="header">
         <ul class="menu">
             <MenuItem v-for="item in headerContent.navPages" :key="item.id" :item="item" />
         </ul>
@@ -13,7 +13,9 @@
                 <MenuItem class="dropdown-item" v-for="item in headerContent.menuItems" :key="item.id" :item="item" />
             </ul>
         </div>
-
+    </header>
+    <header v-else>
+        <NuxtLink to="/events">Log In</NuxtLink>
     </header>
 </template>
 
@@ -36,7 +38,8 @@
 
 import headerContent from './headerContent'
 
-const { getSession } = useAuth()
+const { status, getSession } = useAuth()
+const isAuthenticated = true
 const session = await getSession()
 
 

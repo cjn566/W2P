@@ -27,29 +27,41 @@ function mapGameObjects(uglyGames) {
       }).map((link)=>{
           return {
           id: link.id,
-          name: link.value
+          name: link.value,
+          type: link.type
           }
       })
+
+    let name
     if(Array.isArray(game.name)){
-      game.name = game.name[0]
+      name = game.name.find(name => name.type == 'primary').value
+    } else {
+      name = game.name.value
+    }
+
+    let rank
+    if(Array.isArray(game.statistics.ratings.ranks.rank)){
+      // Only take the "Board Game Rank" (rank type id = 1)
+      rank = game.statistics.ratings.ranks.rank.find(rank => rank.id == "1").value
+    } else {
+      rank = game.statistics.ratings.ranks.rank.value
     }
     return {
         id: game.id,
         image: game.image,
         thumbnail: game.thumbnail,
-        name: game.name.value,
+        name,
         complexity: parseFloat(game.statistics.ratings.averageweight.value).toFixed(2),
         complexityVotes: game.statistics.ratings.numweights.value,
-        rating: parseFloat(game.statistics.ratings.average.value).toFixed(1),
+        rating: parseFloat(game.statistics.ratings.bayesaverage.value).toFixed(1),
         ratingVotes: game.statistics.ratings.usersrated.value,
-        rank: game.statistics.ratings.ranks.rank.value,
+        rank,
         minplayers: game.minplayers.value,
         maxplayers: game.maxplayers.value,
         minplaytime: game.minplaytime.value,
         maxplaytime: game.maxplaytime.value,
         minage: game.minage.value,
         publishyear: game.yearpublished.value,
-        //description: htmlDecode(game.description),
         description: htmlDecode(game.description),
         tags
     }
