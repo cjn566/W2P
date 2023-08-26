@@ -1,11 +1,9 @@
 <template>
-    <a href="#" @click.prevent="props.item.onClick" >
+    <a href="#" @click.prevent="props.item.onClick()" >
         <div class="item">
-            <client-only>
-                <div class="item__icon">
-                    <font-awesome-icon :icon="['fas', props.item.icon]" size="2x" />
-                </div>
-            </client-only>
+            <div class="item__icon">
+                <font-awesome-icon :icon="['fas', props.item.icon]" size="2x" />
+            </div>
         </div>
     </a>
 </template>
@@ -26,8 +24,6 @@ a {
     color: var(--colorNegroRelax);
     background-color: var(--colorBlancoRelax);
 }
-
-
 
 .item {
     display: flex;

@@ -3,7 +3,7 @@ import { getServerSession } from '#auth'
 export default defineEventHandler(async (event) => {    
 
 
-    const q_result_user = (await query('SELECT email, set_private FROM app.users WHERE name_slug = $1', [event.context.params.user]))
+    const q_result_user = (await query('SELECT name, email, set_private FROM app.users WHERE name_slug = $1', [event.context.params.user]))
     if(q_result_user.rowCount == 0) {
         // Could not find user
         return { err_code: 'no_user' }
@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
         if(session.user.email == user.email) {
             // Is self
             isSelf = true
+            friend_status = "self"
         } else {
             // Is logged in looking at other profile
             // Show if public or if friends

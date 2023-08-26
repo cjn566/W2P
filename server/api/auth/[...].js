@@ -27,19 +27,22 @@ export default NuxtAuthHandler({
   callbacks: {
     jwt: async ({ token, user }) => {
       if (user) { // Token just initialized, check if they are already in the DB
+        let slug = ""
         const q_result_user = (await query('SELECT name_slug FROM app.users WHERE email = $1', [user.email]))
         if (q_result_user.rowCount == 0) {
           // Not in the DB, attempt name slugs until succeeds as unique
           let counter = 1
           let tryAgain = false
+          let slugAttempt = ""
           do {
             try {
+              slugAttempt = slugify(user.name + (counter > 1 ? (' ' + counter) : ''), {lower: true})
               let i_result_user = (await query('INSERT into app.users(email, created_by, name, name_slug) VALUES ($1, $2, $3, $4)',
                 [
                   user.email,
                   user.email,
                   user.name,
-                  slugify(user.name + (counter > 1 ? (' ' + counter) : ''))
+                  slugAttempt
                 ]))
                 tryAgain = false
             } catch (error) {
@@ -47,14 +50,31 @@ export default NuxtAuthHandler({
                 counter++
                 tryAgain = true
               } else {
-                throw
+                throw error
               }
             }
           } while (tryAgain)
+          slug = slugAttempt
         }
+        else {
+          slug = q_result_user.rows[0].name_slug
+        }
+        token.slug = slug
       }
       return token
+    },
+    session: async ({session, token}) => {
+      if(token.slug) {
+        session.user.slug = token.slug
+      } else {
+        const q_result_slug = (await query('SELECT name_slug FROM app.users WHERE email = $1', [session.user.email]))
+        if (q_result_slug.rowCount > 0) {
+          session.user.slug = q_result_slug.rows[0].name_slug
+        }
+      }
+      return Promise.resolve(session)
     }
+
   }
 })
 

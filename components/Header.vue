@@ -1,56 +1,58 @@
 <template>
-    <header v-if="isAuthenticated" class="header">
-        <ul class="menu">
-            <MenuItem v-for="item in headerContent.navPages" :key="item.id" :item="item" />
-        </ul>
+    <header class="header">
+        <div v-if="isAuthenticated">
+            <ul class="menu">
+                <a href="#" @click.prevent="navigateTo('/user/' + session.user.slug)">
+                    <div class="item">
+                        <div class="item__icon">
+                            <font-awesome-icon :icon="['fas', 'dice']" size="2x" />
+                        </div>
+                    </div>
+                </a>
+                <MenuItem v-for="item in headerContent.navPages" :key="item.id" :item="item" />
 
-        <div class="header__profile dropdown">
-            <a role="button" data-bs-toggle="dropdown" href="#">
-                <div class="profile-image" :style="`background-image:url(${session.user.image})`">
+                <div class="header__profile dropdown">
+                    <a role="button" data-bs-toggle="dropdown" href="#">
+                        <div class="profile-image" :style="`background-image:url(${profileImageURL})`" />
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        <MenuItem class="dropdown-item" v-for="item in headerContent.menuItems" :key="item.id"
+                            :item="item" />
+                    </ul>
                 </div>
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                <MenuItem class="dropdown-item" v-for="item in headerContent.menuItems" :key="item.id" :item="item" />
             </ul>
         </div>
-    </header>
-    <header v-else>
-        <NuxtLink to="/events">Log In</NuxtLink>
+        <div v-else>
+            <NuxtLink to="/events">Log In</NuxtLink>
+        </div>
     </header>
 </template>
 
 <script setup>
-/*
-                        <div class="profile">
-                            <img class="profile__img" :src="session.user.image" :alt=menuItems.profile.img>
-                            <div class="profile__name"> <a href="#" @click.prevent="menuItems.profile.onClick"> {{ session.user.name }} </a> </div>
-                        </div>
-
-                        
-            <MenuItem v-for="item in headerContent.menuItems" :key="item.id" :item="item" />
-
-
-                    <img :src="session.user.image" alt="profile image">
-
-
-
-*/
 
 import headerContent from './headerContent'
 
 const { status, getSession } = useAuth()
-const isAuthenticated = true
 const session = await getSession()
 
+const isAuthenticated = computed(() => {
+    return status.value == "authenticated"
+})
+
+const profileImageURL = computed(() => {
+    return session?.user?.image
+})
 
 </script>
+
+
 
 <style scoped>
 .header {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    background-color: rgb(53, 53, 56);
+    background-color: rgb(228, 228, 228);
     width: 100%;
 }
 

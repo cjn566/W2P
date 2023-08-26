@@ -73,7 +73,8 @@ export default {
     const strung = gameIds.join()
     const url = `thing?id=${strung}&stats=1`
     const results = await bggQuery(url)
-    const prettyGames = mapGameObjects(results.items.item)
+    const games = Array.isArray(results.items.item) ? results.items.item : [results.items.item]
+    const prettyGames = mapGameObjects(games)
     return prettyGames
   }
   

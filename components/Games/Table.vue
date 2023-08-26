@@ -17,8 +17,6 @@ empty-filtered-text="There are no games to show."
             <GamesRow @click="rowClicked(game.id)" v-for="game in games" :game="game" />
         </tbody>
     </table>
-
-    <pre>{{ games }}</pre>
 </template>
 
 <script setup>
