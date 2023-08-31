@@ -24,6 +24,7 @@
     "@popperjs/core": "^2.11.7",
     "@vue/compat": "^3.3.4",
     "bootstrap": "^5",
+    "debounce": "^1.2.1",
     "pg": "^8.10.0",
     "slugify": "^1.6.6"
   }

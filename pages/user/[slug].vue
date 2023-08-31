@@ -1,12 +1,19 @@
 <template>
-  <pre>{{ userData }}</pre>
   <div v-if="contentUnavailable" class="unavailable">
     {{ contentUnavailable.message }}
   </div>
   <div v-else>
-    <UserBio />
+    <UserBio :user="userData.user"/>
+    <p v-if="userData.isSelf">This is your profile</p>
+    <p v-else>This is not your profile</p>
+    <pre>editingGames: {{editingGames}}</pre>
+    <button @click="btnEditGames">Edit games</button>
+    <button v-if="editingGames" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#gameSearchModal">
+      +
+    </button>
     <GamesTable v-if="hasGames" />
     <span v-else>This user has no games yet.</span>
+    <ModalGameSearch/>
   </div>
 </template>
 
@@ -20,12 +27,23 @@ let gameData = []
 if (!userData.err_code && userData.games.length) {
   const gameIds = userData.games.map((game) => game.bgg_game_id)
   gameData = await bgg.getGameInfo(gameIds)
+  gameData.map((game) => {
+    let g = userData.games.find((x) => x.bgg_game_id == game.bgg_game_id)
+    game.userGameId = g.id
+    return game
+  })
 }
 const games = useState('games', () => gameData)
 
+const editingGames = useState('editingGames', () => true)
+
 const hasGames = computed(() => {
-  return true //games.length > 0
+  return games.value.length > 0
 })
+
+function btnEditGames(event) {
+  editingGames.value = editingGames.value? false : true
+}
 
 const contentUnavailable = computed(() => {
   if (userData?.err_code) {

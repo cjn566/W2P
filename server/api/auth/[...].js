@@ -37,11 +37,12 @@ export default NuxtAuthHandler({
           do {
             try {
               slugAttempt = slugify(user.name + (counter > 1 ? (' ' + counter) : ''), {lower: true})
-              let i_result_user = (await query('INSERT into app.users(email, created_by, name, name_slug) VALUES ($1, $2, $3, $4)',
+              let i_result_user = (await query('INSERT into app.users(email, created_by, name, image, name_slug) VALUES ($1, $2, $3, $4)',
                 [
                   user.email,
                   user.email,
                   user.name,
+                  user.image? user.image : '',
                   slugAttempt
                 ]))
                 tryAgain = false

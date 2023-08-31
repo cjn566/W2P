@@ -2,6 +2,7 @@
     <tr v-if="!game.expanded">
         <td>
             <img class="thumbnail" :src="game.thumbnail" alt="" loading="lazy">
+            <button v-if="editingGames" @click.stop="deleteSelf">Delete</button>
         </td>
         <td>
             <GamesLink :game="game" />
@@ -44,7 +45,11 @@
 </template>
 
 <script setup>
+import { useState } from 'nuxt/app';
+
 const props = defineProps(['game'])
+
+const editingGames = useState('editingGames')
 
 const formatPlaytime = computed(() => {
     let ret = formatHrs(props.game.minplaytime)
@@ -73,6 +78,23 @@ const mechanics = computed(() => {
 const categories = computed(() => {
     return props.game.tags.filter(tag => { return tag.type == "boardgamecategory" })
 })
+
+async function deleteSelf(event) {
+    if (confirm(`Are you sure you want to remove ${props.game.name} from your collection?`)) {
+        const res = (await useFetch('/api/collection/remove?id=' + props.game.userGameId)).data.value
+        if (res.err) {
+            console.error(res.msg)
+        } else {
+            const allGames = useState('games')
+            const idx = allGames.value.findIndex(game => game.userGameId == props.game.userGameId)
+            if(idx >= 0){
+                allGames.value.splice(idx, 1)
+            } else {
+                console.error("Game not found in state for deletion")
+            }
+        }
+    }
+}
 
 
 
@@ -104,7 +126,7 @@ const categories = computed(() => {
 }
 
 .card__values__column {
-    
+
     flex-grow: 1;
 }
 
