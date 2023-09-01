@@ -15,7 +15,11 @@
 const props = defineProps(['game'])
 
 async function addGame() {
-    const res = (await useFetch('/api/collection/add?id='+props.game.bgg_game_id)).data.value
+    const res = (await useFetch('/api/collection/add', 
+    {
+      method: 'post',
+      body: [props.game.bgg_game_id]
+    })).data.value
     if(res.err) {
       console.error(res.msg)
     } else {
