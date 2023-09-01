@@ -13,7 +13,7 @@
     </button>
     <GamesTable v-if="hasGames" />
     <span v-else>This user has no games yet.</span>
-    <ModalGameSearch/>
+    <ModalAddGames/>
   </div>
 </template>
 

@@ -10,8 +10,8 @@ async function bggQuery(url, errTitle = "Error", errMsg = "Oops. Something went 
     const asOBJ = fromXML(gameData)
     return asOBJ
   } catch (error) {
-    console.error('tryGet: ', error)
-    return null
+    console.error('BGG API Error: ', error)
+    throw error
   }
 }
 
@@ -93,22 +93,19 @@ export default {
     results = await bggQuery(url)
     games = Array.isArray(results.items.item) ? results.items.item : [results.items.item]
     return mapGameObjects(games)
-
-    // Sort by year, newest first
-    // basegames = basegames.sort((a, b) => { return b.year - a.year })
-    // expansions = expansions.sort((a, b) => { return b.year - a.year })
   },
 
-  async addThumbnails(games) {
-    const strung = gameIds.join()
-    const url = `thing?id=${strung}&stats=1`
-    const results = await bggQuery(url)
-    const gamesXML = Array.isArray(results.items.item) ? results.items.item : [results.items.item]
-    gamesXML.map((res) => {
-      let foundGame = this.search.basegames.find(game => game.id == res.$.id)
-      if (foundGame) {
-          foundGame.thumbnail = res.thumbnail?.[0]
-      }
-  })
-  },
+  async getCollection(username){
+    let url = `collection?username=${username}&own=1`
+    try {
+      const results = await bggQuery(url)
+      const gameIds = results.items.item.map((game) => { return game.objectid })
+      const allGameInfo = this.getGameInfo(gameIds)
+      return allGameInfo
+    } catch(error) {      
+      console.error('BGG Failed to get Collection')
+      throw error
+    }
+  }
+
 }

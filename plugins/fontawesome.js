@@ -8,11 +8,11 @@ import {
     faCalendarDays,
     faCircleQuestion,
     faGear,
-
+    faPen
 } from '@fortawesome/free-solid-svg-icons';
 
 /* add icons to the library */
-library.add( faGear, faCircleQuestion, faCalendarDays, faUsers, faDice, faBars, faRightFromBracket)
+library.add( faGear, faCircleQuestion, faCalendarDays, faUsers, faDice, faBars, faRightFromBracket, faPen)
 
 config.autoAddCss = false
 

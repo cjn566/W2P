@@ -1,5 +1,5 @@
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle'
+import ToastPlugin from 'vue-toast-notification'
 
 export default defineNuxtPlugin(nuxtApp => {
-    nuxtApp.provide('bootstrap', bootstrap)
+    nuxtApp.vueApp.use(ToastPlugin)
 })

@@ -20,15 +20,16 @@ async function addGame() {
       console.error(res.msg)
     } else {
       const newGame = props.game
+      props.game.owns = true
       newGame.id = res.newID
       const allGames = useState('games')
       allGames.value.push(newGame)
+      $toast.open('Game added.')
     }
 }
 
 </script>
 
 <style scoped>
-  .game-thumbnail {
-  }
+  
 </style>
