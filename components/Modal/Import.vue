@@ -28,8 +28,8 @@ const displayGames = computed(() => {
 })
 
 const numCollectionGames = computed(() => { return displayGames.value.length })
-const numOwned = computed(() => {
-    return displayGames.value.filter(x => x.owns).length
+const unOwnedGames = computed(() => {
+    return displayGames.value.filter(x => !x.owns)
 })
 
 async function getCollection() {
@@ -37,6 +37,25 @@ async function getCollection() {
         return
     }
     collectionGames.value = await bgg.getCollection(username.value)
+}
+
+async function addAllUnowned() {
+    const gameIDs = unOwnedGames.map(x=>x.bgg_game_id)
+    const res = (await useFetch('/api/collection/add', 
+    {
+      method: 'post',
+      body: gameIDs
+    })).data.value
+    if(res.err) {
+      console.error(res.msg)
+    } else {
+      const newGame = props.game
+      props.game.owns = true
+      newGame.id = res.newID
+      const allGames = useState('games')
+      allGames.value.push(newGame)
+      $toast.open('Game added.')
+    }
 }
 
 </script>
