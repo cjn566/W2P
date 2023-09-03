@@ -5,12 +5,11 @@ import fromXML from './xml2json'
 async function bggQuery(url, errTitle = "Error", errMsg = "Oops. Something went wrong") {
   try {
     const fullurl = "https://boardgamegeek.com/xmlapi2/" + url
-    const results = await useFetch(fullurl)
-    const gameData = results.data.value
-    const asOBJ = fromXML(gameData)
-    return asOBJ
+    const {data, error} = await useFetch(fullurl)
+    if(error.value) throw {message: 'BGG API Error: ', error}
+    return fromXML(data.value)
   } catch (error) {
-    console.error('BGG API Error: ', error)
+    console.warn('BGG API Error: ', error)
     throw error
   }
 }
@@ -103,7 +102,7 @@ export default {
       const allGameInfo = this.getGameInfo(gameIds)
       return allGameInfo
     } catch(error) {      
-      console.error('BGG Failed to get Collection')
+      console.warn('Failed to get this BGG collection, likely the username does not exist.')
       throw error
     }
   }

@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-    const tab = ref('import')
+const tab = ref('import')
 </script>
 
 <style scoped></style>

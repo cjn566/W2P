@@ -10,17 +10,26 @@ empty-filtered-text="There are no games to show."
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th scope="col" v-for="(value, key) in headers">{{ value.label }}</th>
+                <th scope="col" v-for="(value, key) in headers" @click="">{{ value.label }}</th>
             </tr>
         </thead>
         <tbody class="accordian">
-            <GamesRow @click="rowClicked(game.id)" v-for="game in games" :game="game" />
+            <GamesRow @click="rowClicked(game.id)" v-for="game in displayGames" :game="game" />
         </tbody>
     </table>
 </template>
 
 <script setup>
 const games = useState('games')
+import headers from './headers'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import ColumnGroup from 'primevue/columngroup'   // optional
+import Row from 'primevue/row'                   // optional
+
+const displayGames = computed(()=>{
+    return games.value.filter(g => !g.hide)
+})
 
 function rowClicked(gameId) {
     const openGame = games.value.find(game => game.expanded)
@@ -30,43 +39,6 @@ function rowClicked(gameId) {
     }
     games.value.find(game => game.id == gameId).expanded = true
 }
-
-const headers = {
-    thumbnail: {
-        label: '',
-        sortable: false
-    },
-    name: {
-        label: 'Game',
-    },
-    rank: {
-        label: 'Rank',
-        tooltip: 'Boardgame rank on Boardgamegeek.com'
-    },
-    rating: {
-        label: 'Rating',
-        tooltip: 'Rating, out of 10, on Boardgamegeek.com'
-    },
-    complexity: {
-        label: 'Weight',
-        tooltip: 'Complexity of the game, out of 5 (with 5 being the most complex)'
-    },
-    players: {
-        label: 'Players',
-        sortable: false,
-    },
-    playtime: {
-        label: 'Time',
-        sortable: false,
-    },
-    minage: {
-        label: 'Age',
-    },
-    publishyear: {
-        label: 'Year',
-    }
-}
-
 
 
 </script>

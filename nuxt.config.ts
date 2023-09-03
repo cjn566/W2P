@@ -3,8 +3,13 @@ export default defineNuxtConfig({
     ssr: false,
     css: [
       '@/assets/styles/main.scss',      
-      '@fortawesome/fontawesome-svg-core/styles.css'
+      '@fortawesome/fontawesome-svg-core/styles.css',
+      'vue-toast-notification/dist/theme-default.css',
+      "primevue/resources/themes/lara-light-blue/theme.css"
     ],
+    build: {
+      transpile: ["primevue"]
+    },
     modules: [
       '@sidebase/nuxt-auth',
       '@nuxt/devtools'
@@ -34,8 +39,12 @@ export default defineNuxtConfig({
           addDefaultCallbackUrl: true
       }
     },
+    typescript: {
+      tsConfig: {
+        "extends": "../../../tsconfig.base.json"
+      }
+    },
     devtools: {
-      enable: true,
-      vscode: {}
+      enabled: true
     }
 })

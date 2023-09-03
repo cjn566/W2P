@@ -6,15 +6,17 @@
             <label for="inputUserSearch">Username</label>
         </div>
         <div v-show="numCollectionGames">
-            Found {{ numCollectionGames }} games in this BGG collection, {{ numOwned ? numOwned : 'none' }} of which are
-            already in your library.
+            Found {{ numCollectionGames }} games in this BGG collection, of which {{ unOwnedGames?.length }} are
+            not yet in your library.
         </div>
+        <button v-show="numCollectionGames" @click="addAllUnowned">Add all to library</button>
         <ModalSearchResult v-for="game in displayGames" key="game.bgg_game_id" :game="game" />
     </div>
 </template>
 
 <script setup>
 import bgg from '../../utils/boardgamegeek'
+const { $toast } = useNuxtApp()
 
 const username = ref('')
 const collectionGames = ref([])
@@ -36,26 +38,32 @@ async function getCollection() {
     if (username.value.length <= 0) {
         return
     }
-    collectionGames.value = await bgg.getCollection(username.value)
+    try {
+        collectionGames.value = await bgg.getCollection(username.value)
+    } catch (e) {
+        $toast.open({message: "Could not load this collection. Is the username correct?", type: "error"})
+    }
 }
 
 async function addAllUnowned() {
-    const gameIDs = unOwnedGames.map(x=>x.bgg_game_id)
-    const res = (await useFetch('/api/collection/add', 
-    {
-      method: 'post',
-      body: gameIDs
-    })).data.value
-    if(res.err) {
-      console.error(res.msg)
-    } else {
-      const newGame = props.game
-      props.game.owns = true
-      newGame.id = res.newID
-      const allGames = useState('games')
-      allGames.value.push(newGame)
-      $toast.open('Game added.')
-    }
+    const gameIDs = unOwnedGames.value.map(x => x.bgg_game_id)
+    const allGames = useState('games')
+    const res = (await useFetch('/api/collection/add',
+        {
+            method: 'post',
+            body: gameIDs
+        })).data.value
+    res.forEach((r)=> {
+        if (r.err && r. msg == "duplicate") {
+            $toast.error('That game was already in your library')
+        } else {
+            let g = unOwnedGames.value.find(x => x.bgg_game_id == r.bgg_game_id)
+            g.owns = true
+            g.id = r.newID
+            allGames.value.unshift(g)
+            $toast.success(`<b>${g.name}</b> was added to your library.`)
+        }
+    })
 }
 
 </script>

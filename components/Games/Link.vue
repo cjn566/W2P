@@ -6,7 +6,7 @@
 const props = defineProps(['game'])
 
 const gameURL = computed(() => {
-        return "https://boardgamegeek.com/boardgame/" + props.game.id
+        return "https://boardgamegeek.com/boardgame/" + props.game.bgg_game_id
     })
     
 </script>

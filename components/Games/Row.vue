@@ -79,8 +79,8 @@ const categories = computed(() => {
     return props.game.tags.filter(tag => { return tag.type == "boardgamecategory" })
 })
 
-async function deleteSelf(event) {
-    if (confirm(`Are you sure you want to remove ${props.game.name} from your collection?`)) {
+async function deleteSelf() {
+    if (confirm(`Are you sure you want to remove "${props.game.name}" from your library?`)) {
         const res = (await useFetch('/api/collection/remove?id=' + props.game.userGameId)).data.value
         if (res.err) {
             console.error(res.msg)

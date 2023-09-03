@@ -19,6 +19,7 @@
 
 <script setup>
 import bgg from '../../utils/boardgamegeek'
+const { $toast } = useNuxtApp()
 
 definePageMeta({ auth: false })
 
@@ -34,6 +35,7 @@ if (!userData.err_code && userData.games.length) {
   })
 }
 const games = useState('games', () => gameData)
+
 
 const editingGames = useState('editingGames', () => true)
 

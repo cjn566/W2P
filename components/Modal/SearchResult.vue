@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <img :src="game.image" alt="Game Thumbnail" class="game-thumbnail"/>
+    <img :src="game.thumbnail" alt="Game Thumbnail" class="game-thumbnail"/>
     <div class="card-body">
       <b class="card-title">{{ game.name }}</b>
       <p class="card-text">{{ game.publishyear ? game.publishyear : 'N/A' }}</p>
@@ -22,13 +22,14 @@ async function addGame() {
     })).data.value
     if(res.err) {
       console.error(res.msg)
+      $toast.error(`Could not add ${newGame.name} to your library`)
     } else {
       const newGame = props.game
       props.game.owns = true
       newGame.id = res.newID
       const allGames = useState('games')
-      allGames.value.push(newGame)
-      $toast.open('Game added.')
+      allGames.value.unshift(newGame)
+      $toast.success(`<b>${newGame.name}</b> added to your library`)
     }
 }
 
