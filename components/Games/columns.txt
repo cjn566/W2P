@@ -1,0 +1,27 @@
+Image + name
+    sort: AB
+    Filter: text included in name (input box)
+
+Rating
+    Sort: numerical
+    Filter: Higher than number (number input)
+
+complexity
+    Sort: numerical
+    Filter: Higher than + Lower than number (double slider)
+
+Players
+    Sort: fewest min players / most max players
+    Filter: Supports at least n players (number input)
+
+time
+    Sort: shortest min playtime / longest max playtime
+    Filter: play for at most m minutes / play for at least m minutes (double slider)
+
+age
+    Sort: numerical
+    Filter: at most y years / at least y years (number input with radio)
+
+yearpublished
+    Sort: numerical
+    Filter: Older than yyyy / newer than yyyy (number input with radio)

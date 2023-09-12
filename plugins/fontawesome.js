@@ -8,11 +8,22 @@ import {
     faCalendarDays,
     faCircleQuestion,
     faGear,
-    faPen
+    faPen,
+    faChessBoard,
+    faStar,
+    faBrain,
+    faPeopleGroup,
+    faClock,
+    faPersonCane,
+    faCalendar
 } from '@fortawesome/free-solid-svg-icons';
 
 /* add icons to the library */
-library.add( faGear, faCircleQuestion, faCalendarDays, faUsers, faDice, faBars, faRightFromBracket, faPen)
+
+library.add( faGear, faCircleQuestion, faCalendarDays, 
+    faUsers, faDice, faBars, faRightFromBracket, 
+    faPen, faChessBoard, faStar, faBrain, faPeopleGroup,
+    faClock, faPersonCane, faCalendar)
 
 config.autoAddCss = false
 
