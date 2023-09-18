@@ -19,9 +19,18 @@ function htmlDecode(input) {
   return doc.documentElement.textContent;
 }
 
+function makeArray(x) {
+  if (!Array.isArray(x)) {
+    x = [x]
+  }
+  return x
+}
+
 function mapGameObjects(gamesXML) {
   return gamesXML.map((game) => {
+    game.link = makeArray(game.link)
     const tags = game.link.filter((link) => {
+      // TODO: TypeError: game.link.filter is not a function
       return link.type == "boardgamecategory" || link.type == "boardgamemechanic"
     }).map((link) => {
       return {
@@ -54,7 +63,7 @@ function mapGameObjects(gamesXML) {
       complexity: Number(parseFloat(game.statistics.ratings.averageweight.value).toFixed(1)),
       complexityVotes: game.statistics.ratings.numweights.value,
       rating: Number(parseFloat(game.statistics.ratings.bayesaverage.value).toFixed(1)),
-      ratingVotes: game.statistics.ratings.usersrated.value,
+      ratingVotes: parseInt(game.statistics.ratings.usersrated.value),
       rank,
       players: {
         min: parseInt(game.minplayers.value),
@@ -78,7 +87,7 @@ export default {
     const strung = gameIds.join()
     const url = `thing?id=${strung}&stats=1`
     const results = await bggQuery(url)
-    const gamesXML = Array.isArray(results.items.item) ? results.items.item : [results.items.item]
+    const gamesXML = makeArray(results.items.item)
     return mapGameObjects(gamesXML)
   },
 
@@ -86,16 +95,17 @@ export default {
     let url = `search?query=${query}&type=boardgame&exact=${exact ? '1' : '0'}`
     let results = await bggQuery(url)
     if (!('item' in results.items)) return []
-    let games = Array.isArray(results.items.item) ? results.items.item : [results.items.item]
-
+    let games = makeArray(results.items.item)
     games = games.filter(game => game.name.type == "primary")
-
-
     let idString = games.map(x => x.id)
     url = `thing?id=${idString}&stats=1`
     results = await bggQuery(url)
-    games = Array.isArray(results.items.item) ? results.items.item : [results.items.item]
-    return mapGameObjects(games)
+    games = makeArray(results.items.item)
+    games = mapGameObjects(games)
+    games.sort((a,b)=>{
+      return b.ratingVotes - a.ratingVotes
+    })
+    return games
   },
 
   async getCollection(username) {

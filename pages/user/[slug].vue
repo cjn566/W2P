@@ -3,15 +3,15 @@
     {{ contentUnavailable.message }}
   </div>
   <div v-else>
-    <UserBio :user="userData.user"/>
+    <!-- <UserBio :user="userData.user"/>
     <p v-if="userData.isSelf">This is your profile</p>
     <p v-else>This is not your profile</p>
-    <pre>editingGames: {{editingGames}}</pre>
+    <pre>editingGames: {{editingGames}}</pre> -->
     <button @click="btnEditGames">Edit games</button>
     <button v-if="editingGames" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#gameSearchModal">
       +
     </button>
-    <GamesTable v-if="hasGames" />
+    <GamesTestTable v-if="hasGames" />
     <span v-else>This user has no games yet.</span>
     <ModalAddGames/>
   </div>

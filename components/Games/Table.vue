@@ -1,6 +1,6 @@
 <template>
     <div class="card">
-        <DataTable :value="displayGames" v-model:filters="filters" dataKey="userGameId" filterDisplay="menu" paginator v-model:expandedRows="expandedRows"
+        <DataTable :value="displayGames" dataKey="userGameId" paginator v-model:expandedRows="expandedRows"
             :rows="20" class="p-datatable-sm game-table" size="small" :globalFilterFields="['name']">
             <template #header>
                 <div class="flex justify-content-between">
@@ -41,7 +41,7 @@
             <!-- Game name -->
             <Column sortable sort-field="name">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'chess-board']" style="color: #0058f0;" />
+                    <font-awesome-icon :icon="['fas', 'chess-board']" style="color: #0058f0;" size="2x"/>
                 </template>
                 <template #body="{ data }">
                     <div class="flex align-items-center gap-2">
@@ -50,17 +50,19 @@
                     </div>
                 </template>
                 <template #sorticon="{ sortOrder }">
-                    <i v-show="sortOrder > 0" class="pi pi-angle-up"></i>
-                    <i v-show="sortOrder < 0" class="pi pi-angle-down"></i>
+                    <GamesSortIcon :order="sortOrder"/>
                 </template>
             </Column>
 
             <Column sortable sortField="rating" filterField="rating" :filterMenuStyle="{ width: '14rem' }">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'star']" style="color: #0058f0;" />
+                    <font-awesome-icon :icon="['fas', 'star']" style="color: #0058f0;" size="2x"/>
                 </template>
                 <template #body="{ data }">
                     {{ data.rating > 0.1 ? data.rating : "N/A" }}
+                </template>
+                <template #sorticon="{ sortOrder }">
+                    <GamesSortIcon :order="sortOrder"/>
                 </template>
             </Column>
 
@@ -68,55 +70,62 @@
                 :showFilterMatchModes="false" :filterMenuStyle="{ width: '14rem' }">
                                 
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'brain']" style="color: #0058f0;" />
+                    <font-awesome-icon :icon="['fas', 'brain']" style="color: #0058f0;" size="2x"/>
                 </template>
                 <template #body="{ data }">
                     {{ data.complexity > 0.1 ? data.complexity : "N/A" }}
                 </template>
-
-                <template #filter="{ filterModel }">
-                    <Slider v-model="filterModel.value" :max="5" :step="0.1" range class="m-3"></Slider>
-                    <div class="flex align-items-center justify-content-between px-2">
-                        <span>{{ filterModel.value ? filterModel.value[0] : 0 }}</span>
-                        <span>{{ filterModel.value ? filterModel.value[1] : 5 }}</span>
-                    </div>
+                <template #sorticon="{ sortOrder }">
+                    <GamesSortIcon :order="sortOrder"/>
                 </template>
             </Column>
 
             <Column sortable filterField="players" :filterMenuStyle="{ width: '14rem' }">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'people-group']" style="color: #0058f0;" />
+                    <font-awesome-icon :icon="['fas', 'people-group']" style="color: #0058f0;" size="2x"/>
                 </template>
                 <template #body="{ data }">
                     {{ formatPlayers(data) }}
+                </template>
+                <template #sorticon="{ sortOrder }">
+                    <GamesSortIcon :order="sortOrder"/>
                 </template>
             </Column>
 
             <Column sortable sortField="rank" filterField="playtime" :filterMenuStyle="{ width: '14rem' }">
                 
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'clock']" style="color: #0058f0;" />
+                    <font-awesome-icon :icon="['fas', 'clock']" style="color: #0058f0;" size="2x"/>
                 </template>
                 <template #body="{ data }">
                     {{ formatPlaytime(data) }}
+                </template>
+                <template #sorticon="{ sortOrder }">
+                    <GamesSortIcon :order="sortOrder"/>
                 </template>
             </Column>
 
             <Column sortable sortField="age" filterField="age" :filterMenuStyle="{ width: '14rem' }">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'person-cane']" style="color: #0058f0;" />
+                    <font-awesome-icon :icon="['fas', 'person-cane']" style="color: #0058f0;" size="2x"/>
                 </template>
                 <template #body="{ data }">
                     {{ data.age }}y
+                </template>
+                <template #sorticon="{ sortOrder }">
+                    <GamesSortIcon :order="sortOrder"/>
                 </template>
             </Column>
 
             <Column field="publishyear" sortable filterField="year" :filterMenuStyle="{ width: '14rem' }">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" />
+                    <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" size="2x"/>
                 </template>
                 <template #body="{ data }">
                     {{ data.publishyear ? data.publishyear : "N/A" }}
+                </template>
+                <template #sorticon="{ sortOrder }">
+                    <GamesSortIcon :order="sortOrder"/>
                 </template>
             </Column>
         </DataTable>
@@ -215,6 +224,10 @@ function formatHrs(minutes) {
 
 </script>
 <style>
+.p-column-header-content {
+    justify-content: center;
+}
+
 .game-table {
     font-size: x-small;
     word-wrap: break-word;

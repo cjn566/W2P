@@ -9,7 +9,7 @@ export default defineNuxtConfig({
       'primeicons/primeicons.css'
     ],
     build: {
-      transpile: ["primevue"]
+      // transpile: ["primevue"]
     },
     modules: [
       '@sidebase/nuxt-auth',

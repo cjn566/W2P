@@ -14,5 +14,6 @@
 <style>
 .content {
     padding-top: calc(var(--nav-height) + 1rem);
+    padding-bottom: 10rem;
 }
 </style>
