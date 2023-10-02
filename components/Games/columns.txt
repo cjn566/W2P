@@ -25,3 +25,18 @@ age
 yearpublished
     Sort: numerical
     Filter: Older than yyyy / newer than yyyy (number input with radio)
+
+
+
+
+
+
+
+tags = {
+    type: {
+        id: {
+            value,
+            count
+        }
+    }
+}

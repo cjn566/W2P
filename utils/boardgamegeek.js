@@ -25,19 +25,15 @@ function makeArray(x) {
   }
   return x
 }
+    
+const validTagTypes = ['boardgamecategory', 'boardgamemechanic', 'boardgameexpansion', 'boardgamefamily']
 
 function mapGameObjects(gamesXML) {
   return gamesXML.map((game) => {
     game.link = makeArray(game.link)
+
     const tags = game.link.filter((link) => {
-      // TODO: TypeError: game.link.filter is not a function
-      return link.type == "boardgamecategory" || link.type == "boardgamemechanic"
-    }).map((link) => {
-      return {
-        id: link.id,
-        name: link.value,
-        type: link.type
-      }
+      return validTagTypes.includes(link.type)
     })
 
     let name
@@ -76,12 +72,16 @@ function mapGameObjects(gamesXML) {
       age: parseInt(game.minage.value),
       publishyear: parseInt(game.yearpublished.value),
       description: htmlDecode(game.description),
-      tags
+      tags,
+      expansions: [],
+      isExpansionFor: []
     }
   })
 }
 
 export default {
+  validTagTypes,
+
   // TODO: could be a max number of games in one query, might need to do batches
   async getGameInfo(gameIds) {
     const strung = gameIds.join()
