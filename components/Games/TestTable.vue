@@ -110,6 +110,18 @@
                     <GamesSortIcon :order="sortOrder" />
                 </template>
             </Column>
+
+
+
+            <!-- Tags -->
+            <Column>
+                <template #header>
+                    <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" size="2x" />
+                </template>
+                <template #body="{ data }">
+                    <Tag v-for="tag in data.tags" :value='tag.value' class="game-tag"></Tag>
+                </template>
+            </Column>
         </DataTable>
     </div>
 </template>
@@ -118,6 +130,7 @@
 import blankFilters from './filters'
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Tag from 'primevue/tag'
 import Row from 'primevue/row';                   // optional
 
 
@@ -186,5 +199,9 @@ const formatPlaytime = (game) => {
 
 .game-table {
     font-size: x-small;
+}
+
+.game-tag {
+    margin: 2px
 }
 </style>

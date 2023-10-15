@@ -28,7 +28,6 @@
     "pg": "^8.10.0",
     "primeicons": "^6.0.1",
     "primevue": "^3.33.0",
-    "slugify": "^1.6.6",
-    "vue-toast-notification": "3.0"
+    "slugify": "^1.6.6"
   }
 }

@@ -1,5 +1,6 @@
 <template>
     <div>
+        <Toast />
         <Header />
         <div class="content">
             <slot />
@@ -8,6 +9,7 @@
 </template>
 
 <script setup>
+
     
 </script>
 

@@ -11,7 +11,8 @@
 </template>
 
 <script setup>
-
+import {useToast} from 'primevue/usetoast'
+const toast = useToast()
 const props = defineProps(['game'])
 
 async function addGame() {
@@ -22,14 +23,14 @@ async function addGame() {
     })).data.value
     if(res.err) {
       console.error(res.msg)
-      $toast.error(`Could not add ${newGame.name} to your library`)
+      toast.add({ severity: 'error', summary: 'Oops', detail: `Could not add ${newGame.name} to your library`, life: 3000 })
     } else {
       const newGame = props.game
       props.game.owns = true
       newGame.id = res.newID
       const allGames = useState('games')
       allGames.value.unshift(newGame)
-      $toast.success(`<b>${newGame.name}</b> added to your library`)
+      toast.add({ severity: 'success', summary: `${newGame.name} added to your library`, life: 3000 })
     }
 }
 

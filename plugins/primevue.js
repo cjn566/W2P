@@ -8,6 +8,8 @@ import Dropdown from 'primevue/dropdown';
 import Tag from 'primevue/tag';
 import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
+import Toast from 'primevue/toast';
+import ToastService from 'primevue/toastservice';
 
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -21,5 +23,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     nuxtApp.vueApp.component("Tag", Tag);
     nuxtApp.vueApp.component("InputNumber", InputNumber);
     nuxtApp.vueApp.component("Calendar", Calendar);
+    nuxtApp.vueApp.component("Toast", Toast);
+    nuxtApp.vueApp.use(ToastService)
     //other components that you need
 });

@@ -16,7 +16,8 @@
 
 <script setup>
 import bgg from '../../utils/boardgamegeek'
-const { $toast } = useNuxtApp()
+import {useToast} from 'primevue/usetoast'
+const toast = useToast()
 
 const username = ref('')
 const collectionGames = ref([])
@@ -41,7 +42,7 @@ async function getCollection() {
     try {
         collectionGames.value = await bgg.getCollection(username.value)
     } catch (e) {
-        $toast.open({message: "Could not load this collection. Is the username correct?", type: "error"})
+        toast.add({ severity: 'error', summary: 'Import Failed', detail: 'Is the username correct?', life: 3000 });
     }
 }
 
@@ -55,13 +56,13 @@ async function addAllUnowned() {
         })).data.value
     res.forEach((r)=> {
         if (r.err && r. msg == "duplicate") {
-            $toast.error('That game was already in your library')
+            toast.add({ severity: 'error', summary: 'Cannot add that game', detail: 'That game was already in your library', life: 3000 })
         } else {
             let g = unOwnedGames.value.find(x => x.bgg_game_id == r.bgg_game_id)
             g.owns = true
             g.id = r.newID
             allGames.value.unshift(g)
-            $toast.success(`<b>${g.name}</b> was added to your library.`)
+            toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
         }
     })
 }

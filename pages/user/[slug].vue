@@ -5,8 +5,8 @@
   <div v-else>
     <!-- <UserBio :user="userData.user"/>
     <p v-if="userData.isSelf">This is your profile</p>
-    <p v-else>This is not your profile</p> -->
-    <pre>{{ tags }}</pre>
+    <p v-else>This is not your profile</p>
+    <pre>{{ tags }}</pre> -->
     <button @click="btnEditGames">Edit games</button>
     <button v-if="editingGames" type="button" class="btn btn-success" data-bs-toggle="modal"
       data-bs-target="#gameSearchModal">
@@ -20,7 +20,6 @@
 
 <script setup>
 import bgg from '../../utils/boardgamegeek'
-const { $toast } = useNuxtApp()
 
 definePageMeta({ auth: false })
 
@@ -28,7 +27,7 @@ const userData = (await useFetch('/api/user/' + useRoute().params.slug)).data.va
 
 // Load Game Library
 let gameData = []
-if (!userData.err_code && userData.games.length) {
+if (!userData?.err_code && userData?.games.length) {
   const gameIds = userData.games.map((game) => game.bgg_game_id)
   gameData = await bgg.getGameInfo(gameIds)
   gameData.map((game) => {
@@ -39,7 +38,27 @@ if (!userData.err_code && userData.games.length) {
 }
 const games = useState('games', () => gameData)
 
-function buildTags() {
+
+function connectExpansions() {
+  const exps = games.value.filter(g => g.type==="boardgameexpansion")
+  exps.forEach((expansion) => {
+    let basegameTags = expansion.tags.filter(t => t.type==="boardgameexpansion" && t.inbound)
+    basegameTags.forEach((tag)=>{
+      const baseGame = games.value.find(game => game.bgg_game_id===tag.id)
+      if(baseGame){
+        baseGame.expansions.push(expansion.bgg_game_id)
+        expansion.isExpansionFor.push(baseGame.bgg_game_id)
+      }
+    })
+  })
+}
+connectExpansions()
+
+const expGames = games.value.filter((g) => {
+  return g.expansions.length || g.isExpansionFor.length
+})
+
+const tags = computed(()=>{
   const tags = {}
   for (const key of bgg.validTagTypes) {
     tags[key] = {}
@@ -74,28 +93,7 @@ function buildTags() {
   }
 
   return tags
-}
-
-function connectExpansions() {
-  const exps = games.value.filter(g => g.type==="boardgameexpansion")
-  exps.forEach((expansion) => {
-    let basegameTags = expansion.tags.filter(t => t.type==="boardgameexpansion" && t.inbound)
-    basegameTags.forEach((tag)=>{
-      const baseGame = games.value.find(game => game.bgg_game_id===tag.id)
-      if(baseGame){
-        baseGame.expansions.push(expansion.bgg_game_id)
-        expansion.isExpansionFor.push(baseGame.bgg_game_id)
-      }
-    })
-  })
-}
-connectExpansions()
-
-const expGames = games.value.filter((g) => {
-  return g.expansions.length || g.isExpansionFor.length
 })
-
-const tags = ref(buildTags())
 
 const editingGames = useState('editingGames', () => true)
 
