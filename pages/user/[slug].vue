@@ -5,8 +5,8 @@
   <div v-else>
     <!-- <UserBio :user="userData.user"/>
     <p v-if="userData.isSelf">This is your profile</p>
-    <p v-else>This is not your profile</p>
-    <pre>{{ tags }}</pre> -->
+    <p v-else>This is not your profile</p> -->
+    <pre>{{ tags }}</pre>
     <button @click="btnEditGames">Edit games</button>
     <button v-if="editingGames" type="button" class="btn btn-success" data-bs-toggle="modal"
       data-bs-target="#gameSearchModal">
@@ -19,86 +19,27 @@
 </template>
 
 <script setup>
-import bgg from '../../utils/boardgamegeek'
+// import {fetchGames, tags, games, dev_expGames} from '~/composables/useGames'
+import boop from '~/composables/useGames'
+
 
 definePageMeta({ auth: false })
 
-const userData = (await useFetch('/api/user/' + useRoute().params.slug)).data.value
 
-// Load Game Library
-let gameData = []
+const route = useRoute()
+console.log(route.params.slug)
+
+let userData = (await useFetch('/api/user/' + route.params.slug)).data.value
+
 if (!userData?.err_code && userData?.games.length) {
-  const gameIds = userData.games.map((game) => game.bgg_game_id)
-  gameData = await bgg.getGameInfo(gameIds)
-  gameData.map((game) => {
-    let g = userData.games.find((x) => x.bgg_game_id == game.bgg_game_id)
-    game.userGameId = g.id
-    return game
-  })
+  boop.fetchGames(userData.games)
 }
-const games = useState('games', () => gameData)
 
-
-function connectExpansions() {
-  const exps = games.value.filter(g => g.type==="boardgameexpansion")
-  exps.forEach((expansion) => {
-    let basegameTags = expansion.tags.filter(t => t.type==="boardgameexpansion" && t.inbound)
-    basegameTags.forEach((tag)=>{
-      const baseGame = games.value.find(game => game.bgg_game_id===tag.id)
-      if(baseGame){
-        baseGame.expansions.push(expansion.bgg_game_id)
-        expansion.isExpansionFor.push(baseGame.bgg_game_id)
-      }
-    })
-  })
-}
-connectExpansions()
-
-const expGames = games.value.filter((g) => {
-  return g.expansions.length || g.isExpansionFor.length
-})
-
-const tags = computed(()=>{
-  const tags = {}
-  for (const key of bgg.validTagTypes) {
-    tags[key] = {}
-  }
-
-  games.value.map((game) => {
-    game.tags.map((t) => {
-      if (tags[t.type].hasOwnProperty(t.id)) {
-        tags[t.type][t.id].count++
-      } else {
-        tags[t.type][t.id] = {
-          value: t.value,
-          count: 1
-        }
-      }
-    })
-  })
-
-  for(const type in tags){
-    const arr = []
-    for(const id in tags[type]){
-      arr.push({
-        id,
-        value: tags[type][id].value,
-        count: tags[type][id].count
-      })
-    }
-    tags[type] = arr
-    tags[type].sort((a,b)=>{
-      return b.count - a.count
-    })
-  }
-
-  return tags
-})
 
 const editingGames = useState('editingGames', () => true)
 
 const hasGames = computed(() => {
-  return games.value.length > 0
+  return boop.games.value.length > 0
 })
 
 function btnEditGames(event) {

@@ -43,6 +43,9 @@
 </template>
 
 <script setup>
+
+
+import boop from '~/composables/useGames'
 import { debounce } from "debounce"
 import bgg from '../../utils/boardgamegeek'
 
@@ -50,7 +53,6 @@ const results = ref([])
 const exact = ref(false)
 const boardgameVsExpansion = ref('boardgame')
 const queryText = ref('')
-const ownedGames = useState('games')
 
 const displayGames = computed(() => {
     return results.value.filter(game => game.type == boardgameVsExpansion.value)
@@ -64,7 +66,7 @@ async function gameSearch() {
     }
     const res = await bgg.gameSearch(queryText.value.trim(), exact.value)
     results.value = res.map(game => {
-        game.owns = ownedGames.value.some(x => x.bgg_game_id == game.bgg_game_id)
+        game.owns = boop.games.value.some(x => x.bgg_game_id == game.bgg_game_id)
         return game
     })
 }

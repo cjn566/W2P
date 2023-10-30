@@ -1,6 +1,6 @@
 
 import fromXML from './xml2json'
-//import {entities} from 'entities'
+import makeArray from './makearray'
 
 async function bggQuery(url, errTitle = "Error", errMsg = "Oops. Something went wrong") {
   try {
@@ -18,15 +18,15 @@ function htmlDecode(input) {
   var doc = new DOMParser().parseFromString(input, "text/html");
   return doc.documentElement.textContent;
 }
+    
+const validTagTypes = ['boardgamecategory', 'boardgamemechanic', 'boardgameexpansion', 'boardgamefamily']
 
 function makeArray(x) {
   if (!Array.isArray(x)) {
-    x = [x]
+          x = [x]
+      }
+      return x
   }
-  return x
-}
-    
-const validTagTypes = ['boardgamecategory', 'boardgamemechanic', 'boardgameexpansion', 'boardgamefamily']
 
 function mapGameObjects(gamesXML) {
   return gamesXML.map((game) => {
@@ -73,23 +73,24 @@ function mapGameObjects(gamesXML) {
       publishyear: parseInt(game.yearpublished.value),
       description: htmlDecode(game.description),
       tags,
-      expansions: [],
+      ownedExpansions: [],
       isExpansionFor: []
     }
   })
 }
 
+// TODO: could be a max number of games in one query, might need to do batches
+async function getGameInfo(gameIds) {
+  const strung = gameIds.join()
+  const url = `thing?id=${strung}&stats=1`
+  const results = await bggQuery(url)
+  const gamesXML = makeArray(results.items.item)
+  return mapGameObjects(gamesXML)
+}
+
 export default {
   validTagTypes,
-
-  // TODO: could be a max number of games in one query, might need to do batches
-  async getGameInfo(gameIds) {
-    const strung = gameIds.join()
-    const url = `thing?id=${strung}&stats=1`
-    const results = await bggQuery(url)
-    const gamesXML = makeArray(results.items.item)
-    return mapGameObjects(gamesXML)
-  },
+  getGameInfo,  
 
   async gameSearch(query, exact = false) {
     let url = `search?query=${query}&type=boardgame&exact=${exact ? '1' : '0'}`

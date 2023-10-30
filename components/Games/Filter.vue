@@ -28,27 +28,28 @@
 import blankFilters from './filters'
 import Fieldset from 'primevue/fieldset'
 import Divider from 'primevue/divider';
-const games = useState('games')
+
+import boop from '~/composables/useGames'
 
 const currentYear = new Date().getFullYear()
 
 const mostTime = computed(()=>{
-    return games.value.reduce((minutes, game)=>{
+    return boop.games.value.reduce((minutes, game)=>{
         return game.playtime.max > minutes? game.playtime.max : minutes
     }, 0)
 })
 const oldestAge = computed(()=>{
-    return games.value.reduce((age, game)=>{
+    return boop.games.value.reduce((age, game)=>{
         return game.age > age? game.age : age
     }, 0)
 })
 const newestGame = computed(()=>{
-    return games.value.reduce((year, game)=>{
+    return boop.games.value.reduce((year, game)=>{
         return (game.publishyear > year)? game.publishyear : year
     }, 0)
 })
 const oldestGame = computed(()=>{
-    return games.value.reduce((year, game)=>{
+    return boop.games.value.reduce((year, game)=>{
         return (
             (game.publishyear > 0) && 
             (game.publishyear < year) &&

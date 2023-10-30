@@ -9,23 +9,24 @@
             Found {{ numCollectionGames }} games in this BGG collection, of which {{ unOwnedGames?.length }} are
             not yet in your library.
         </div>
-        <button v-show="numCollectionGames" @click="addAllUnowned">Add all to library</button>
+        <button v-show="numCollectionGames" @click="boop.addGames(unOwnedGames)">Add all to library</button>
         <ModalSearchResult v-for="game in displayGames" key="game.bgg_game_id" :game="game" />
     </div>
 </template>
 
 <script setup>
+// import {addGames, games} from '~/composables/useGames'
+import boop from '~/composables/useGames'
 import bgg from '../../utils/boardgamegeek'
 import {useToast} from 'primevue/usetoast'
 const toast = useToast()
 
 const username = ref('')
 const collectionGames = ref([])
-const ownedGames = useState('games')
 
 const displayGames = computed(() => {
     return collectionGames.value.map(game => {
-        game.owns = ownedGames.value.some(x => x.bgg_game_id == game.bgg_game_id)
+        game.owns = boop.games.value.some(x => x.bgg_game_id == game.bgg_game_id)
         return game
     })
 })
@@ -46,26 +47,6 @@ async function getCollection() {
     }
 }
 
-async function addAllUnowned() {
-    const gameIDs = unOwnedGames.value.map(x => x.bgg_game_id)
-    const allGames = useState('games')
-    const res = (await useFetch('/api/collection/add',
-        {
-            method: 'post',
-            body: gameIDs
-        })).data.value
-    res.forEach((r)=> {
-        if (r.err && r. msg == "duplicate") {
-            toast.add({ severity: 'error', summary: 'Cannot add that game', detail: 'That game was already in your library', life: 3000 })
-        } else {
-            let g = unOwnedGames.value.find(x => x.bgg_game_id == r.bgg_game_id)
-            g.owns = true
-            g.id = r.newID
-            allGames.value.unshift(g)
-            toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
-        }
-    })
-}
 
 </script>
 

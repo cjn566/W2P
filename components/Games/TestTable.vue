@@ -6,7 +6,7 @@
             class="game-table" size="large" @update:sortOrder="(order) => {sortOrder = order}">
 
             <template #header>
-                Showing {{ displayGames.length }} of {{ games.length }} games.
+                Showing {{ displayGames.length }} of {{ boop.games.length }} games.
                 <!-- 
                 <div class="flex justify-content-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -127,6 +127,7 @@
 </template>
 
 <script setup>
+import boop from '~/composables/useGames'
 import blankFilters from './filters'
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -134,13 +135,11 @@ import Tag from 'primevue/tag'
 import Row from 'primevue/row';                   // optional
 
 
-
-const games = useState('games')
 const filters = useState('filters', blankFilters)
 
 const displayGames = computed(()=>{
-    if(!filters.value.areSet) return games.value
-    return games.value.filter((game) =>{
+    if(!filters.value.areSet) return boop.games.value
+    return boop.games.value.filter((game) =>{
         if(filters.value.rating       && game.rating          < filters.value.rating)       return false
         if(filters.value.complexity[0] > 0 && game.complexity      < filters.value.complexity[0]) return false
         if(filters.value.complexity[1] < 5 && game.complexity      > filters.value.complexity[1]) return false
