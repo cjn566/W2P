@@ -1,13 +1,16 @@
 
-import bgg from '~/utils/boardgamegeek'
-import makeArray from '~/utils/makearray'
+import { validTagTypes, getGameInfo } from '~/utils/boardgamegeek'
+import { makeArray } from '~/utils/makearray'
 // import { useToast } from 'primevue/usetoast'
 // const toast = useToast()
 
-const games = ref([])
+export const gamesReady = ref(false)
 
-async function fetchGames(userGames) {
-  const gameData = await bgg.getGameInfo(userGames.map((game) => game.bgg_game_id))
+export const games = ref([])
+
+export async function fetchGames(userGames) {
+  gamesReady.value = false
+  const gameData = await getGameInfo(userGames.map((game) => game.bgg_game_id))
   games.value = gameData.map((g) => {
     g.userGameId = userGames.find((x) => x.bgg_game_id == g.bgg_game_id).id
     return g
@@ -15,7 +18,8 @@ async function fetchGames(userGames) {
   mapExpansions()
 }
 
-async function addGames(games) {
+export async function addGames(games) {
+  gamesReady.value = false
   games = makeArray(games)
   const gameIDs = games.value.map(x => x.bgg_game_id)
   const res = (await useFetch('/api/collection/add',
@@ -48,35 +52,42 @@ function mapExpansions() {
   })
   const exps = games.value.filter(g => g.type === "boardgameexpansion")
   exps.forEach((expansion) => {
-    let basegameTags = expansion.tags.filter(t => t.type === "boardgameexpansion" && t.inbound)
-    basegameTags.forEach((tag) => {
-      const baseGame = games.value.find(game => game.bgg_game_id === tag.id)
+    expansion.canExpandGameId.forEach((gid) => {
+      const baseGame = games.value.find(game => game.bgg_game_id === gid)
       if (baseGame) {
         baseGame.ownedExpansions.push(expansion.userGameId)
         expansion.isExpansionFor.push(baseGame.userGameId)
       }
     })
   })
+  gamesReady.value = true
 }
 
-const dev_expGames = computed(()=>{
-   games.value.filter((g) => {  return g.expansions.length || g.isExpansionFor.length })
+export const dev_expGames = computed(()=>{
+  return games.value.filter((g) => {  return g.ownedExpansions?.length || g.isExpansionFor?.length })
+  .map((g) => { return {
+    name: g.name,
+    ownedExpansions: g.ownedExpansions,
+    isExpansionFor: g.isExpansionFor
+  }})
 })
 
-const tags = computed(() => {
+export const tags = computed(() => {
   const tags = {}
-  for (const key of bgg.validTagTypes) {
+  for (const key of validTagTypes) {
     tags[key] = {}
   }
 
-  games.value.map((g) => {
-    g.tags.map((t) => {
-      if (tags[t.type].hasOwnProperty(t.id)) {
-        tags[t.type][t.id].count++
-      } else {
-        tags[t.type][t.id] = {
-          value: t.value,
-          count: 1
+  games.value.forEach((g) => {
+    validTagTypes.forEach((type) => {
+      for(const linkId in g[type]){
+        if (tags[type].hasOwnProperty(linkId)) {
+          tags[type][linkId].count++
+        } else {
+          tags[type][linkId] = {
+            name: g[type][linkId].value,
+            count: 1
+          }
         }
       }
     })
@@ -87,7 +98,7 @@ const tags = computed(() => {
     for (const id in tags[type]) {
       arr.push({
         id,
-        value: tags[type][id].value,
+        name: tags[type][id].name,
         count: tags[type][id].count
       })
     }
@@ -99,11 +110,3 @@ const tags = computed(() => {
 
   return tags
 })
-
-export default {
-  addGames,
-  games,
-  dev_expGames,
-  fetchGames,
-  tags
-}

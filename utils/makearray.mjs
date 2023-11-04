@@ -1,4 +1,4 @@
-export default function makeArray(x) {
+export function makeArray(x) {
 if (!Array.isArray(x)) {
         x = [x]
     }

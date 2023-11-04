@@ -1,8 +1,8 @@
 <template>
     <div>
         <div class="form-floating">
-            <input class="form-control" ref="search-box" v-on:input="debounce(gameSearch, 500)" v-model="queryText"
-                id="inputGameSearch" v-on:keyup.enter="gameSearch" type="search" />
+            <input class="form-control" ref="search-box" v-on:input="debounce(searchGames, 500)" v-model="queryText"
+                id="inputGameSearch" v-on:keyup.enter="searchGames" type="search" />
             <label for="inputGameSearch">Game</label>
         </div>
 
@@ -45,9 +45,9 @@
 <script setup>
 
 
-import boop from '~/composables/useGames'
+import { games } from '~/composables/useGames'
 import { debounce } from "debounce"
-import bgg from '../../utils/boardgamegeek'
+import { gameSearch } from '../../utils/boardgamegeek'
 
 const results = ref([])
 const exact = ref(false)
@@ -59,14 +59,14 @@ const displayGames = computed(() => {
 })
 
 
-async function gameSearch() {
+async function searchGames() {
     // return if not at least 2chars in the search
     if (queryText.value.length < 2) {
         return
     }
-    const res = await bgg.gameSearch(queryText.value.trim(), exact.value)
+    const res = await gameSearch(queryText.value.trim(), exact.value)
     results.value = res.map(game => {
-        game.owns = boop.games.value.some(x => x.bgg_game_id == game.bgg_game_id)
+        game.owns = games.value.some(x => x.bgg_game_id == game.bgg_game_id)
         return game
     })
 }

@@ -2,6 +2,7 @@ export default function blankFilters() {
     return {
         areSet: false,
         search: '',
+        tags: [],
         rating: 0,
         complexity: [0,5],
         players: 0,

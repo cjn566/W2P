@@ -1,13 +1,12 @@
 <template>
     <div>
-        <GamesFilter />
-        <DataTable :value="displayGames" dataKey="userGameId" showGridlines stripedRows scrollable scroll-height="90vh"
+        <DataTable :value="props.displayGames" dataKey="userGameId" showGridlines stripedRows scrollable scroll-height="90vh"
             :default-sort-order="-1"
             class="game-table" size="large" @update:sortOrder="(order) => {sortOrder = order}">
 
             <template #header>
-                Showing {{ displayGames.length }} of {{ boop.games.length }} games.
-                <!-- 
+                <!-- Showing {{ displayGames.length }} of {{ games.length }} games.
+                
                 <div class="flex justify-content-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
                     <Button type="button" icon="pi pi-filter-slash" label="Change" outlined @click="sortGames()" />
@@ -127,33 +126,12 @@
 </template>
 
 <script setup>
-import boop from '~/composables/useGames'
-import blankFilters from './filters'
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Tag from 'primevue/tag'
 import Row from 'primevue/row';                   // optional
 
-
-const filters = useState('filters', blankFilters)
-
-const displayGames = computed(()=>{
-    if(!filters.value.areSet) return boop.games.value
-    return boop.games.value.filter((game) =>{
-        if(filters.value.rating       && game.rating          < filters.value.rating)       return false
-        if(filters.value.complexity[0] > 0 && game.complexity      < filters.value.complexity[0]) return false
-        if(filters.value.complexity[1] < 5 && game.complexity      > filters.value.complexity[1]) return false
-        if(filters.value.players      && (game.players.min    > filters.value.players 
-                                || game.players.max     < filters.value.players))     return false
-        if(filters.value.time[0]       && game.playtime.min    < filters.value.time[0])       return false
-        if(filters.value.time[1]       && game.playtime.max    > filters.value.time[1])       return false
-        if(filters.value.age[0]        && game.age             < filters.value.age[0])        return false
-        if(filters.value.age[1]        && game.age             > filters.value.age[1])        return false
-        if(filters.value.year[0]       && game.publishyear     < filters.value.year[0])       return false
-        if(filters.value.year[1]       && game.publishyear     > filters.value.year[1])       return false
-        return true
-    })
-})
+const props = defineProps(['displayGames'])
 
 let sortOrder = 0
 

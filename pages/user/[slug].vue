@@ -5,42 +5,44 @@
   <div v-else>
     <!-- <UserBio :user="userData.user"/>
     <p v-if="userData.isSelf">This is your profile</p>
-    <p v-else>This is not your profile</p> -->
-    <pre>{{ tags }}</pre>
+    <p v-else>This is not your profile</p
+    <pre>{{ dev_expGames }}</pre> >-->
     <button @click="btnEditGames">Edit games</button>
     <button v-if="editingGames" type="button" class="btn btn-success" data-bs-toggle="modal"
       data-bs-target="#gameSearchModal">
       +
     </button>
-    <GamesTestTable v-if="hasGames" />
-    <span v-else>This user has no games yet.</span>
+    <GamesFilter v-if="gamesReady"  />
+    <span v-else>Loading...</span>
+    <span v-if="!hasGames">{{userData.isSelf ? "You have" : "This user has"}} no games yet.</span>
     <ModalAddGames />
   </div>
 </template>
 
 <script setup>
-// import {fetchGames, tags, games, dev_expGames} from '~/composables/useGames'
-import boop from '~/composables/useGames'
+import {fetchGames, tags, games, dev_expGames} from '~/composables/useGames'
 
 
-definePageMeta({ auth: false })
+
+// definePageMeta({ auth: false })
 
 
 const route = useRoute()
-console.log(route.params.slug)
 
 let userData = (await useFetch('/api/user/' + route.params.slug)).data.value
 
-if (!userData?.err_code && userData?.games.length) {
-  boop.fetchGames(userData.games)
+const hasGames = computed(() => {
+  return userData?.games.length > 0
+})
+
+if (!userData?.err_code && hasGames.value) {
+  fetchGames(userData.games)
 }
 
 
 const editingGames = useState('editingGames', () => true)
 
-const hasGames = computed(() => {
-  return boop.games.value.length > 0
-})
+
 
 function btnEditGames(event) {
   editingGames.value = editingGames.value ? false : true
