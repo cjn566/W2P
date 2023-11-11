@@ -96,25 +96,27 @@ const filteredGames = ref([...games.value])
 
 const tags = ref(tagList(games.value))
 
+// Makes a descending sorted array 
+// [game, sorted value of key]
 function makeIndex(key) {
     return games.value.map((g) => [g, g[key]]).sort((a, b) => (b[1] - a[1]))
 }
 
 const indices = computed(()=>{
-    return {
-        rating: makeIndex('rating'),
-        complexity: makeIndex('complexity'),
-        playersMin: makeIndex('playersMin'),
-        playersMax: makeIndex('playersMax'),
-        playtimeMin: makeIndex('playtimeMin'),
-        playtimeMax: makeIndex('playtimeMax'),
-        age: makeIndex('age'),
-        publishyear: makeIndex('publishyear')
-    }
+    return [
+        makeIndex('rating'),        // 0
+        makeIndex('complexity'),    // 1
+        makeIndex('playersMin'),    // 3
+        makeIndex('playersMax'),    // 4
+        makeIndex('playtimeMin'),   // 5
+        makeIndex('playtimeMax'),   // 6
+        makeIndex('age'),           // 7
+        makeIndex('publishyear')    // 8
+    ]
 })
 
-function filterOnField(idx, value) {
-    indices
+function filterOnField(idx, value, isLessThan) {
+    indices[idx].findIndex(g => g[1] >= value)
 }
 
 function applyFilter() {
