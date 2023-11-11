@@ -11,7 +11,7 @@
         <td>{{ game.rating }}</td>
         <td>{{ game.complexity }}</td>
         <td>
-            {{ game.minplayers == game.maxplayers ? game.minplayers : `${game.minplayers} - ${game.maxplayers}` }}
+            {{ game.playersMin == game.playersMax ? game.playersMin : `${game.playersMin} - ${game.playersMax}` }}
         </td>
         <td>{{ formatPlaytime }}</td>
         <td>{{ game.minage }}y</td>

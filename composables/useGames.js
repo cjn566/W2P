@@ -72,13 +72,13 @@ export const dev_expGames = computed(()=>{
   }})
 })
 
-export const tags = computed(() => {
+export function tagList(gameList) {
   const tags = {}
   for (const key of validTagTypes) {
     tags[key] = {}
   }
 
-  games.value.forEach((g) => {
+  gameList.forEach((g) => {
     validTagTypes.forEach((type) => {
       for(const linkId in g[type]){
         if (tags[type].hasOwnProperty(linkId)) {
@@ -109,4 +109,4 @@ export const tags = computed(() => {
   }
 
   return tags
-})
+}

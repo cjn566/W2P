@@ -54,14 +54,10 @@ function mapGameObjects(gamesXML) {
       rating: Number(parseFloat(game.statistics.ratings.bayesaverage.value).toFixed(1)),
       ratingVotes: parseInt(game.statistics.ratings.usersrated.value),
       rank,
-      players: {
-        min: parseInt(game.minplayers.value),
-        max: parseInt(game.maxplayers.value)
-      },
-      playtime: {
-        min: parseInt(game.minplaytime.value),
-        max: parseInt(game.maxplaytime.value)
-      },
+      playersMin:parseInt(game.minplayers.value),
+      playersMax: parseInt(game.maxplayers.value),
+      playtimeMin: parseInt(game.minplaytime.value),
+      playtimeMax: parseInt(game.maxplaytime.value),
       age: parseInt(game.minage.value),
       publishyear: parseInt(game.yearpublished.value),
       description: htmlDecode(game.description)

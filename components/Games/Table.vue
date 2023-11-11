@@ -199,7 +199,7 @@ const clearFilter = () => {
 }
 
 const formatPlayers = (game) => {
-    return game.players.min == game.players.max ? game.players.min : `${game.players.min} - ${game.players.max}`
+    return game.playersMin == game.playersMax ? game.playersMin : `${game.playersMin} - ${game.playersMax}`
 }
 
 const formatPlaytime = (game) => {

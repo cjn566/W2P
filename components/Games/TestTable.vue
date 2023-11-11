@@ -137,26 +137,26 @@ let sortOrder = 0
 
 const sortPlayers = (game) => {
     if(sortOrder > 0){
-        return game.players.min + (game.players.max / 100)
+        return game.playersMin + (game.playersMax / 100)
     } else {
-        return game.players.max  + (game.players.min / 100)
+        return game.playersMax  + (game.playersMin / 100)
     }
 }
 const sortPlaytime = (game) => {
     if(sortOrder > 0){
-        return game.playtime.min + (game.playtime.max / 1000)
+        return game.playtimeMin + (game.playtimeMax / 1000)
     } else {
-        return game.playtime.max  + (game.playtime.min / 1000)
+        return game.playtimeMax  + (game.playtimeMin / 1000)
     }
 }
 
 const formatPlayers = (game) => {
-    return game.players.min == game.players.max ? game.players.min : `${game.players.min} - ${game.players.max}`
+    return game.playersMin == game.playersMax ? game.playersMin : `${game.playersMin} - ${game.playersMax}`
 }
 
 const formatPlaytime = (game) => {
-    if(!game.playtime.min) return 'n/a'
-    return game.playtime.min == game.playtime.max ? game.playtime.min + 'm' : `${game.playtime.min} - ${game.playtime.max}m`
+    if(!game.playtimeMin) return 'n/a'
+    return game.playtimeMin == game.playtimeMax ? game.playtimeMin + 'm' : `${game.playtimeMin} - ${game.playtimeMax}m`
 }
 
 
