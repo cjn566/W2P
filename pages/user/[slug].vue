@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import {fetchGames,  games, dev_expGames} from '~/composables/useGames'
+import {fetchGames, gamesReady} from '~/composables/useGames'
 
 
 

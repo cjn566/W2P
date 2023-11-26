@@ -98,12 +98,12 @@
             </Column>
 
             <!-- Year Published -->
-            <Column field="publishyear" sortable>
+            <Column field="year" sortable>
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" size="2x" />
                 </template>
                 <template #body="{ data }">
-                    {{ data.publishyear ? data.publishyear : "n/a" }}
+                    {{ data.year ? data.year : "n/a" }}
                 </template>
                 <template #sorticon="{ sortOrder }">
                     <GamesSortIcon :order="sortOrder" />

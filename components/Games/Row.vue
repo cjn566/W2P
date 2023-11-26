@@ -15,7 +15,7 @@
         </td>
         <td>{{ formatPlaytime }}</td>
         <td>{{ game.minage }}y</td>
-        <td>{{ game.publishyear }}</td>
+        <td>{{ game.year }}</td>
     </tr>
     <tr v-else>
         <td colspan="9" class="card__row">
@@ -25,7 +25,7 @@
                         <img class="card__image" :src="game.image" alt="" loading="lazy">
                         <div class="card__values__column">
                             <p>
-                                <GamesLink :game="game" /> ({{ game.publishyear }})
+                                <GamesLink :game="game" /> ({{ game.year }})
                             </p>
                             <p>Rank: {{ game.rank }}</p>
                             <p>Rating: {{ game.rating }}</p>

@@ -21,7 +21,7 @@
                                 <img class="card__image" :src="slotProps.data.image" alt="" loading="lazy">
                                 <div class="card__values__column">
                                     <p>
-                                        <GamesLink :game="slotProps.data" /> ({{ slotProps.data.publishyear }})
+                                        <GamesLink :game="slotProps.data" /> ({{ slotProps.data.year }})
                                     </p>
                                     <p>Rank: {{ slotProps.data.rank }}</p>
                                     <p>Rating: {{ slotProps.data.rating }}</p>
@@ -117,12 +117,12 @@
                 </template>
             </Column>
 
-            <Column field="publishyear" sortable filterField="year" :filterMenuStyle="{ width: '14rem' }">
+            <Column field="year" sortable filterField="year" :filterMenuStyle="{ width: '14rem' }">
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" size="2x"/>
                 </template>
                 <template #body="{ data }">
-                    {{ data.publishyear ? data.publishyear : "N/A" }}
+                    {{ data.year ? data.year : "N/A" }}
                 </template>
                 <template #sorticon="{ sortOrder }">
                     <GamesSortIcon :order="sortOrder"/>

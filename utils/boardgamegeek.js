@@ -59,7 +59,7 @@ function mapGameObjects(gamesXML) {
       playtimeMin: parseInt(game.minplaytime.value),
       playtimeMax: parseInt(game.maxplaytime.value),
       age: parseInt(game.minage.value),
-      publishyear: parseInt(game.yearpublished.value),
+      year: parseInt(game.yearpublished.value),
       description: htmlDecode(game.description)
     }
 

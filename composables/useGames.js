@@ -18,10 +18,10 @@ export async function fetchGames(userGames) {
   mapExpansions()
 }
 
-export async function addGames(games) {
+export async function addGames(newGames) {
   gamesReady.value = false
-  games = makeArray(games)
-  const gameIDs = games.value.map(x => x.bgg_game_id)
+  newGames = makeArray(newGames)
+  const gameIDs = newGames.map(x => x.bgg_game_id)
   const res = (await useFetch('/api/collection/add',
     {
       method: 'post',
@@ -29,13 +29,13 @@ export async function addGames(games) {
     })).data.value
   res.forEach((r) => {
     if (r.err && r.msg == "duplicate") {
-      toast.add({ severity: 'error', summary: 'Cannot add that game', detail: 'That game was already in your library', life: 3000 })
+      // toast.add({ severity: 'error', summary: 'Cannot add that game', detail: 'That game was already in your library', life: 3000 })
     } else {
-      let g = games.value.find(x => x.bgg_game_id == r.bgg_game_id)
+      let g = newGames.find(x => x.bgg_game_id == r.bgg_game_id)
       g.owns = true
       g.id = r.newID
       games.value.unshift(g)
-      toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
+      // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
     }
   })
   mapExpansions()
@@ -82,11 +82,11 @@ export function tagList(gameList) {
     validTagTypes.forEach((type) => {
       for(const linkId in g[type]){
         if (tags[type].hasOwnProperty(linkId)) {
-          tags[type][linkId].count++
+          tags[type][linkId].members.push(g.userGameId)
         } else {
           tags[type][linkId] = {
             name: g[type][linkId].value,
-            count: 1
+            members: [g.userGameId]
           }
         }
       }
@@ -99,12 +99,12 @@ export function tagList(gameList) {
       arr.push({
         id,
         name: tags[type][id].name,
-        count: tags[type][id].count
+        members: tags[type][id].members
       })
     }
     tags[type] = arr
     tags[type].sort((a, b) => {
-      return b.count - a.count
+      return b.members.length - a.members.length
     })
   }
 
