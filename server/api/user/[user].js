@@ -3,7 +3,7 @@ import { getServerSession } from '#auth'
 export default defineEventHandler(async (event) => {    
 
 
-    const q_result_user = (await query('SELECT name, email, set_private FROM app.users WHERE name_slug = $1', [event.context.params.user]))
+    const q_result_user = (await query('SELECT name, email, sett_private FROM app.users WHERE name_slug = $1', [event.context.params.user]))
     if(q_result_user.rowCount == 0) {
         // Could not find user
         return { err_code: 'no_user' }

@@ -34,21 +34,18 @@
 
 
 
-            <Tag v-for="tag in filters.tags" class="tag" @click="removeTag(tag[1])">
-                {{ tag[1].name }}
+            <Tag v-for="tag in filters.tags" :key="tag.id" class="tag" @click="clickedTag(tag)">
+                {{ tag.name }}
             </Tag>
             <Divider />
 
-            <div v-for="type in tagTypes">
-                <h4>{{ type.label }}</h4>
-                <ScrollPanel class="tag-scroller">
-                    <Tag v-for="tag in tags[type.key]" class="tag" @click='addTag(tag)'>
-                        {{ tag.name }}
-                        <Badge :value="tag.members.length" severity="success"></Badge>
-                    </Tag>
-                </ScrollPanel>
-                <Divider />
-            </div>
+            <ScrollPanel class="tag-scroller">
+                <Tag v-for="tag in tags" :key="tag.id" class="tag" @click='clickedTag(tag)'>
+                    {{ tag.name }}
+                    <Badge :value="tag.members.length" severity="success"></Badge>
+                </Tag>
+            </ScrollPanel>
+            <Divider />
 
 
             <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="resetFilters()" />
@@ -69,128 +66,90 @@ import { games } from '~/composables/useGames'
 
 const filtering = ref(true)
 
-const tagTypes = [
-    {
-        key: 'boardgamecategory',
-        label: "Category"
-    },
-    {
-        key: 'boardgamemechanic',
-        label: "Mechanic"
-    },
-    {
-        key: 'boardgamefamily',
-        label: "Family"
+
+function clickedTag(tag) {
+    let tagIdx = filters.value.tags.indexOf(tag)
+    let added = tagIdx === -1
+    if (added) {
+        tag.filterActive = true
+        filters.value.tags.push(tag)
+    } else {
+        tag.filterActive = false
+        filters.value.tags.splice(tagIdx, 1)
     }
-]
 
-function addTag(tag) {
-    filters.value.tags.push(tag)
-    filterOnTags(tag, true)
-}
-
-function removeTag(tag) {
-    filters.value.tags = filters.value.tags.filter(t => tag !== t)
-    filterOnTags(tag, false)
-}
-
-
-function filterOnTags(tag, added) {
-    for (const gfs of tag.members) {
-        let t = gfs.filterSet[tag.id]
-        if (added) {
-            if (!t) {
-                t = true
-                checkFilters(gfs)
-            }
-        } else {
-            if (t) {
-                t = false
-                checkFilters(gfs)
-            }
-        }
+    for (const game of tag.members) {
+        game.filters.tags[tag.id] = added
+        game.filters.passesAnyTag = Object.entries(game.filters.tags).some(x => x[1])
+        // Incorrect. when a new tag is added, a game that was previously passing all that doesn't have this tag now isnt passing all
+        game.filters.passesAllTags = !filters.value.tags.some(tag => !game.filters.tags[tag.id])
     }
 }
-
-// const filteredGames = ref([...games.value])
 
 function tagList() {
-    const tags = {}
-    for (const key of validTagTypes) {
-        tags[key] = {}
-    }
-
-    passesFilters.forEach((gfs) => {
-        validTagTypes.forEach((tagType) => {
-            for (const linkId in gfs.gameRef[tagType]) {
-                if (tags[tagType].hasOwnProperty(linkId)) {
-                    tags[tagType][linkId].members.push(gfs)
-                } else {
-                    tags[tagType][linkId] = {
-                        name: gfs.gameRef[tagType][linkId].value,
-                        members: [gfs]
-                    }
+    let tags = {}
+    games.value.forEach((game) => {
+        for (const linkId in game.tags) {
+            if (tags.hasOwnProperty(linkId)) {
+                tags[linkId].members.push(game)
+            } else {
+                tags[linkId] = {
+                    name: game.tags[linkId],
+                    members: [game]
                 }
-                gfs.filterSet[linkId] = true
             }
-        })
+            game.filters.tags[linkId] = false
+        }
     })
 
-    for (const type in tags) {
-        const arr = []
-        for (const id in tags[type]) {
+    const arr = []
+    for (const [tagId, tag] of Object.entries(tags)) {
+        if (tag.members.length > 1)
             arr.push({
-                id,
-                name: tags[type][id].name,
-                members: tags[type][id].members
+                id: tagId,
+                name: tag.name,
+                members: tag.members,
+                filterActive: false
             })
-        }
-        tags[type] = arr
-        tags[type].sort((a, b) => {
-            return b.members.length - a.members.length
-        })
     }
-
-    return tags
+    return arr.sort((a, b) => a.name.localeCompare(b.name))
 }
-
-function checkFilters(pfObj) {
-    pfObj.passesAllFilters = Object.entries(pfObj.filterSet).some(f => !f)
-}
-
-function makePF(Gs) {
-    return Gs.value.map(g => {
-        return {
-            gameRef: g,
-            filterSet: {
-                complexity: true,
-                playersMin: true,
-                playersMax: true,
-                playtimeMin: true,
-                playtimeMax: true,
-                age: true,
-                year: true,
-                tags: true
-            },
-            passesAllFilters: true
-        }
-    })
-}
-// TODO: merge these with games list
-let passesFilters = makePF(games)
 
 const tags = ref(tagList())
 
+function checkFilters(filtersObj) {
+    filtersObj.passesAll = Object.entries(filtersObj.passes).some(f => !f)
+}
+
+const checkingAllTags = ref(false)
+
+
+// TODO: add logic here to filter on tags or not
+// TODO: Check in debugger if this triggers on every update
 const filteredGames = computed(() => {
-    return passesFilters.filter(x => x.passesAllFilters).map(y => y.gameRef)
+    let checkingTags = filters.value.tags.length > 0
+    return games.value.filter(g =>
+        g.filters.passesAllSliders &&
+        (checkingTags ? 
+            ( checkingAllTags? 
+                g.filters.passesAllTags : 
+                g.filters.passesAnyTag) :
+             true)
+    )
 })
 
 // Makes a ascending sorted array 
-function makeIndex(key) {
+function makeIndex(minKey, maxKey = null) {
+    const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
     return {
         // TODO: Map these values to the I/F
         // [ref to passesFilters entry, sorted value of key]
-        sorted: passesFilters.map((pfs) => [pfs, pfs.gameRef[key]]).sort((a, b) => (a[1] - b[1])),
+        sorted: {
+            min: minSorted,
+            max: maxKey ?
+                games.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
+                : minSorted
+        },
         current: {
             min: {
                 value: null,
@@ -208,21 +167,19 @@ function makeIndex(key) {
 function makeIndices() {
     return {
         complexity: makeIndex('complexity'),
-        playersMin: makeIndex('playersMin'),
-        playersMax: makeIndex('playersMax'),
-        playtimeMin: makeIndex('playtimeMin'),
-        playtimeMax: makeIndex('playtimeMax'),
+        players: makeIndex('playersMin', 'playersMax'),
+        playtime: makeIndex('playtimeMin', 'playtimeMax'),
         age: makeIndex('age'),
         year: makeIndex('year')
     }
 }
 const indices = ref(makeIndices())
 
-watch(games, (newGames) => {
-    passesFilters = makePF(newGames)
-    indices.value = makeIndices()
-    // TODO: reset filter values
-})
+// watch(games, () => {
+//     // passesFilters = makePF(newGames)
+//     indices.value = makeIndices()
+//     // TODO: reset filter values
+// })
 
 
 
@@ -242,10 +199,10 @@ function filterOnProperty(prop, newValue, keepLessThan) {
         end = idxNewVal - 1
     }
     for (let i = 0; i < sl.length; i++) {
-        let before = sl[i][0].filterSet[prop]
-    // Todo: check inclusivity
-        sl[i][0].filterSet[prop] = keepLessThan? (i < idxNewVal) : (i > idxNewVal)
-        if(before !== sl[i][0].filterSet[prop]) checkFilters(sl[i][0])
+        let before = sl[i][0].passes[prop]
+        // Todo: check inclusivity
+        sl[i][0].passes[prop] = keepLessThan ? (i < idxNewVal) : (i > idxNewVal)
+        if (before !== sl[i][0].passes[prop]) checkFilters(sl[i][0])
     }
 }
 

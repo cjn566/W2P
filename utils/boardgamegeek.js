@@ -19,12 +19,10 @@ function htmlDecode(input) {
   return doc.documentElement.textContent;
 }
 
-export const validTagTypes = ['boardgamecategory', 'boardgamemechanic', 'boardgamefamily']
+export const validTagTypes = ['boardgamecategory', 'boardgamemechanic']
 
 function mapGameObjects(gamesXML) {
   return gamesXML.map((game) => {
-
-
 
     // Only take the primary name
     let name
@@ -60,18 +58,15 @@ function mapGameObjects(gamesXML) {
       playtimeMax: parseInt(game.maxplaytime.value),
       age: parseInt(game.minage.value),
       year: parseInt(game.yearpublished.value),
-      description: htmlDecode(game.description)
+      description: htmlDecode(game.description),
+      tags: {}
     }
 
     // Tags / links
-    validTagTypes.forEach((type) => { ret[type] = {} })
     game.link = makeArray(game.link)
     game.link.forEach((link) => {
       if (validTagTypes.includes(link.type)) {
-        ret[link.type][link.id] = {
-          value: link.value,
-          show: false
-        }
+        ret.tags[link.id] = link.value
       }
     })
 
@@ -116,7 +111,7 @@ export async function getCollection(username) {
   try {
     const results = await bggQuery(url)
     const gameIds = results.items.item.map((game) => { return game.objectid })
-    const allGameInfo = this.getGameInfo(gameIds)
+    const allGameInfo = getGameInfo(gameIds)
     return allGameInfo
   } catch (error) {
     console.warn('Failed to get this BGG collection, likely the username does not exist.')

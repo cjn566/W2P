@@ -15,7 +15,7 @@ export async function fetchGames(userGames) {
     g.userGameId = userGames.find((x) => x.bgg_game_id == g.bgg_game_id).id
     return g
   })
-  mapExpansions()
+  extendGames()
 }
 
 export async function addGames(newGames) {
@@ -38,25 +38,40 @@ export async function addGames(newGames) {
       // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
     }
   })
-  mapExpansions()
+  extendGames()
 
 }
 
 // removeGames,
 
-function mapExpansions() {
+function extendGames() {
   games.value = games.value.map((g)=>{    
     g.ownedExpansions = []
     g.isExpansionFor = []
+    g.filters = {
+      tags: {},
+      passesAnyTag: false,
+      passesAllTags: false,
+      sliders: {
+          allTags: true,
+          complexity: true,
+          playersMin: true,
+          playersMax: true,
+          playtimeMin: true,
+          playtimeMax: true,
+          age: true,
+          year: true
+      },
+      passesAllSliders: true
+    }
     return g
   })
-  const exps = games.value.filter(g => g.type === "boardgameexpansion")
-  exps.forEach((expansion) => {
+  games.value.filter(g => g.type === "boardgameexpansion").forEach((expansion) => {
     expansion.canExpandGameId.forEach((gid) => {
       const baseGame = games.value.find(game => game.bgg_game_id === gid)
       if (baseGame) {
-        baseGame.ownedExpansions.push(expansion.userGameId)
-        expansion.isExpansionFor.push(baseGame.userGameId)
+        baseGame.ownedExpansions.push(expansion)
+        expansion.isExpansionFor.push(baseGame)
       }
     })
   })
@@ -72,41 +87,36 @@ export const dev_expGames = computed(()=>{
   }})
 })
 
-export function tagList(gameList) {
-  const tags = {}
-  for (const key of validTagTypes) {
-    tags[key] = {}
-  }
+// export function tagList(gameList) {
+//   const tags = {}
 
-  gameList.forEach((g) => {
-    validTagTypes.forEach((type) => {
-      for(const linkId in g[type]){
-        if (tags[type].hasOwnProperty(linkId)) {
-          tags[type][linkId].members.push(g.userGameId)
-        } else {
-          tags[type][linkId] = {
-            name: g[type][linkId].value,
-            members: [g.userGameId]
-          }
-        }
-      }
-    })
-  })
+//   gameList.forEach((g) => {
+//       for(const linkId in g.tags){
+//         if (tags.hasOwnProperty(linkId)) {
+//           tags[linkId].members.push(g.userGameId)
+//         } else {
+//           tags[type][linkId] = {
+//             name: g[type][linkId].value,
+//             members: [g.userGameId]
+//           }
+//         }
+//       })
+//   })
 
-  for (const type in tags) {
-    const arr = []
-    for (const id in tags[type]) {
-      arr.push({
-        id,
-        name: tags[type][id].name,
-        members: tags[type][id].members
-      })
-    }
-    tags[type] = arr
-    tags[type].sort((a, b) => {
-      return b.members.length - a.members.length
-    })
-  }
+//   for (const type in tags) {
+//     const arr = []
+//     for (const id in tags[type]) {
+//       arr.push({
+//         id,
+//         name: tags[type][id].name,
+//         members: tags[type][id].members
+//       })
+//     }
+//     tags[type] = arr
+//     tags[type].sort((a, b) => {
+//       return b.members.length - a.members.length
+//     })
+//   }
 
-  return tags
-}
+//   return tags
+// }
