@@ -17,7 +17,9 @@
                 decrementButtonClass="p-button-danger" incrementButtonClass="p-button-success"
                 incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" />
             <Divider />
-            <GamesDoubleSlider v-model="filters.complexity" _label="How Complex?" :min="limits.complexity[0]"
+
+            
+            <GamesDoubleSlider :values="indices.complexity.current" _label="How Complex?" :min="limits.complexity[0]"
                 :max="limits.complexity[1]" :step="0.1" />
             <Divider />
             <GamesDoubleSlider v-model="filters.time" _label="Play for how long?" :min="limits.time[0]"
@@ -34,15 +36,18 @@
 
 
 
-            <Tag v-for="tag in filters.tags" :key="tag.id" class="tag" @click="clickedTag(tag)">
+            <InputSwitch v-model="checkingAllTags" /> Only show games that match all selected tags.
+
+            <Tag v-for="tag in filters.tags" :key="tag.id" class="tag active" @click="clickedTag(tag)">
                 {{ tag.name }}
             </Tag>
             <Divider />
 
             <ScrollPanel class="tag-scroller">
-                <Tag v-for="tag in tags" :key="tag.id" class="tag" @click='clickedTag(tag)'>
+                <Tag v-for="tag in tags" :key="tag.id" class="tag"
+                    :class="{ active: tag.filterActive, grayed: !tag.showCount }" @click='clickedTag(tag)'>
                     {{ tag.name }}
-                    <Badge :value="tag.members.length" severity="success"></Badge>
+                    <Badge :value="tag.showCount" severity="success"></Badge>
                 </Tag>
             </ScrollPanel>
             <Divider />
@@ -62,7 +67,11 @@ import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
 import ScrollPanel from 'primevue/scrollpanel'
 
+import InputSwitch from 'primevue/inputswitch'
+
+
 import { games } from '~/composables/useGames'
+import { faListSquares } from '@fortawesome/free-solid-svg-icons'
 
 const filtering = ref(true)
 
@@ -78,13 +87,30 @@ function clickedTag(tag) {
         filters.value.tags.splice(tagIdx, 1)
     }
 
+    let numCurrentTags = filters.value.tags.length
+    let checkAllGames = numCurrentTags > 1 || (numCurrentTags === 1 && !added)
+
     for (const game of tag.members) {
         game.filters.tags[tag.id] = added
         game.filters.passesAnyTag = Object.entries(game.filters.tags).some(x => x[1])
-        // Incorrect. when a new tag is added, a game that was previously passing all that doesn't have this tag now isnt passing all
-        game.filters.passesAllTags = !filters.value.tags.some(tag => !game.filters.tags[tag.id])
+        if (!checkAllGames) {
+            game.filters.passesAllTags = added
+        } else {
+            game.filters.passesAllTags = !filters.value.tags.some(tag => !game.filters.tags[tag.id])
+        }
+    }
+
+    // Go through all filtered games and re-check if they meet all tags
+    if (checkAllGames) {
+        filters.value.tags.forEach(tag => {
+            tag.members.forEach(game => {
+                game.filters.passesAllTags = !filters.value.tags.some(tag => !game.filters.tags[tag.id])
+
+            })
+        })
     }
 }
+
 
 function tagList() {
     let tags = {}
@@ -109,6 +135,7 @@ function tagList() {
                 id: tagId,
                 name: tag.name,
                 members: tag.members,
+                showCount: tag.members.length,
                 filterActive: false
             })
     }
@@ -117,8 +144,8 @@ function tagList() {
 
 const tags = ref(tagList())
 
-function checkFilters(filtersObj) {
-    filtersObj.passesAll = Object.entries(filtersObj.passes).some(f => !f)
+function checkSliders(filtersObj) {
+    filtersObj.passesAllSliders = !Object.entries(filtersObj.sliders).some(x => !x[0] || !x[1])
 }
 
 const checkingAllTags = ref(false)
@@ -128,14 +155,31 @@ const checkingAllTags = ref(false)
 // TODO: Check in debugger if this triggers on every update
 const filteredGames = computed(() => {
     let checkingTags = filters.value.tags.length > 0
-    return games.value.filter(g =>
+    let ret = games.value.filter(g =>
         g.filters.passesAllSliders &&
-        (checkingTags ? 
-            ( checkingAllTags? 
-                g.filters.passesAllTags : 
+        (checkingTags ?
+            (checkingAllTags.value ?
+                g.filters.passesAllTags :
                 g.filters.passesAnyTag) :
-             true)
+            true)
     )
+
+    let temp = {}
+    ret.forEach((game) => {
+        for (const linkId in game.tags) {
+            if (temp.hasOwnProperty(linkId)) {
+                temp[linkId]++
+            } else {
+                temp[linkId] = 1
+            }
+        }
+    })
+
+    tags.value.forEach(t => {
+        t.showCount = temp[t.id] ?? 0
+    })
+
+    return ret
 })
 
 // Makes a ascending sorted array 
@@ -144,22 +188,22 @@ function makeIndex(minKey, maxKey = null) {
     return {
         // TODO: Map these values to the I/F
         // [ref to passesFilters entry, sorted value of key]
-        sorted: {
-            min: minSorted,
-            max: maxKey ?
+        sorted: [
+            minSorted,
+            maxKey ?
                 games.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
                 : minSorted
-        },
-        current: {
-            min: {
+        ],
+        current: [
+            {
                 value: null,
                 index: null
             },
-            max: {
+            {
                 value: null,
                 index: null
             }
-        }
+        ]
     }
 }
 
@@ -183,57 +227,29 @@ const indices = ref(makeIndices())
 
 
 
-function filterOnProperty(prop, newValue, keepLessThan) {
-    // let prevIdx = indices[filterIdx].current.index
-    // if(!preIdx){
-    //     prevIdx = isLessThan? 0 : indices[filterIdx].sorted.length
-    // }
-    let sl = indices[prop].sorted
-    let idxNewVal = sl.findIndex(g => g[1] <= newValue)
-    let begin, end
-    if (keepLessThan) {
-        begin = idxNewVal + 1
-        end = sl.length
+function filterOnProperty(prop, newValue, ltgt) {
+    let foo = indices.value[prop]
+    let prevIdx = foo.current[ltgt].index ?? (ltgt ? 0 : foo.sort[ltgt].length)
+    let newIdx = foo.sorted[ltgt].findIndex(g => newValue <= g[1])
+    foo.current[ltgt].value = newValue
+    foo.current[ltgt].index = newIdx
+    let toggleCount = prevIdx - newIdx
+    if(!toggleCount) return
+    let begin = 0, end = 0, toggle = true
+    if(toggleCount > 0){
+        begin = newIdx
+        end = prevIdx
+        toggle = ltgt === 0
     } else {
-        begin = 0
-        end = idxNewVal - 1
+        begin = prevIdx
+        end = newIdx
+        toggle = ltgt === 1
     }
-    for (let i = 0; i < sl.length; i++) {
-        let before = sl[i][0].passes[prop]
-        // Todo: check inclusivity
-        sl[i][0].passes[prop] = keepLessThan ? (i < idxNewVal) : (i > idxNewVal)
-        if (before !== sl[i][0].passes[prop]) checkFilters(sl[i][0])
-    }
+    foo.sorted[ltgt].slice(begin, end).forEach(bar => {
+        bar[0].sliders[prop][ltgt] = toggle
+        checkSliders(bar[0])
+    })
 }
-
-
-// function applyFilter() {
-//     // if (!filters.value.areSet) filteredGames.value = games.value
-//     let f = filters.value
-//     filteredGames.value = games.value.filter((game) => {
-//         for (const tag of f.tags) {
-//             if (!game[tag[0]][tag[1].id]) return false
-//         }
-
-//         if (f.rating && game.rating < f.rating) return false
-//         if (f.complexity[0] > 0 && game.complexity < f.complexity[0]) return false
-//         if (f.complexity[1] < 5 && game.complexity > f.complexity[1]) return false
-//         if (f.players && (game.players.min > f.players
-//             || game.players.max < f.players)) return false
-//         if (f.time[0] && game.playtime.min < f.time[0]) return false
-//         if (f.time[1] && game.playtime.max > f.time[1]) return false
-//         if (f.age[0] && game.age < f.age[0]) return false
-//         if (f.age[1] && game.age > f.age[1]) return false
-//         if (f.year[0] && game.year < f.year[0]) return false
-//         if (f.year[1] && game.year > f.year[1]) return false
-//         return true
-//     })
-
-//     tags.value = tagList(filteredGames.value)
-//     for (const tag of f.tags) {
-//         tags.value[tag[0]] = tags.value[tag[0]].filter(t => t.id !== tag[1].id)
-//     }
-// }
 
 const limits = computed(() => {
     return games.value.reduce((limits, game) => {
@@ -303,6 +319,14 @@ resetFilters()
 
 .tag {
     margin: 1px;
+}
+
+.active {
+    background-color: orange;
+}
+
+.grayed {
+    background-color: gray;
 }
 
 #filterFlexContainer {

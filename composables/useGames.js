@@ -53,14 +53,26 @@ function extendGames() {
       passesAnyTag: false,
       passesAllTags: false,
       sliders: {
-          allTags: true,
-          complexity: true,
-          playersMin: true,
-          playersMax: true,
-          playtimeMin: true,
-          playtimeMax: true,
-          age: true,
-          year: true
+          complexity: [
+            true,
+            true
+          ],
+          players: [
+            true,
+            true
+          ],
+          playtime: [
+            true,
+            true
+          ],
+          age: [
+            true,
+            true
+          ],
+          year: [
+            true,
+            true
+          ]
       },
       passesAllSliders: true
     }

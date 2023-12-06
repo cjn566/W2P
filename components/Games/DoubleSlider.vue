@@ -10,14 +10,15 @@
 </template>
 
 <script setup>
-const props = defineProps(['modelValue', '_label', 'min', 'max', 'step'])
+const props = defineProps(['values', '_label', 'min', 'max', 'step'])
 const emit = defineEmits(['update:modelValue'])
 
 const value = computed({
   get() {
-    return props.modelValue
+    return [props.values[0].value, props.values[1].value]
   },
   set(value) {
+    if(value[0] != props.values[0].value)
     emit('update:modelValue', value)
   }
 })

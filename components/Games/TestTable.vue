@@ -126,10 +126,10 @@
 </template>
 
 <script setup>
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
 import Tag from 'primevue/tag'
-import Row from 'primevue/row';                   // optional
+import Row from 'primevue/row'                   // optional
 
 const props = defineProps(['displayGames'])
 
