@@ -11,15 +11,19 @@
 
 <script setup>
 const props = defineProps(['values', '_label', 'min', 'max', 'step'])
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['setValue'])
 
 const value = computed({
   get() {
     return [props.values[0].value, props.values[1].value]
   },
   set(value) {
-    if(value[0] != props.values[0].value)
-    emit('update:modelValue', value)
+    if(value[0] != props.values[0].value){
+      emit('setValue', 'complexity', value[0], 0)
+    }
+    if(value[1] != props.values[1].value){
+      emit('setValue', 'complexity', value[1], 1)
+    }
   }
 })
 </script>

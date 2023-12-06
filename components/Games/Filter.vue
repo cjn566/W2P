@@ -6,7 +6,11 @@
         </div>
         <div id="filters">
             <h2>Showing {{ filteredGames.length }} of {{ games.length }} games</h2>
+            
+            <Divider />
             <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="resetFilters()" />
+            
+            <Divider />
             <label for="numPlayers">How many players?</label>
             <InputNumber v-model="filters.players" inputId="numPlayers" showButtons buttonLayout="horizontal"
                 decrementButtonClass="p-button-danger" incrementButtonClass="p-button-success"
@@ -20,9 +24,9 @@
 
             
             <GamesDoubleSlider :values="indices.complexity.current" _label="How Complex?" :min="limits.complexity[0]"
-                :max="limits.complexity[1]" :step="0.1" />
+                :max="limits.complexity[1]" :step="0.1" @set-value="filterOnProperty"/>
             <Divider />
-            <GamesDoubleSlider v-model="filters.time" _label="Play for how long?" :min="limits.time[0]"
+            <!-- <GamesDoubleSlider v-model="filters.time" _label="Play for how long?" :min="limits.time[0]"
                 :max="limits.time[1]" :step="15" />
             <Divider />
             <GamesDoubleSlider v-model="filters.year" _label="Year Published" :min="limits.year[0]" :max="limits.year[1]"
@@ -32,7 +36,7 @@
 
             <GamesDoubleSlider v-model="filters.age" _label="Min recommended Age" :min="limits.age[0]" :max="limits.age[1]"
                 :step="1" />
-            <Divider />
+            <Divider /> -->
 
 
 
@@ -145,7 +149,7 @@ function tagList() {
 const tags = ref(tagList())
 
 function checkSliders(filtersObj) {
-    filtersObj.passesAllSliders = !Object.entries(filtersObj.sliders).some(x => !x[0] || !x[1])
+    filtersObj.passesAllSliders = !Object.entries(filtersObj.sliders).some(x => !x[1][0] || !x[1][1])
 }
 
 const checkingAllTags = ref(false)
@@ -182,6 +186,47 @@ const filteredGames = computed(() => {
     return ret
 })
 
+function makeLimits() {
+    return games.value.reduce((limits, game) => {
+        limits.complexity[0] = Math.min(limits.complexity[0], game.complexity)
+        limits.complexity[1] = Math.max(limits.complexity[1], game.complexity)
+        limits.players[0] = Math.min(limits.players[0], game.playersMin)
+        limits.players[1] = Math.max(limits.players[1], game.playersMax)
+        limits.playtime[0] = Math.min(limits.playtime[0], game.playtimeMin)
+        limits.playtime[1] = Math.max(limits.playtime[1], game.playtimeMax)
+        limits.age[0] = Math.min(limits.age[0], game.age)
+        limits.age[1] = Math.max(limits.age[1], game.age)
+        limits.year[0] = Math.min(limits.year[0], game.year)
+        limits.year[1] = Math.max(limits.year[1], game.year)
+        return limits
+    },
+        {
+            complexity: [
+                50,
+                -1
+            ],
+            players: [
+                1000,
+                -1
+            ],
+            playtime: [
+                1000,
+                -1
+            ],
+            age: [
+                100,
+                -1
+            ],
+            
+            year: [
+                5000,
+                -1
+            ]
+        })
+}
+
+const limits = makeLimits()
+
 // Makes a ascending sorted array 
 function makeIndex(minKey, maxKey = null) {
     const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
@@ -209,13 +254,25 @@ function makeIndex(minKey, maxKey = null) {
 
 
 function makeIndices() {
-    return {
+    let ret = {
         complexity: makeIndex('complexity'),
         players: makeIndex('playersMin', 'playersMax'),
         playtime: makeIndex('playtimeMin', 'playtimeMax'),
         age: makeIndex('age'),
         year: makeIndex('year')
     }
+    ret.complexity.current[0].value = limits.complexity[0]
+    ret.complexity.current[1].value = limits.complexity[1]
+    ret.players.current[0].value = limits.players[0]
+    ret.players.current[1].value = limits.players[1]
+    ret.playtime.current[0].value = limits.playtime[0]
+    ret.playtime.current[1].value = limits.playtime[1]
+    ret.age.current[0].value = limits.age[0]
+    ret.age.current[1].value = limits.age[1]
+    ret.year.current[0].value = limits.year[0]
+    ret.year.current[1].value = limits.year[1]
+
+    return ret
 }
 const indices = ref(makeIndices())
 
@@ -229,7 +286,7 @@ const indices = ref(makeIndices())
 
 function filterOnProperty(prop, newValue, ltgt) {
     let foo = indices.value[prop]
-    let prevIdx = foo.current[ltgt].index ?? (ltgt ? 0 : foo.sort[ltgt].length)
+    let prevIdx = foo.current[ltgt].index ?? (ltgt ? 0 : foo.sorted[ltgt].length)
     let newIdx = foo.sorted[ltgt].findIndex(g => newValue <= g[1])
     foo.current[ltgt].value = newValue
     foo.current[ltgt].index = newIdx
@@ -251,37 +308,7 @@ function filterOnProperty(prop, newValue, ltgt) {
     })
 }
 
-const limits = computed(() => {
-    return games.value.reduce((limits, game) => {
-        limits.time[0] = Math.min(limits.time[0], game.playtimeMin)
-        limits.time[1] = Math.max(limits.time[1], game.playtimeMax)
-        limits.age[0] = Math.min(limits.age[0], game.age)
-        limits.age[1] = Math.max(limits.age[1], game.age)
-        limits.complexity[0] = Math.min(limits.complexity[0], game.complexity)
-        limits.complexity[1] = Math.max(limits.complexity[1], game.complexity)
-        limits.year[0] = Math.min(limits.year[0], game.year)
-        limits.year[1] = Math.max(limits.year[1], game.year)
-        return limits
-    },
-        {
-            time: [
-                1000,
-                -1
-            ],
-            age: [
-                100,
-                -1
-            ],
-            complexity: [
-                50,
-                -1
-            ],
-            year: [
-                5000,
-                -1
-            ]
-        })
-})
+
 
 /* TODO: 
     mark dirty
@@ -293,14 +320,14 @@ const limits = computed(() => {
 const filters = ref(blankFilters())
 const resetFilters = () => {
     let f = filters.value
-    let l = limits.value
+    let l = limits
 
     f.players = null
     f.rating = null
     f.complexity[0] = l.complexity[0]
     f.complexity[1] = l.complexity[1]
-    f.time[0] = l.time[0]
-    f.time[1] = l.time[1]
+    f.time[0] = l.playtime[0]
+    f.time[1] = l.playtime[1]
     f.age[0] = l.age[0]
     f.age[1] = l.age[1]
     f.year[0] = l.year[0]
