@@ -1,6 +1,6 @@
 <template>
     <div>
-        <DataTable :value="props.displayGames" dataKey="userGameId" showGridlines stripedRows scrollable scroll-height="90vh"
+        <DataTable :value="props.displayGames" dataKey="userGameId" lazy paginator rows="10" showGridlines stripedRows scrollable scroll-height="90vh"
             :default-sort-order="-1"
             class="game-table" size="large" @update:sortOrder="(order) => {sortOrder = order}">
 

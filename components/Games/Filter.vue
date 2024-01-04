@@ -1,7 +1,7 @@
 <template>
     <Button @click="filtering = !filtering">Toggle Filter</Button>
     <div v-if="filtering" id="filterFlexContainer">
-        <div id="filterResultList">
+        <div id="filterResultList" style="display:none">
             <p v-for="game in filteredGames">{{ game.name }}</p>
         </div>
         <div id="filters">
@@ -9,40 +9,64 @@
             
             <Divider />
             <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="resetFilters()" />
-            
             <Divider />
-            <label for="numPlayers">How many players?</label>
-            <InputNumber v-model="filters.players" inputId="numPlayers" showButtons buttonLayout="horizontal"
-                decrementButtonClass="p-button-danger" incrementButtonClass="p-button-success"
-                incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" />
-            <Divider />
-            <label for="input-rating">At least how well rated?</label>
-            <InputNumber v-model="filters.rating" inputId="input-rating" showButtons buttonLayout="horizontal" :step="0.1"
-                decrementButtonClass="p-button-danger" incrementButtonClass="p-button-success"
-                incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" />
+                        
+            <GamesDoubleSlider 
+                :values="indices.complexity.current" 
+                _label="How Complex?"
+                prop="complexity"
+                :min="limits.complexity[0]"
+                :max="limits.complexity[1]"
+                :step="0.1"
+                @set-value="debounceSliderUpdate"/>
+
             <Divider />
 
-            
-            <GamesDoubleSlider :values="indices.complexity.current" _label="How Complex?" :min="limits.complexity[0]"
-                :max="limits.complexity[1]" :step="0.1" @set-value="filterOnProperty"/>
+            <GamesDoubleSlider 
+                :values="indices.players.current" 
+                _label="How many players?"
+                prop="players"
+                :min="limits.players[0]"
+                :max="limits.players[1]"
+                :step="1"
+                @set-value="debounceSliderUpdate"/>
+
             <Divider />
-            <!-- <GamesDoubleSlider v-model="filters.time" _label="Play for how long?" :min="limits.time[0]"
-                :max="limits.time[1]" :step="15" />
+
+            <GamesDoubleSlider 
+                :values="indices.playtime.current" 
+                _label="Play for how long?"
+                prop="playtime"
+                :min="limits.playtime[0]"
+                :max="limits.playtime[1]"
+                :step="10"
+                @set-value="debounceSliderUpdate"/>
+
             <Divider />
-            <GamesDoubleSlider v-model="filters.year" _label="Year Published" :min="limits.year[0]" :max="limits.year[1]"
-                :step="1" />
+
+            <GamesDoubleSlider 
+                :values="indices.age.current" 
+                _label="What minimum maturity level?"
+                prop="age"
+                :min="limits.age[0]"
+                :max="limits.age[1]"
+                :step="1"
+                @set-value="debounceSliderUpdate"/>
+
             <Divider />
 
-
-            <GamesDoubleSlider v-model="filters.age" _label="Min recommended Age" :min="limits.age[0]" :max="limits.age[1]"
-                :step="1" />
-            <Divider /> -->
-
-
+            <GamesDoubleSlider 
+                :values="indices.year.current" 
+                _label="Older games or newer?"
+                prop="year"
+                :min="limits.year[0]"
+                :max="limits.year[1]"
+                :step="1"
+                @set-value="debounceSliderUpdate"/>
 
             <InputSwitch v-model="checkingAllTags" /> Only show games that match all selected tags.
 
-            <Tag v-for="tag in filters.tags" :key="tag.id" class="tag active" @click="clickedTag(tag)">
+            <Tag v-for="tag in filteredTags" :key="tag.id" class="tag active" @click="clickedTag(tag)">
                 {{ tag.name }}
             </Tag>
             <Divider />
@@ -60,38 +84,39 @@
             <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="resetFilters()" />
         </div>
     </div>
-    <GamesTestTable v-else :display-games="filteredGames" />
+    <GamesTestTable :display-games="filteredGames" />
 </template>
 
 <script setup>
-import blankFilters from './filters'
+
+//  (c:{{game.complexity}},pmin:{{game.playersMin}},pmax:{{game.playersMax}})
+
 import Fieldset from 'primevue/fieldset'
 import Divider from 'primevue/divider'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
 import ScrollPanel from 'primevue/scrollpanel'
-
 import InputSwitch from 'primevue/inputswitch'
-
-
 import { games } from '~/composables/useGames'
 import { faListSquares } from '@fortawesome/free-solid-svg-icons'
+import { debounce } from '~/utils/debounce'
 
 const filtering = ref(true)
+const filteredTags = ref([])
 
 
 function clickedTag(tag) {
-    let tagIdx = filters.value.tags.indexOf(tag)
+    let tagIdx = filteredTags.value.indexOf(tag)
     let added = tagIdx === -1
     if (added) {
         tag.filterActive = true
-        filters.value.tags.push(tag)
+        filteredTags.value.push(tag)
     } else {
         tag.filterActive = false
-        filters.value.tags.splice(tagIdx, 1)
+        filteredTags.value.splice(tagIdx, 1)
     }
 
-    let numCurrentTags = filters.value.tags.length
+    let numCurrentTags = filteredTags.value.length
     let checkAllGames = numCurrentTags > 1 || (numCurrentTags === 1 && !added)
 
     for (const game of tag.members) {
@@ -100,15 +125,15 @@ function clickedTag(tag) {
         if (!checkAllGames) {
             game.filters.passesAllTags = added
         } else {
-            game.filters.passesAllTags = !filters.value.tags.some(tag => !game.filters.tags[tag.id])
+            game.filters.passesAllTags = !filteredTags.value.some(tag => !game.filters.tags[tag.id])
         }
     }
 
     // Go through all filtered games and re-check if they meet all tags
     if (checkAllGames) {
-        filters.value.tags.forEach(tag => {
+        filteredTags.value.forEach(tag => {
             tag.members.forEach(game => {
-                game.filters.passesAllTags = !filters.value.tags.some(tag => !game.filters.tags[tag.id])
+                game.filters.passesAllTags = !filteredTags.value.some(tag => !game.filters.tags[tag.id])
 
             })
         })
@@ -154,11 +179,8 @@ function checkSliders(filtersObj) {
 
 const checkingAllTags = ref(false)
 
-
-// TODO: add logic here to filter on tags or not
-// TODO: Check in debugger if this triggers on every update
 const filteredGames = computed(() => {
-    let checkingTags = filters.value.tags.length > 0
+    let checkingTags = filteredTags.value.length > 0
     let ret = games.value.filter(g =>
         g.filters.passesAllSliders &&
         (checkingTags ?
@@ -231,8 +253,6 @@ const limits = makeLimits()
 function makeIndex(minKey, maxKey = null) {
     const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
     return {
-        // TODO: Map these values to the I/F
-        // [ref to passesFilters entry, sorted value of key]
         sorted: [
             minSorted,
             maxKey ?
@@ -256,8 +276,8 @@ function makeIndex(minKey, maxKey = null) {
 function makeIndices() {
     let ret = {
         complexity: makeIndex('complexity'),
-        players: makeIndex('playersMin', 'playersMax'),
-        playtime: makeIndex('playtimeMin', 'playtimeMax'),
+        players: makeIndex('playersMax', 'playersMin'),
+        playtime: makeIndex('playtimeMax', 'playtimeMin'),
         age: makeIndex('age'),
         year: makeIndex('year')
     }
@@ -283,23 +303,29 @@ const indices = ref(makeIndices())
 // })
 
 
+const debounceSliderUpdate = debounce((p, n, l)=> commitSliderValue(p, n, l), 100)
 
-function filterOnProperty(prop, newValue, ltgt) {
+function commitSliderValue(prop, newValue, ltgt) {
     let foo = indices.value[prop]
-    let prevIdx = foo.current[ltgt].index ?? (ltgt ? 0 : foo.sorted[ltgt].length)
-    let newIdx = foo.sorted[ltgt].findIndex(g => newValue <= g[1])
+    let prevIdx = foo.current[ltgt].index ?? (ltgt ? foo.sorted[ltgt].length-1 : 0)
+    let newIdx
+    if(ltgt){
+        newIdx = foo.sorted[ltgt].findLastIndex(g => newValue >= g[1])
+    } else {
+        newIdx = foo.sorted[ltgt].findIndex(g => newValue <= g[1])        
+    }
     foo.current[ltgt].value = newValue
     foo.current[ltgt].index = newIdx
     let toggleCount = prevIdx - newIdx
     if(!toggleCount) return
     let begin = 0, end = 0, toggle = true
     if(toggleCount > 0){
-        begin = newIdx
-        end = prevIdx
+        begin = newIdx + ltgt
+        end = prevIdx  + ltgt
         toggle = ltgt === 0
     } else {
-        begin = prevIdx
-        end = newIdx
+        begin = prevIdx + ltgt
+        end = newIdx + ltgt
         toggle = ltgt === 1
     }
     foo.sorted[ltgt].slice(begin, end).forEach(bar => {
@@ -310,36 +336,10 @@ function filterOnProperty(prop, newValue, ltgt) {
 
 
 
-/* TODO: 
-    mark dirty
-    n/a values
-    filter down tag list
-
-*/
-
-const filters = ref(blankFilters())
-const resetFilters = () => {
-    let f = filters.value
-    let l = limits
-
-    f.players = null
-    f.rating = null
-    f.complexity[0] = l.complexity[0]
-    f.complexity[1] = l.complexity[1]
-    f.time[0] = l.playtime[0]
-    f.time[1] = l.playtime[1]
-    f.age[0] = l.age[0]
-    f.age[1] = l.age[1]
-    f.year[0] = l.year[0]
-    f.year[1] = l.year[1]
-}
-resetFilters()
-
-
 
 </script>
 
-<style scoped>
+<style scoped >
 .slider-thing {
     margin: 0 1rem;
 }
@@ -362,7 +362,7 @@ resetFilters()
 }
 
 #filterResultList {
-    width: 20%;
+    width: 40%;
     margin: 5px;
 }
 

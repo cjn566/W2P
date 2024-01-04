@@ -10,25 +10,36 @@
 </template>
 
 <script setup>
-const props = defineProps(['values', '_label', 'min', 'max', 'step'])
+const props = defineProps(['values', '_label', 'prop', 'min', 'max', 'step'])
 const emit = defineEmits(['setValue'])
+let left = ref(props.values[0].value)
+let right = ref(props.values[1].value)
 
 const value = computed({
   get() {
-    return [props.values[0].value, props.values[1].value]
+    return [left.value, right.value]
   },
-  set(value) {
-    if(value[0] != props.values[0].value){
-      emit('setValue', 'complexity', value[0], 0)
-    }
-    if(value[1] != props.values[1].value){
-      emit('setValue', 'complexity', value[1], 1)
+  set(newVal) {
+    if(newVal[0] != props.values[0].value){
+      left.value = newVal[0]
+      emit('setValue', props.prop, newVal[0], 0)
+      if(newVal[0] > newVal[1]){
+        right.value = newVal[0]
+        emit('setValue', props.prop, newVal[0], 1)
+      }
+    } else {
+      right.value = newVal[1]
+      emit('setValue', props.prop, newVal[1], 1)
+      if(newVal[1] < newVal[0]){
+        left.value = newVal[1]
+        emit('setValue', props.prop, newVal[1], 0)
+      }
     }
   }
 })
-</script>
+</script >
 
-<style scoped>
+<style scoped> 
 .slider-thing {
     margin: 0 1rem;
 }
