@@ -40,6 +40,9 @@ function mapGameObjects(gamesXML) {
       rank = parseInt(game.statistics.ratings.ranks.rank.value)
     }
 
+    let cv = parseInt(game.statistics.ratings.numweights.value)
+    let rv = parseInt(game.statistics.ratings.usersrated.value)
+
     // Game Object
     const ret = {
       bgg_game_id: game.id,
@@ -47,10 +50,10 @@ function mapGameObjects(gamesXML) {
       thumbnail: game.thumbnail,
       name,
       type: game.type,
-      complexity: Number(parseFloat(game.statistics.ratings.averageweight.value).toFixed(1)),
-      complexityVotes: game.statistics.ratings.numweights.value,
-      rating: Number(parseFloat(game.statistics.ratings.bayesaverage.value).toFixed(1)),
-      ratingVotes: parseInt(game.statistics.ratings.usersrated.value),
+      complexity: cv > 30? Number(parseFloat(game.statistics.ratings.averageweight.value).toFixed(1)) : 0,
+      // complexityVotes: parseInt(game.statistics.ratings.numweights.value),
+      rating: rv > 30? Number(parseFloat(game.statistics.ratings.bayesaverage.value).toFixed(1)) : 0,
+      // ratingVotes: parseInt(game.statistics.ratings.usersrated.value),
       rank,
       playersMin:parseInt(game.minplayers.value),
       playersMax: parseInt(game.maxplayers.value),

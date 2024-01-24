@@ -1,12 +1,13 @@
 
 @import "bootstrap/scss/bootstrap";
+@import "bootstrap/scss/maps";
 @import './normalize.min.css';
 
 
-.header {
-    background-color: rgb(53, 53, 56)
-}
+
 
 body {
     font-family: var(--font-family);
+    background-color: rgb(43, 43, 43);
+    color: rgb(159, 159, 159);
 }

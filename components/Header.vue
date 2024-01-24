@@ -1,5 +1,5 @@
 <template>
-    <header class="header">
+    <header>
         <div v-if="isAuthenticated">
             <ul class="menu">
                 <a href="#" @click.prevent="navigateTo('/user/' + session.user.slug)">
@@ -48,11 +48,11 @@ const profileImageURL = computed(() => {
 
 
 <style scoped>
-.header {
+header {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    background-color: rgb(228, 228, 228);
+    background-color: rgb(34, 27, 37);
     width: 100%;
 }
 

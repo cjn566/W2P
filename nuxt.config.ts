@@ -39,12 +39,16 @@ export default defineNuxtConfig({
           addDefaultCallbackUrl: true
       }
     },
-    typescript: {
-      tsConfig: {
-        "extends": "../../../tsconfig.base.json"
-      }
-    },
     devtools: {
       enabled: true
+    },
+    vite: {
+      css: {
+        preprocessorOptions: {
+          scss: {
+            additionalData: '@import "@/assets/styles/_vars.scss";'
+          }
+        }
+      }
     }
 })

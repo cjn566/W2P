@@ -12,7 +12,7 @@
       data-bs-target="#gameSearchModal">
       +
     </button>
-    <GamesFilter v-if="gamesReady"  />
+    <GamesContainer v-if="gamesReady"  />
     <span v-else>Loading...</span>
     <span v-if="!hasGames">{{userData.isSelf ? "You have" : "This user has"}} no games yet.</span>
     <ModalAddGames />

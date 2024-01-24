@@ -1,46 +1,48 @@
 <template>
-    <label for="slider">{{ _label }}</label>
-    <div class="p-inputgroup flex-1 max-width" style="align-items: center; justify-content: center;"
-        id="slider">
-        <span class="p-inputgroup-addon">{{ value[0] }}</span>
-        <Slider class="slider-thing" style="width: 6rem;" v-model="value" range :min="min" :max="max"
-            :step="step" />
-        <span class="p-inputgroup-addon">{{ value[1] }}</span>
-    </div>
+  <label for="slider">{{ _label }}</label>
+  <div class="p-inputgroup flex-1 max-width" style="align-items: center; justify-content: center;" id="slider">
+    <span class="p-inputgroup-addon">{{ value[0] }}</span>
+    <Slider class="slider-thing" style="width: 6rem;" v-model="value" range :min="min" :max="max" :step="step" />
+    <span class="p-inputgroup-addon">{{ value[1] }}</span>
+  </div>
 </template>
 
 <script setup>
-const props = defineProps(['values', '_label', 'prop', 'min', 'max', 'step'])
+const props = defineProps(['inValues', '_label', 'prop', 'min', 'max', 'step'])
 const emit = defineEmits(['setValue'])
-let left = ref(props.values[0].value)
-let right = ref(props.values[1].value)
+
+// Want to immediately see the result of sliding the knob around, but defer to what prop says it should be.
+
+watch(props.inValues, (nv, ov)=>{
+  displayValues.value = [nv[0].value, nv[1].value]
+})
+
+const displayValues = ref([props.min, props.max])
 
 const value = computed({
   get() {
-    return [left.value, right.value]
+    return displayValues.value
   },
-  set(newVal) {
-    if(newVal[0] != props.values[0].value){
-      left.value = newVal[0]
-      emit('setValue', props.prop, newVal[0], 0)
-      if(newVal[0] > newVal[1]){
-        right.value = newVal[0]
-        emit('setValue', props.prop, newVal[0], 1)
-      }
-    } else {
-      right.value = newVal[1]
-      emit('setValue', props.prop, newVal[1], 1)
-      if(newVal[1] < newVal[0]){
-        left.value = newVal[1]
-        emit('setValue', props.prop, newVal[1], 0)
+  set(newVals) {
+    if(newVals[0] != displayValues.value[0]){
+      // left side is changing
+      if (newVals[0] > newVals[1]) {
+        newVal[1] = newVals[0]
       }
     }
+    else if(newVals[1] != displayValues.value[1]){
+      // right side is changing
+      if (newVals[1] < newVals[0]) {
+        newVal[0] = newVals[1]
+      }
+    }
+    displayValues.value = newVals    
+    emit('setValue', props.prop, displayValues.value)
   }
 })
 </script >
 
-<style scoped> 
-.slider-thing {
-    margin: 0 1rem;
-}
+<style scoped> .slider-thing {
+   margin: 0 1rem;
+ }
 </style>
