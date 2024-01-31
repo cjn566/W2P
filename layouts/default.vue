@@ -2,7 +2,6 @@
     <div>
         <Toast />
         <Header />
-        {{ isMobile }}
         <div class="content">
             <slot />
         </div>
@@ -47,7 +46,6 @@ $breakpoints: (
 .content {
     padding: 2rem 2rem 2rem 2rem ;
     margin: 0 auto;
-    max-width: 50%;
     background-color: rgb(36, 41, 53);
 }
 </style>

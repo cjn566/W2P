@@ -1,20 +1,15 @@
 <template>
-    <Button @click="filtering = !filtering">Toggle Filter</Button>
+    <Button @click="filtering = !filtering">
+        <font-awesome-icon :icon="['fas', 'filter']" style="color: #ffffff;" size="2x" />
+    </Button>
     <div v-if="filtering" id="filterFlexContainer">
         <div id="filterResultList" style="display:none">
             <p v-for="game in filteredGames">{{ game.name }}</p>
         </div>
         <div id="filters">
             <h2>Showing {{ filteredGames.length }} of {{ games.length }} games</h2>
-            
-            <Divider />
-            <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="resetFilters()" />
-            <Divider />
-
-            <FilterAdvancedUI />
-            <FilterSimpleUI />
-                        
-            <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="resetFilters()" />
+            <FilterSimpleUI v-if="simple" />
+            <FilterAdvancedUI v-else/>
         </div>
     </div>
     <GamesTable :display-games="filteredGames" />
@@ -26,6 +21,7 @@ import { faListSquares } from '@fortawesome/free-solid-svg-icons'
 import Divider from 'primevue/divider'
 
 const filtering = ref(true)
+const simple = ref(true)
 
 
 
