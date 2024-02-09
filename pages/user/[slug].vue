@@ -3,26 +3,43 @@
     {{ contentUnavailable.message }}
   </div>
   <div v-else>
-    <UserBio :user="userData.user"/>
+    <UserBio :userData="userData" />
     <button @click="btnEditGames">Edit games</button>
     <button v-if="editingGames" type="button" class="btn btn-success" data-bs-toggle="modal"
       data-bs-target="#gameSearchModal">
       +
     </button>
-    <GamesContainer v-if="gamesReady"  />
+    <div v-if="gamesReady">
+      <Button @click="filtering = !filtering">
+        <font-awesome-icon :icon="['fas', 'filter']" style="color: #ffffff;" size="2x" />
+      </Button>
+      <div v-if="filtering" id="filterFlexContainer">
+        <div id="filterResultList" style="display:none">
+          <p v-for="game in filteredGames">{{ game.name }}</p>
+        </div>
+        <div id="filters">
+          <h2>Showing {{ filteredGames.length }} of {{ games.length }} games</h2>
+          <FilterSimpleUI v-if="simple" />
+          <FilterAdvancedUI v-else />
+        </div>
+      </div>
+      <GamesTable :display-games="filteredGames" />
+    </div>
     <span v-else>Loading...</span>
-    <span v-if="!hasGames">{{userData.isSelf ? "You have no games in your library yet" : userData.user.name + " has no games in their library yet."}}</span>
+    <span v-if="!hasGames">
+      {{ userData.isSelf ? "You have no games in your library yet" :
+       userData.user.name + " has no games in their library yet."}}
+    </span>
     <ModalAddGames />
   </div>
 </template>
 
 <script setup>
-import {fetchGames, gamesReady} from '~/composables/useGames'
+import { fetchGames, gamesReady, games, filteredGames} from '~/composables/useGames'
+import { faListSquares } from '@fortawesome/free-solid-svg-icons'
+import Divider from 'primevue/divider'
 
-
-
-// definePageMeta({ auth: false })
-
+definePageMeta({ auth: false })
 
 const route = useRoute()
 
@@ -37,6 +54,9 @@ if (!userData?.err_code && hasGames.value) {
 }
 
 
+
+const filtering = ref(true)
+const simple = ref(true)
 const editingGames = useState('editingGames', () => true)
 
 
@@ -85,5 +105,12 @@ const contentUnavailable = computed(() => {
   padding: 1rem;
   border-radius: 1rem;
   background-color: rgb(216, 215, 214);
+}
+
+
+
+#filterFlexContainer {
+    display: flex;
+    flex-direction: row;
 }
 </style>

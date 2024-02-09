@@ -1,34 +1,17 @@
 
 export default {
-    navPages: [
+    menuItems: [
         {
             id: 0,
-            title: 'My Collection',
+            title: 'My Games',
+            // <font-awesome-icon icon="fa-solid fa-fire" />
             icon: 'dice',
             onClick() {
-                navigateTo('/home')
+                navigateTo('/user/' + session.user.slug)
             }
         },
         {
             id: 1,
-            title: 'Freinds',
-            icon: 'users',
-            onClick() {
-                navigateTo('/friends')
-            }
-        },
-        {
-            id: 2,
-            title: 'Events',
-            icon: 'calendar-days',
-            onClick() {
-                navigateTo('/events')
-            }
-        }
-    ],
-    menuItems: [
-        {
-            id: 0,
             title: 'Settings',
             // <font-awesome-icon icon="fa-solid fa-fire" />
             icon: 'gear',
@@ -37,7 +20,7 @@ export default {
             }
         },
         {
-            id: 1,
+            id: 2,
             title: 'About',
             // <font-awesome-icon icon="fa-solid fa-fire" />
             icon: 'circle-question',
@@ -46,7 +29,7 @@ export default {
             }
         },
         {
-            id: 2,
+            id: 3,
             title: 'Sign Out',
             // <font-awesome-icon icon="fa-solid fa-info" />
             icon: 'right-from-bracket',

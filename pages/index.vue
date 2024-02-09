@@ -12,6 +12,5 @@
     //   unauthenticatedOnly: true,
     //   navigateAuthenticatedTo: '/home',
     // },
-    layout: false
   })
 </script>

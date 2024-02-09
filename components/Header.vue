@@ -1,30 +1,18 @@
 <template>
     <header>
         <div v-if="isAuthenticated">
-            <ul class="menu">
-                <a href="#" @click.prevent="navigateTo('/user/' + session.user.slug)">
-                    <div class="item">
-                        <div class="item__icon">
-                            <font-awesome-icon :icon="['fas', 'dice']" size="2x" />
-                        </div>
-                    </div>
-                </a>
-                <MenuItem v-for="item in headerContent.navPages" :key="item.id" :item="item" />
-
                 <div class="header__profile dropdown">
                     <a role="button" data-bs-toggle="dropdown" href="#">
                         <div class="profile-image" :style="`background-image:url(${profileImageURL})`" />
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                        <MenuItem class="dropdown-item" v-for="item in headerContent.menuItems" :key="item.id"
-                            :item="item" />
+                        <MenuItem class="dropdown-item" v-for="item in headerContent.menuItems" :key="item.id" :item="item" />
                     </ul>
                 </div>
-            </ul>
         </div>
-        <div v-else>
+        <Button v-else class="btn-login">
             <NuxtLink to="/events">Log In</NuxtLink>
-        </div>
+        </Button>
     </header>
 </template>
 
@@ -47,12 +35,11 @@ const profileImageURL = computed(() => {
 
 
 
-<style scoped>
+<style lang="scss" scoped>
 header {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    background-color: rgb(34, 27, 37);
     width: 100%;
 }
 
@@ -60,15 +47,6 @@ header {
     justify-self: end;
 }
 
-.profile-image {
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-}
 
 .menu {
     display: flex;
@@ -104,7 +82,8 @@ header {
 }
 
 .profile__img {
-    width: 4.4rem;
+    width: 6rem;
+    margin: 10px;
 }
 
 .profile__name {

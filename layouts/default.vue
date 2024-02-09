@@ -46,6 +46,5 @@ $breakpoints: (
 .content {
     padding: 2rem 2rem 2rem 2rem ;
     margin: 0 auto;
-    background-color: rgb(36, 41, 53);
 }
 </style>

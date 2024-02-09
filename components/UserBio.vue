@@ -1,16 +1,20 @@
 <template>
-    <div class="bio">
-        <img v-if="user.image" :src="user.image" alt="">
-        <p>Showing profile for {{ user.name }}</p>
+    <div class="whose-games-container">
+        <div v-if="!userData.isSelf">
+            <img :src="userData.user.image" class="profile-image" alt="avatar">
+            <h1>{{ userData.user.name }}'s Games</h1>
+        </div>
+        <h1 v-else>Your Games</h1>
     </div>
 </template>
 
 <script setup>
-    const props = defineProps(['user'])
+    const props = defineProps(['userData'])
 </script>
 
 <style scoped>
-    .bio {
-        background-color: aqua;
+    .whose-games-container {
+        display: flex;
+        background-color: hsl(0,0,100);
     }
 </style>
