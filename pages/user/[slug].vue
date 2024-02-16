@@ -56,7 +56,7 @@ if (!userData?.err_code && hasGames.value) {
 
 
 const filtering = ref(true)
-const simple = ref(true)
+const simple = ref(false)
 const editingGames = useState('editingGames', () => true)
 
 

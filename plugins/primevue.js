@@ -13,7 +13,7 @@ import ToastService from 'primevue/toastservice';
 
 
 export default defineNuxtPlugin((nuxtApp) => {
-    nuxtApp.vueApp.use(PrimeVue, { ripple: true });
+    nuxtApp.vueApp.use(PrimeVue, { ripple: true , unstyled: false});
     nuxtApp.vueApp.component("Button", Button);
     nuxtApp.vueApp.component("InputText", InputText);
     nuxtApp.vueApp.component("MultiSelect", MultiSelect);

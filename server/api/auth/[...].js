@@ -9,6 +9,9 @@ import slugify from 'slugify'
 export default NuxtAuthHandler({
   // A secret string you define, to ensure correct encryption
   secret: process.env.AUTH_SECRET,
+  pages: {
+    signIn: '/home'
+  },
   providers: [
     // @ts-expect-error You need to use .default here for it to work during SSR. May be fixed via Vite at some point
     GoogleProvider.default({
