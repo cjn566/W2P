@@ -16,6 +16,7 @@
     "@fortawesome/vue-fontawesome": "^3.0.2",
     "@sidebase/nuxt-auth": "^0.6.0",
     "nuxt": "^3.2.3",
+    "nuxt-primevue": "^0.3.0",
     "sass": "^1.62.0"
   },
   "dependencies": {

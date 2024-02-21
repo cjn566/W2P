@@ -3,8 +3,8 @@ export default defineNuxtConfig({
     ssr: false,
     css: [
       '@/assets/styles/main.scss',      
-      '@fortawesome/fontawesome-svg-core/styles.css',
-      "primevue/resources/themes/lara-light-blue/theme.css",
+      '@fortawesome/fontawesome-svg-core/styles.css',      
+      'primevue/resources/themes/lara-dark-blue/theme.css',
       'primeicons/primeicons.css'
     ],
     build: {
@@ -12,12 +12,13 @@ export default defineNuxtConfig({
     },
     modules: [
       '@sidebase/nuxt-auth',
-      '@nuxt/devtools'
+      '@nuxt/devtools',
+      'nuxt-primevue',
     ],    
     auth: {
       provider: {
         type: 'authjs',
-        addDefaultCallbackUrl: '/'
+        addDefaultCallbackUrl: '/about'
       },
       // The module is enabled. Change this to disable the module
       isEnabled: true,

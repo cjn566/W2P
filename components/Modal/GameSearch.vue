@@ -46,7 +46,7 @@
 
 
 import { games } from '~/composables/useGames'
-import { debounce } from "debounce"
+import { debounce } from 'debounce'
 import { gameSearch } from '../../utils/boardgamegeek'
 
 const results = ref([])

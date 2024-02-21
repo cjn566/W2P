@@ -29,16 +29,15 @@
 </template>
   
 <script setup>
-
 definePageMeta({
-  auth: {
-    unauthenticatedOnly: true,
-    navigateAuthenticatedTo: '/home',
-  },
+  layout: 'layoutNoHeader',
 })
-
-
-const { signIn } = useAuth()
+const { signIn, status, getSession } = useAuth()
+if(status.value === 'authenticated') {
+  const session = await getSession()
+  // alert('You are already logged in as ' + session.user.name)
+  navigateTo('/user/' + session.user.slug)
+}
 </script>
   
 <style lang="scss" scoped>
@@ -76,7 +75,7 @@ const { signIn } = useAuth()
 
 container {
   display: flex;
-  height: 500px;
+  height: 100vh;
   align-items: center;
   justify-content: center;
   flex-flow: column;

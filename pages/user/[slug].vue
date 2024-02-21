@@ -3,12 +3,30 @@
     {{ contentUnavailable.message }}
   </div>
   <div v-else>
-    <UserBio :userData="userData" />
-    <button @click="btnEditGames">Edit games</button>
-    <button v-if="editingGames" type="button" class="btn btn-success" data-bs-toggle="modal"
-      data-bs-target="#gameSearchModal">
-      +
-    </button>
+
+    <div class="whose-games-container">
+      <div class="other-person-header" v-if="!itMe">
+        <img :src="userData.user.image" class="person-image" alt="avatar">
+        <h1 style="display: inline;">{{ userData.user.name }}'s Library</h1>
+      </div>
+      <div v-else>
+        <h1>Your Library</h1>
+        <Button id="btn-edit-games" :class="{ 'btn-editing': editingGames }" icon="pi pi-pencil" @click="btnEditGames" />
+        <Button icon="pi pi-plus" v-show="editingGames" @click="navigateTo('/add')" />
+      </div>
+
+    </div>
+
+    <Checkbox v-model="itMe" :binary="true" />
+
+    <IconField iconPosition="left">
+      <InputIcon>
+        <i class="pi pi-search" />
+      </InputIcon>
+      <InputText v-model="value1" placeholder="Search" />
+    </IconField>
+
+
     <div v-if="gamesReady">
       <Button @click="filtering = !filtering">
         <font-awesome-icon :icon="['fas', 'filter']" style="color: #ffffff;" size="2x" />
@@ -28,22 +46,18 @@
     <span v-else>Loading...</span>
     <span v-if="!hasGames">
       {{ userData.isSelf ? "You have no games in your library yet" :
-       userData.user.name + " has no games in their library yet."}}
+        userData.user.name + " has no games in their library yet." }}
     </span>
-    <ModalAddGames />
+
   </div>
 </template>
 
 <script setup>
-import { fetchGames, gamesReady, games, filteredGames} from '~/composables/useGames'
-import { faListSquares } from '@fortawesome/free-solid-svg-icons'
-import Divider from 'primevue/divider'
-
-definePageMeta({ auth: false })
+import { fetchGames, gamesReady, games, filteredGames } from '~/composables/useGames'
 
 const route = useRoute()
 
-let userData = (await useFetch('/api/user/' + route.params.slug)).data.value
+const userData = (await useFetch('/api/user/' + route.params.slug)).data.value
 
 const hasGames = computed(() => {
   return userData?.games.length > 0
@@ -53,13 +67,11 @@ if (!userData?.err_code && hasGames.value) {
   fetchGames(userData.games)
 }
 
-
+const itMe = ref(true)
 
 const filtering = ref(true)
 const simple = ref(false)
 const editingGames = useState('editingGames', () => true)
-
-
 
 function btnEditGames(event) {
   editingGames.value = editingGames.value ? false : true
@@ -99,7 +111,7 @@ const contentUnavailable = computed(() => {
 
 </script>
 
-<style>
+<style lang="scss" scoped>
 .unavailable {
   margin: 1rem;
   padding: 1rem;
@@ -110,7 +122,36 @@ const contentUnavailable = computed(() => {
 
 
 #filterFlexContainer {
-    display: flex;
-    flex-direction: row;
+  display: flex;
+  flex-direction: row;
+}
+
+
+.whose-games-container {
+  display: flex;
+  justify-content: center;
+  background-color: $w2p-pallette-4;
+  padding: 1rem;
+}
+
+.other-person-header {
+  display: flex;
+  align-items: center;
+}
+
+.person-image {
+  height: 4rem;
+  width: 4rem;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.btn-editing {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+#btn-edit-games {
+  margin-left: 1rem;
 }
 </style>
