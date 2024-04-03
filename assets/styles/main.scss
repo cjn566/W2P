@@ -1,8 +1,14 @@
 
 @import './normalize.min.css';
 
+
+$base-font-size: 16px;
+
+
 body {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    
+  font-size: $base-font-size;
     background-color: $w2p-pallette-5;
     color: $w2p-pallette-1;
 }

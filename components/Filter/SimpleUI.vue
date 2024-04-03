@@ -1,37 +1,40 @@
 <template>
-    <Divider />
-    <div v-if="panel == 'time'" >
-        <header>Time:</header>
-        <div class="panel">
-            <Button :class="settings.time.active == 1? 'active' : ''" @click="clickButton('time', 1)">Fast</Button>
-            <Button :class="settings.time.active == 2? 'active' : ''" @click="clickButton('time', 2)">Medium Length</Button>
-            <Button :class="settings.time.active == 3? 'active' : ''" @click="clickButton('time', 3)">Long</Button>
-            <Button :class="settings.time.active == 0? 'active' : ''" @click="clickButton('time', 0)">
-                <font-awesome-icon :icon="['fas', 'filter-circle-xmark']" style="color: #ffffff;" />
-            </Button>
+    <div>
+        <Divider />
+        <div v-if="panel == 'time'">
+            <header>Time:</header>
+            <div class="panel">
+                <Button :class="settings.time.active == 1 ? 'active' : ''" @click="clickButton('time', 1)">Fast</Button>
+                <Button :class="settings.time.active == 2 ? 'active' : ''" @click="clickButton('time', 2)">Medium
+                    Length</Button>
+                <Button :class="settings.time.active == 3 ? 'active' : ''" @click="clickButton('time', 3)">Long</Button>
+                <Button :class="settings.time.active == 0 ? 'active' : ''" @click="clickButton('time', 0)">
+                    <font-awesome-icon :icon="['fas', 'filter-circle-xmark']" style="color: #ffffff;" />
+                </Button>
+            </div>
         </div>
-    </div>
-    <div v-else @click="panel = 'time'" class="summary">
-        <p>{{ settings.time.descriptions[settings.time.active] }}</p>
-    </div>
-    <Divider />
-    <div v-if="panel == 'players'" >
-        <header>Time:</header>
-        <div class="panel">
-            <Button :class="settings.players.active == 1? 'active' : ''" @click="clickButton('players', 1)">1</Button>
-            <Button :class="settings.players.active == 2? 'active' : ''" @click="clickButton('players', 2)">2</Button>
-            <Button :class="settings.players.active == 3? 'active' : ''" @click="clickButton('players', 3)">3+</Button>
-            <Button @click="clickButton('players', 0)">
-                <font-awesome-icon :icon="['fas', 'filter-circle-xmark']" style="color: #ffffff;" />
-            </Button>
+        <div v-else @click="panel = 'time'" class="summary">
+            <p>{{ settings.time.descriptions[settings.time.active] }}</p>
         </div>
+        <Divider />
+        <div v-if="panel == 'players'">
+            <header>Time:</header>
+            <div class="panel">
+                <Button :class="settings.players.active == 1 ? 'active' : ''" @click="clickButton('players', 1)">1</Button>
+                <Button :class="settings.players.active == 2 ? 'active' : ''" @click="clickButton('players', 2)">2</Button>
+                <Button :class="settings.players.active == 3 ? 'active' : ''" @click="clickButton('players', 3)">3+</Button>
+                <Button @click="clickButton('players', 0)">
+                    <font-awesome-icon :icon="['fas', 'filter-circle-xmark']" style="color: #ffffff;" />
+                </Button>
+            </div>
+        </div>
+        <div v-else @click="panel = 'players'" class="summary">
+            <p>{{ settings.players.descriptions[settings.players.active] }}</p>
+        </div>
+        <Divider />
+        <Divider />
+        <Divider />
     </div>
-    <div v-else @click="panel = 'players'" class="summary">
-        <p>{{ settings.players.descriptions[settings.players.active] }}</p>
-    </div>
-    <Divider />
-    <Divider />
-    <Divider />
 </template>
 
 <script setup>
@@ -114,7 +117,7 @@ Button {
     border-radius: 3px;
 }
 
-    .active {
-        border: 3px solid gold;
-    }
+.active {
+    border: 3px solid gold;
+}
 </style>

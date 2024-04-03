@@ -24,3 +24,14 @@ export const useMedia = (query) => {
 
    return matches
 }
+
+
+/*
+if ('ontouchstart' in window || navigator.maxTouchPoints) {
+  // Touch is supported, indicating a touch-enabled device
+  // Place your mobile-specific code here
+} else {
+  // No touch support, indicating a non-touch device
+  // Place your non-mobile-specific code here
+}
+*/

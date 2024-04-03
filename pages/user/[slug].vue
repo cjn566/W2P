@@ -4,81 +4,109 @@
   </div>
   <div v-else>
 
-    <div class="whose-games-container">
-      <div class="other-person-header" v-if="!itMe">
-        <img :src="userData.user.image" class="person-image" alt="avatar">
-        <h1 style="display: inline;">{{ userData.user.name }}'s Library</h1>
-      </div>
-      <div v-else>
-        <h1>Your Library</h1>
-        <Button id="btn-edit-games" :class="{ 'btn-editing': editingGames }" icon="pi pi-pencil" @click="btnEditGames" />
-        <Button icon="pi pi-plus" v-show="editingGames" @click="navigateTo('/add')" />
-      </div>
 
-    </div>
+    <div v-show="!adding">
 
-    <Checkbox v-model="itMe" :binary="true" />
-
-    <IconField iconPosition="left">
-      <InputIcon>
-        <i class="pi pi-search" />
-      </InputIcon>
-      <InputText v-model="value1" placeholder="Search" />
-    </IconField>
-
-
-    <div v-if="gamesReady">
-      <Button @click="filtering = !filtering">
-        <font-awesome-icon :icon="['fas', 'filter']" style="color: #ffffff;" size="2x" />
-      </Button>
-      <div v-if="filtering" id="filterFlexContainer">
-        <div id="filterResultList" style="display:none">
-          <p v-for="game in filteredGames">{{ game.name }}</p>
+      <div class="whose-games-container">
+        <div class="other-person-header" v-if="!itMe">
+          <img :src="user.image" class="person-image" alt="avatar">
+          <h1 style="display: inline;">{{ user.name }}'s Library</h1>
         </div>
-        <div id="filters">
-          <h2>Showing {{ filteredGames.length }} of {{ games.length }} games</h2>
-          <FilterSimpleUI v-if="simple" />
-          <FilterAdvancedUI v-else />
+        <div v-else>
+          <h1>Your Library</h1>
+          <Button id="btn-edit-games" :class="{ 'btn-editing': editingGames }" icon="pi pi-pencil"
+            @click="clickedEditBtn" />
+          <Button icon="pi pi-plus" v-show="editingGames" @click="adding = true" />
         </div>
       </div>
-      <GamesTable :display-games="filteredGames" />
+
+      <Checkbox v-model="itMe" :binary="true" />
+
+
+      <IconField iconPosition="left">
+        <InputIcon>
+          <i class="pi pi-search" />
+        </InputIcon>
+        <InputText v-model="value1" placeholder="Search" />
+      </IconField>
+
+
+      <div v-if="status.gamesReady">
+
+        <!--Filters-->
+        <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset">
+          <template #legend>
+            <i class="pi pi-filter"></i>
+          </template>
+
+          <SelectButton v-model="filterStyle" :options="filterStyleOptions">
+            <template #option="slotProps">
+              <font-awesome-icon :icon="['fas', slotProps.option.icon]"/>
+              {{ slotProps.option.label }}
+            </template>
+          </SelectButton>
+
+          <FilterVisualBar />
+          <FilterSimpleUI v-show="filterStyle.value == 'simple'" />
+          <FilterAdvancedUI v-show="filterStyle.value == 'advanced'" />
+
+        </Fieldset>
+
+        <GamesTable />
+      </div>
+      <span v-else>Loading...</span>
+      <span v-if="!hasGames">
+        {{ user.isSelf ? "You have no games in your library yet" :
+          user.name + " has no games in their library yet." }}
+      </span>
     </div>
-    <span v-else>Loading...</span>
-    <span v-if="!hasGames">
-      {{ userData.isSelf ? "You have no games in your library yet" :
-        userData.user.name + " has no games in their library yet." }}
-    </span>
+
+    <div v-if="adding">
+      <div id="add-games-header">
+        <Button icon="pi pi-arrow-left" @click="adding = false" />
+        <span class="title">Add games to your library</span>
+      </div>
+      <GamesAdd />
+    </div>
 
   </div>
 </template>
 
 <script setup>
-import { fetchGames, gamesReady, games, filteredGames } from '~/composables/useGames'
+import { user, setUser, status } from '~/composables/useGames'
+import { useToast } from 'primevue/usetoast'
+// import QrcodeVue from 'qrcode.vue'
+
+// const value = ref('http://localhost:3000/user/colten-nye')
+//   const level = ref('Q')
+//   const renderAs = ref('svg')
+
+const toast = useToast()
 
 const route = useRoute()
 
-const userData = (await useFetch('/api/user/' + route.params.slug)).data.value
-
 const hasGames = computed(() => {
-  return userData?.games.length > 0
+  return user.value.games.length > 0
 })
 
-if (!userData?.err_code && hasGames.value) {
-  fetchGames(userData.games)
-}
-
 const itMe = ref(true)
-
-const filtering = ref(true)
-const simple = ref(false)
 const editingGames = useState('editingGames', () => true)
+const adding = ref(false)
+const filtering = ref(true)
 
-function btnEditGames(event) {
-  editingGames.value = editingGames.value ? false : true
+const filterStyleOptions = ref([
+  { label: 'Simple', value: 'simple', icon: 'magnifying-glass' },
+  { label: 'Advanced', value: 'advanced', icon: 'microscope' }
+])
+const filterStyle = ref(filterStyleOptions.value[0])
+
+const clickedEditBtn = () => {
+  editingGames.value = !editingGames.value
+  adding.value = false
 }
 
 const contentUnavailable = computed(() => {
-  if (userData?.err_code) {
+  if (user?.err_code) {
     switch (userData.err_code) {
       case "no_user":
         return {
@@ -109,6 +137,8 @@ const contentUnavailable = computed(() => {
   return false
 })
 
+await setUser(route.params.slug)
+
 </script>
 
 <style lang="scss" scoped>
@@ -119,13 +149,10 @@ const contentUnavailable = computed(() => {
   background-color: rgb(216, 215, 214);
 }
 
-
-
 #filterFlexContainer {
   display: flex;
   flex-direction: row;
 }
-
 
 .whose-games-container {
   display: flex;
@@ -153,5 +180,16 @@ const contentUnavailable = computed(() => {
 
 #btn-edit-games {
   margin-left: 1rem;
+}
+
+#add-games-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid $w2p-pallette-3;
+  .title {
+    margin-left: 1rem;
+  }
 }
 </style>

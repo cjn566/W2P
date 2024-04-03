@@ -92,8 +92,8 @@ export async function getGameInfo(gameIds) {
   return allGames
 }
 
-export async function gameSearch(query, exact = false) {
-  let url = `search?query=${query}&type=boardgame&exact=${exact ? '1' : '0'}`
+export async function gameSearch(query, type = 'boardgame', exact = false, limit = 10) {
+  let url = `search?query=${query}&type=${type}&exact=${exact ? '1' : '0'}`
   let results = await bggQuery(url)
   if (!('item' in results.items)) return []
   let games = makeArray(results.items.item)
@@ -105,7 +105,7 @@ export async function gameSearch(query, exact = false) {
   games = mapGameObjects(games)
   games.sort((a, b) => {
     return b.ratingVotes - a.ratingVotes
-  })
+  }).slice(0, limit)
   return games
 }
 

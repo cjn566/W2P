@@ -1,23 +1,15 @@
 <template>
     <div>
-        <DataTable :value="props.displayGames" dataKey="userGameId" lazy paginator :rows="10" showGridlines stripedRows scrollable scroll-height="90vh"
+        <DataTable :value="filteredGames" dataKey="userGameId" lazy paginator :rows="10" showGridlines stripedRows scrollable scroll-height="90vh"
             :default-sort-order="-1"
             class="game-table" size="large" @update:sortOrder="(order) => {sortOrder = order}">
 
             <template #header>
-                <!-- Showing {{ displayGames.length }} of {{ games.length }} games.
-                
-                <div class="flex justify-content-between">
-                    <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
-                    <Button type="button" icon="pi pi-filter-slash" label="Change" outlined @click="sortGames()" />
-                    <span class="p-input-icon-left">
-                        <i class="pi pi-search" />
-                    </span>
-                </div> -->
+                hello
             </template>
 
             <!-- Game -->
-            <Column sortable sort-field="name" frozen>
+            <Column frozen>
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'chess-board']" style="color: #0058f0;" size="2x" />
                 </template>
@@ -33,7 +25,7 @@
             </Column>
 
             <!-- Rating -->
-            <Column field="rating" sortable sort-field="rating">
+            <Column field="rating" >
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'star']" style="color: #0058f0;" size="2x" />
                 </template>
@@ -46,7 +38,7 @@
             </Column>
 
             <!-- complexity -->
-            <Column field="complexity" sortable sortField="complexity">
+            <Column field="complexity" >
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'brain']" style="color: #0058f0;" size="2x" />
                 </template>
@@ -59,7 +51,7 @@
             </Column>
 
             <!-- Players -->
-            <Column sortable :sortField="sortPlayers">
+            <Column >
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'people-group']" style="color: #0058f0;" size="2x" />
                 </template>
@@ -72,7 +64,7 @@
             </Column>
 
             <!-- Play Time  -->
-            <Column sortable :sort-field="sortPlaytime">
+            <Column >
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'clock']" style="color: #0058f0;" size="2x" />
                 </template>
@@ -85,7 +77,7 @@
             </Column>
 
             <!-- Age -->
-            <Column sortable sortField="age">
+            <Column>
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'person-cane']" style="color: #0058f0;" size="2x" />
                 </template>
@@ -98,7 +90,7 @@
             </Column>
 
             <!-- Year Published -->
-            <Column field="year" sortable>
+            <Column field="year">
                 <template #header>
                     <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" size="2x" />
                 </template>
@@ -119,25 +111,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Row from 'primevue/row'                   // optional
-
-const props = defineProps(['displayGames'])
-
-let sortOrder = 0
-
-const sortPlayers = (game) => {
-    if(sortOrder > 0){
-        return game.playersMin + (game.playersMax / 100)
-    } else {
-        return game.playersMax  + (game.playersMin / 100)
-    }
-}
-const sortPlaytime = (game) => {
-    if(sortOrder > 0){
-        return game.playtimeMin + (game.playtimeMax / 1000)
-    } else {
-        return game.playtimeMax  + (game.playtimeMin / 1000)
-    }
-}
+import { filteredGames, sortBy } from '~/composables/useGames'
 
 const formatPlayers = (game) => {
     return game.playersMin == game.playersMax ? game.playersMin : `${game.playersMin} - ${game.playersMax}`

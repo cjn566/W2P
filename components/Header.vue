@@ -1,31 +1,26 @@
 <template>
     <header>
+        <a href="/">
+            <img id="logo" src="~/assets/logo.svg" alt="logo" />
+        </a>
+        whattoplay.net
         <div v-if="isAuthenticated">
-
-                <img @click="toggle" class="profile__img" :src="profileImageURL" />
+            <img @click="toggle" class="profile__img" :src="profileImageURL" />
             <Menu ref="menu" :model="items" :popup="true" />
-
         </div>
-        <Button v-if="showLoginButton" class="btn-login" @click="navigateTo('/login')">
+        <Button v-else class="btn-login" @click="navigateTo('/login')">
             Sign up or Log In
         </Button>
     </header>
 </template>
 
 <script setup>
-import Menu from 'primevue/menu';
 
 const { status, getSession, signOut } = useAuth()
 const session = await getSession()
-const route = useRoute()
-
 
 const isAuthenticated = computed(() => {
     return status.value == "authenticated"
-})
-
-const showLoginButton = computed(() => {
-    return !isAuthenticated.value && (route.path !== '/login')
 })
 
 const profileImageURL = computed(() => {
@@ -83,10 +78,22 @@ const toggle = (event) => {
 header {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     width: 100%;
     height: 4rem;
     background-color: $w2p-pallette-4;
+}
+
+.right-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+#logo {
+    height: 3rem;
+    margin: 10px;
 }
 
 .profile__img {

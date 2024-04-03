@@ -17,7 +17,9 @@ import {
     faPersonCane,
     faCalendar,
     faFilter,
-    faFilterCircleXmark
+    faFilterCircleXmark,
+    faMagnifyingGlass,
+    faMicroscope
 } from '@fortawesome/free-solid-svg-icons';
 
 /* add icons to the library */
@@ -25,7 +27,7 @@ import {
 library.add( faGear, faCircleQuestion, faCalendarDays, 
     faUsers, faDice, faBars, faRightFromBracket, 
     faPen, faChessBoard, faStar, faBrain, faPeopleGroup,
-    faClock, faPersonCane, faCalendar, faFilter, faFilterCircleXmark)
+    faClock, faPersonCane, faCalendar, faFilter, faFilterCircleXmark, faMagnifyingGlass, faMicroscope)
 
 config.autoAddCss = false
 

@@ -1,6 +1,5 @@
 <template>
     <div>
-        <Toast />
         <Header />
         <div class="content">
             <slot />

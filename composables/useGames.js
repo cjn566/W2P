@@ -4,22 +4,44 @@ import { makeArray } from '~/utils/makearray'
 // import { useToast } from 'primevue/usetoast'
 // const toast = useToast()
 
-export const gamesReady = ref(false)
+export function getGameURL(id) {
+  return `https://boardgamegeek.com/boardgame/${id}`
+}
+
+export const user = ref({})
+
+export const status = ref({
+  user: 'unset',
+  gamesReady: false
+})
 
 export const games = ref([])
 
-export async function fetchGames(userGames) {
-  gamesReady.value = false
-  const gameData = await getGameInfo(userGames.map((game) => game.bgg_game_id))
+export async function setUser(slug) {
+  if(user.value.slug == slug) return
+  const res = (await useFetch(`/api/user/${slug}`)).data.value
+  // TODO: handle errors, set status on user
+  if(res.err_code) {
+    // toast.add({ severity: 'error', summary: 'Error', detail: 'Could not find that user', life: 3000 })
+    return
+  }
+  user.value = res
+  // Fetch the user's games
+  if(res.games.length == 0) {
+    status.value.gamesReady = true
+    return
+  }
+  status.value.gamesReady = false
+  const gameData = await getGameInfo(res.games.map((game) => game.bgg_game_id))
   games.value = gameData.map((g) => {
-    g.userGameId = userGames.find((x) => x.bgg_game_id == g.bgg_game_id).id
+    g.userGameId = res.games.find((x) => x.bgg_game_id == g.bgg_game_id).id
     return g
   })
   extendGames()
 }
 
 export async function addGames(newGames) {
-  gamesReady.value = false
+  status.value.gamesReady = false
   newGames = makeArray(newGames)
   const gameIDs = newGames.map(x => x.bgg_game_id)
   const res = (await useFetch('/api/collection/add',
@@ -93,7 +115,7 @@ function extendGames() {
   limits = makeLimits()
   indices.value = makeIndices()
 
-  gamesReady.value = true
+  status.value.gamesReady = true
 }
 
 export const dev_expGames = computed(()=>{
@@ -106,7 +128,7 @@ export const dev_expGames = computed(()=>{
 })
 
 
-// Makes a ascending sorted array 
+// Makes an ascending sorted array 
 function makeIndex(minKey, maxKey = null) {
   const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
   return {
@@ -253,3 +275,53 @@ export const filteredGames = computed(() => {
 
   return ret
 })
+
+export const sorting = ref({
+  descending: true,
+  active: 'name'
+  // name
+  // rating
+  // complexity
+  // players
+  // playtime
+  // age
+  // year
+})
+
+export function sortBy(prop) {
+  let descending = true
+
+  if(sorting.value.active == prop) {
+    descending = !sorting.value.order
+  }
+
+  sorting.value.active = prop
+  sorting.value.descending = descending
+
+  let sortByPlayers = (game) => {
+    if(descending){
+      return game.playersMin + (game.playersMax / 1000)
+    } else {
+      return game.playersMax  + (game.playersMin / 1000)
+    }
+  }
+
+  let sortByPlaytime = (game) => {
+    if(sortOrder > 0){
+      return game.playtimeMin + (game.playtimeMax / 1000)
+    } else {
+      return game.playtimeMax  + (game.playtimeMin / 1000)
+    }
+  }
+
+  filteredGames.value = filteredGames.value.sort((a, b) => {
+    switch(prop) {
+      case 'players':
+        return (sortByPlayers(a) - sortByPlayers(b))*(descending ? 1 : -1)
+      case 'playtime':
+        return (sortByPlaytime(a) - sortByPlaytime(b))*(descending ? 1 : -1)
+      default:
+        return (a[prop] - b[prop])*(descending ? 1 : -1)
+    }
+  })
+}

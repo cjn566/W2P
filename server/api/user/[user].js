@@ -50,10 +50,11 @@ export default defineEventHandler(async (event) => {
     const games = (await query('SELECT id, bgg_game_id FROM app.games WHERE user_email = $1', [user.email])).rows
 
     return {
-        user,
+        ...user,
         games,
         isSelf,
-        friend_status
+        friend_status,
+        slug: event.context.params.user
     }
 
   })
