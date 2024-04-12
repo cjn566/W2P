@@ -13,7 +13,7 @@ import {
     faStar,
     faBrain,
     faPeopleGroup,
-    faClock,
+    faHourglassHalf,
     faPersonCane,
     faCalendar,
     faFilter,
@@ -27,7 +27,7 @@ import {
 library.add( faGear, faCircleQuestion, faCalendarDays, 
     faUsers, faDice, faBars, faRightFromBracket, 
     faPen, faChessBoard, faStar, faBrain, faPeopleGroup,
-    faClock, faPersonCane, faCalendar, faFilter, faFilterCircleXmark, faMagnifyingGlass, faMicroscope)
+    faHourglassHalf, faPersonCane, faCalendar, faFilter, faFilterCircleXmark, faMagnifyingGlass, faMicroscope)
 
 config.autoAddCss = false
 

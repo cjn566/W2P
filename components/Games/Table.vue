@@ -1,11 +1,10 @@
 <template>
     <div>
         <DataTable :value="filteredGames" dataKey="userGameId" lazy paginator :rows="10" showGridlines stripedRows scrollable scroll-height="90vh"
-            :default-sort-order="-1"
-            class="game-table" size="large" @update:sortOrder="(order) => {sortOrder = order}">
+            class="game-table" size="large">
 
             <template #header>
-                hello
+                <div @click="sortBy('complexity')">sort by complexity</div>
             </template>
 
             <!-- Game -->
@@ -19,60 +18,45 @@
                         {{ data.name }}
                     </div>
                 </template>
-                <template #sorticon="{ sortOrder }">
-                    <GamesSortIcon :order="sortOrder" />
-                </template>
             </Column>
 
             <!-- Rating -->
             <Column field="rating" >
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'star']" style="color: #0058f0;" size="2x" />
+                    <font-awesome-icon :icon="['fas', 'star']" style="color: #0058f0;" size="2x" @click="sortBy('rating')"/>
                 </template>
                 <template #body="{ data }">
                     {{ data.rating > 0.1 ? data.rating : "n/a" }}
-                </template>
-                <template #sorticon="{ sortOrder }">
-                    <GamesSortIcon :order="sortOrder" />
                 </template>
             </Column>
 
             <!-- complexity -->
             <Column field="complexity" >
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'brain']" style="color: #0058f0;" size="2x" />
+                    <font-awesome-icon :icon="['fas', 'brain']" style="color: #0058f0;" size="2x" @click="sortBy('complexity')" />
                 </template>
                 <template #body="{ data }">
                     {{ data.complexity > 0.1 ? data.complexity : "n/a" }}
-                </template>
-                <template #sorticon="{ sortOrder }">
-                    <GamesSortIcon :order="sortOrder" />
                 </template>
             </Column>
 
             <!-- Players -->
             <Column >
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'people-group']" style="color: #0058f0;" size="2x" />
+                    <font-awesome-icon :icon="['fas', 'people-group']" style="color: #0058f0;" size="2x" @click="sortBy('players')"/>
                 </template>
                 <template #body="{ data }">
                     {{ formatPlayers(data) }}
-                </template>
-                <template #sorticon="{ sortOrder }">
-                    <GamesSortIcon :order="sortOrder" />
                 </template>
             </Column>
 
             <!-- Play Time  -->
             <Column >
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'clock']" style="color: #0058f0;" size="2x" />
+                    <font-awesome-icon :icon="['fas', 'hourglass-half']" style="color: #0058f0;" size="2x"  @click="sortBy('playtime')"/>
                 </template>
                 <template #body="{ data }">
                     {{ formatPlaytime(data) }}
-                </template>
-                <template #sorticon="{ sortOrder }">
-                    <GamesSortIcon :order="sortOrder" />
                 </template>
             </Column>
 
@@ -84,9 +68,6 @@
                 <template #body="{ data }">
                     {{ data.age ? data.age + "y" : "n/a" }}
                 </template>
-                <template #sorticon="{ sortOrder }">
-                    <GamesSortIcon :order="sortOrder" />
-                </template>
             </Column>
 
             <!-- Year Published -->
@@ -96,9 +77,6 @@
                 </template>
                 <template #body="{ data }">
                     {{ data.year ? data.year : "n/a" }}
-                </template>
-                <template #sorticon="{ sortOrder }">
-                    <GamesSortIcon :order="sortOrder" />
                 </template>
             </Column>
 
@@ -111,7 +89,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Row from 'primevue/row'                   // optional
-import { filteredGames, sortBy } from '~/composables/useGames'
+import { filteredGames, sortBy, sorting } from '~/composables/useGames'
 
 const formatPlayers = (game) => {
     return game.playersMin == game.playersMax ? game.playersMin : `${game.playersMin} - ${game.playersMax}`

@@ -18,16 +18,16 @@ export const status = ref({
 export const games = ref([])
 
 export async function setUser(slug) {
-  if(user.value.slug == slug) return
+  if (user.value.slug == slug) return
   const res = (await useFetch(`/api/user/${slug}`)).data.value
   // TODO: handle errors, set status on user
-  if(res.err_code) {
+  if (res.err_code) {
     // toast.add({ severity: 'error', summary: 'Error', detail: 'Could not find that user', life: 3000 })
     return
   }
   user.value = res
   // Fetch the user's games
-  if(res.games.length == 0) {
+  if (res.games.length == 0) {
     status.value.gamesReady = true
     return
   }
@@ -69,7 +69,7 @@ export var limits = {}
 // removeGames,
 
 function extendGames() {
-  games.value = games.value.map((g)=>{    
+  games.value = games.value.map((g) => {
     g.ownedExpansions = []
     g.isExpansionFor = []
     g.filters = {
@@ -77,26 +77,26 @@ function extendGames() {
       passesAnyTag: false,
       passesAllTags: false,
       sliders: {
-          complexity: [
-            true,
-            true
-          ],
-          players: [
-            true,
-            true
-          ],
-          playtime: [
-            true,
-            true
-          ],
-          age: [
-            true,
-            true
-          ],
-          year: [
-            true,
-            true
-          ]
+        complexity: [
+          true,
+          true
+        ],
+        players: [
+          true,
+          true
+        ],
+        playtime: [
+          true,
+          true
+        ],
+        age: [
+          true,
+          true
+        ],
+        year: [
+          true,
+          true
+        ]
       },
       passesAllSliders: true
     }
@@ -118,13 +118,15 @@ function extendGames() {
   status.value.gamesReady = true
 }
 
-export const dev_expGames = computed(()=>{
-  return games.value.filter((g) => {  return g.ownedExpansions?.length || g.isExpansionFor?.length })
-  .map((g) => { return {
-    name: g.name,
-    ownedExpansions: g.ownedExpansions,
-    isExpansionFor: g.isExpansionFor
-  }})
+export const dev_expGames = computed(() => {
+  return games.value.filter((g) => { return g.ownedExpansions?.length || g.isExpansionFor?.length })
+    .map((g) => {
+      return {
+        name: g.name,
+        ownedExpansions: g.ownedExpansions,
+        isExpansionFor: g.isExpansionFor
+      }
+    })
 })
 
 
@@ -132,83 +134,83 @@ export const dev_expGames = computed(()=>{
 function makeIndex(minKey, maxKey = null) {
   const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
   return {
-      sorted: [
-          minSorted,
-          maxKey ?
-              games.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
-              : minSorted
-      ],
-      current: [
-          {
-              value: null,
-              index: null
-          },
-          {
-              value: null,
-              index: null
-          }
-      ]
+    sorted: [
+      minSorted,
+      maxKey ?
+        games.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
+        : minSorted
+    ],
+    current: [
+      {
+        value: null,
+        index: null
+      },
+      {
+        value: null,
+        index: null
+      }
+    ]
   }
 }
 
 function makeLimits() {
   return games.value.reduce((limits, game) => {
-      if(game.complexity > 0.1){
-        limits.complexity[0] = Math.min(limits.complexity[0], game.complexity)
-        limits.complexity[1] = Math.max(limits.complexity[1], game.complexity)
-      }
-      if(game.playersMin > 0){
-        limits.players[0] = Math.min(limits.players[0], game.playersMin)
-      }
-      limits.players[1] = Math.max(limits.players[1], game.playersMax)
-      if(game.playtimeMin > 0){
-        limits.playtime[0] = Math.min(limits.playtime[0], game.playtimeMin)
-      }
-      limits.playtime[1] = Math.max(limits.playtime[1], game.playtimeMax)
-      if(game.age > 0){
-        limits.age[0] = Math.min(limits.age[0], game.age)
-        limits.age[1] = Math.max(limits.age[1], game.age)
-      }
-      if(game.year > 0){
-        limits.year[0] = Math.min(limits.year[0], game.year)
-        limits.year[1] = Math.max(limits.year[1], game.year)
-      }
-      return limits
+    if (game.complexity > 0.1) {
+      limits.complexity[0] = Math.min(limits.complexity[0], game.complexity)
+      limits.complexity[1] = Math.max(limits.complexity[1], game.complexity)
+    }
+    if (game.playersMin > 0) {
+      limits.players[0] = Math.min(limits.players[0], game.playersMin)
+    }
+    limits.players[1] = Math.max(limits.players[1], game.playersMax)
+    if (game.playtimeMin > 0) {
+      limits.playtime[0] = Math.min(limits.playtime[0], game.playtimeMin)
+    }
+    limits.playtime[1] = Math.max(limits.playtime[1], game.playtimeMax)
+    if (game.age > 0) {
+      limits.age[0] = Math.min(limits.age[0], game.age)
+      limits.age[1] = Math.max(limits.age[1], game.age)
+    }
+    if (game.year > 0) {
+      limits.year[0] = Math.min(limits.year[0], game.year)
+      limits.year[1] = Math.max(limits.year[1], game.year)
+    }
+    return limits
   },
-      {
-          complexity: [
-              50,
-              -1
-          ],
-          players: [
-              12,
-              -1
-          ],
-          playtime: [
-              1000,
-              -1
-          ],
-          age: [
-              100,
-              -1
-          ],
-          
-          year: [
-              5000,
-              -1
-          ]
-      })
+    {
+      complexity: [
+        50,
+        -1
+      ],
+      players: [
+        12,
+        -1
+      ],
+      playtime: [
+        1000,
+        -1
+      ],
+      age: [
+        100,
+        -1
+      ],
+
+      year: [
+        5000,
+        -1
+      ]
+    })
 }
 
 
 
 function makeIndices() {
   let ret = {
-      complexity: makeIndex('complexity'),
-      players: makeIndex('playersMax', 'playersMin'),
-      playtime: makeIndex('playtimeMax', 'playtimeMin'),
-      age: makeIndex('age'),
-      year: makeIndex('year')
+    complexity: makeIndex('complexity'),
+    players: makeIndex('playersMax', 'playersMin'),
+    playtime: makeIndex('playtimeMax', 'playtimeMin'),
+    age: makeIndex('age'),
+    year: makeIndex('year')
   }
   ret.complexity.current[0].value = limits.complexity[0]
   ret.complexity.current[1].value = limits.complexity[1]
@@ -230,31 +232,31 @@ function makeIndices() {
 export function commitSliderValues(prop, newValues) {
   let foo = indices.value[prop]
   for (let ltgt = 0; ltgt < 2; ltgt++) {
-      let prevIdx = foo.current[ltgt].index ?? (ltgt ? foo.sorted[ltgt].length - 1 : 0)
-      let newIdx
-      if (ltgt) {
-          newIdx = foo.sorted[ltgt].findLastIndex(g => newValues[ltgt] >= g[1])
-      } else {
-          newIdx = foo.sorted[ltgt].findIndex(g => newValues[ltgt] <= g[1])
-      }
-      foo.current[ltgt].value = newValues[ltgt]
-      foo.current[ltgt].index = newIdx
-      let toggleCount = prevIdx - newIdx
-      if (!toggleCount) continue
-      let begin = 0, end = 0, toggle = true
-      if (toggleCount > 0) {
-          begin = newIdx + ltgt
-          end = prevIdx + ltgt
-          toggle = ltgt === 0
-      } else {
-          begin = prevIdx + ltgt
-          end = newIdx + ltgt
-          toggle = ltgt === 1
-      }
-      foo.sorted[ltgt].slice(begin, end).forEach(bar => {
-          bar[0].sliders[prop][ltgt] = toggle
-          bar[0].passesAllSliders = !Object.entries(bar[0].sliders).some(x => !x[1][0] || !x[1][1])
-      })
+    let prevIdx = foo.current[ltgt].index ?? (ltgt ? foo.sorted[ltgt].length - 1 : 0)
+    let newIdx
+    if (ltgt) {
+      newIdx = foo.sorted[ltgt].findLastIndex(g => newValues[ltgt] >= g[1])
+    } else {
+      newIdx = foo.sorted[ltgt].findIndex(g => newValues[ltgt] <= g[1])
+    }
+    foo.current[ltgt].value = newValues[ltgt]
+    foo.current[ltgt].index = newIdx
+    let toggleCount = prevIdx - newIdx
+    if (!toggleCount) continue
+    let begin = 0, end = 0, toggle = true
+    if (toggleCount > 0) {
+      begin = newIdx + ltgt
+      end = prevIdx + ltgt
+      toggle = ltgt === 0
+    } else {
+      begin = prevIdx + ltgt
+      end = newIdx + ltgt
+      toggle = ltgt === 1
+    }
+    foo.sorted[ltgt].slice(begin, end).forEach(bar => {
+      bar[0].sliders[prop][ltgt] = toggle
+      bar[0].passesAllSliders = !Object.entries(bar[0].sliders).some(x => !x[1][0] || !x[1][1])
+    })
   }
 }
 
@@ -263,8 +265,8 @@ export const filteredTags = ref([])
 export const filteredGames = computed(() => {
   let checkingTags = filteredTags.value.length > 0
   let ret = games.value.filter(g =>
-      g.filters.passesAllSliders &&
-      (checkingTags ? g.filters.passesAllTags : true)
+    g.filters.passesAllSliders &&
+    (checkingTags ? g.filters.passesAllTags : true)
   )
 
   // (checkingAllTags.value ?
@@ -291,37 +293,33 @@ export const sorting = ref({
 export function sortBy(prop) {
   let descending = true
 
-  if(sorting.value.active == prop) {
-    descending = !sorting.value.order
+  if (sorting.value.active == prop) {
+    descending = !sorting.value.descending
   }
 
   sorting.value.active = prop
   sorting.value.descending = descending
 
-  let sortByPlayers = (game) => {
-    if(descending){
-      return game.playersMin + (game.playersMax / 1000)
-    } else {
-      return game.playersMax  + (game.playersMin / 1000)
-    }
+  switch (prop) {
+    case 'players':
+      filteredGames.value = filteredGames.value.sort((a, b) => {
+        if (descending) {
+          return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000)
+        } else {
+          return a.playersMax - b.playersMax + ((a.playersMin - b.playersMin) / 1000)
+        }
+      })
+    case 'playtime':
+      filteredGames.value = filteredGames.value.sort((a, b) => {
+        if (descending) {
+          return a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000)
+        } else {
+          return a.playtimeMax - b.playtimeMax + ((a.playtimeMin - b.playtimeMin) / 1000)
+        }
+      })
+    default:
+      filteredGames.value = filteredGames.value.sort((a, b) => {
+        return (a[prop] - b[prop]) * (descending ? -1 : 1)
+      })
   }
-
-  let sortByPlaytime = (game) => {
-    if(sortOrder > 0){
-      return game.playtimeMin + (game.playtimeMax / 1000)
-    } else {
-      return game.playtimeMax  + (game.playtimeMin / 1000)
-    }
-  }
-
-  filteredGames.value = filteredGames.value.sort((a, b) => {
-    switch(prop) {
-      case 'players':
-        return (sortByPlayers(a) - sortByPlayers(b))*(descending ? 1 : -1)
-      case 'playtime':
-        return (sortByPlaytime(a) - sortByPlaytime(b))*(descending ? 1 : -1)
-      default:
-        return (a[prop] - b[prop])*(descending ? 1 : -1)
-    }
-  })
 }
