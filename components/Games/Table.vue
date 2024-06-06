@@ -1,20 +1,15 @@
 <template>
     <div>
-        <DataTable :value="filteredGames" dataKey="userGameId" lazy paginator :rows="10" showGridlines stripedRows scrollable scroll-height="90vh"
+        <DataTable :value="filteredGames" dataKey="userGameId" showGridlines stripedRows scrollable scroll-height="90vh"
             class="game-table" size="large">
-
-            <template #header>
-                <div @click="sortBy('complexity')">sort by complexity</div>
-            </template>
 
             <!-- Game -->
             <Column frozen>
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'chess-board']" style="color: #0058f0;" size="2x" />
+                    <font-awesome-icon :icon="['fas', 'chess-board']" style="color: #0058f0;" size="2x" @click="sortBy('name')"/>
                 </template>
                 <template #body="{ data }">
                     <div class="flex align-items-center gap-2">
-                        <img class="row-thumbnail" :alt="data.name" :src="data.thumbnail" style="height=20px" />
                         {{ data.name }}
                     </div>
                 </template>
@@ -26,7 +21,7 @@
                     <font-awesome-icon :icon="['fas', 'star']" style="color: #0058f0;" size="2x" @click="sortBy('rating')"/>
                 </template>
                 <template #body="{ data }">
-                    {{ data.rating > 0.1 ? data.rating : "n/a" }}
+                    {{ data.display.rating }}
                 </template>
             </Column>
 
@@ -36,7 +31,7 @@
                     <font-awesome-icon :icon="['fas', 'brain']" style="color: #0058f0;" size="2x" @click="sortBy('complexity')" />
                 </template>
                 <template #body="{ data }">
-                    {{ data.complexity > 0.1 ? data.complexity : "n/a" }}
+                    {{ data.display.complexity }}
                 </template>
             </Column>
 
@@ -46,7 +41,7 @@
                     <font-awesome-icon :icon="['fas', 'people-group']" style="color: #0058f0;" size="2x" @click="sortBy('players')"/>
                 </template>
                 <template #body="{ data }">
-                    {{ formatPlayers(data) }}
+                    {{ data.display.players }}
                 </template>
             </Column>
 
@@ -56,27 +51,27 @@
                     <font-awesome-icon :icon="['fas', 'hourglass-half']" style="color: #0058f0;" size="2x"  @click="sortBy('playtime')"/>
                 </template>
                 <template #body="{ data }">
-                    {{ formatPlaytime(data) }}
+                    {{ data.display.playtime }}
                 </template>
             </Column>
 
             <!-- Age -->
             <Column>
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'person-cane']" style="color: #0058f0;" size="2x" />
+                    <font-awesome-icon :icon="['fas', 'person-cane']" style="color: #0058f0;" size="2x" @click="sortBy('age')"/>
                 </template>
                 <template #body="{ data }">
-                    {{ data.age ? data.age + "y" : "n/a" }}
+                    {{ data.display.age }}
                 </template>
             </Column>
 
             <!-- Year Published -->
             <Column field="year">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" size="2x" />
+                    <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" size="2x" @click="sortBy('year')"/>
                 </template>
                 <template #body="{ data }">
-                    {{ data.year ? data.year : "n/a" }}
+                    {{ data.display.year }}
                 </template>
             </Column>
 
@@ -96,7 +91,7 @@ const formatPlayers = (game) => {
 }
 
 const formatPlaytime = (game) => {
-    if(!game.playtimeMin) return 'n/a'
+    if(!game.playtimeMin) return '-'
     return game.playtimeMin == game.playtimeMax ? game.playtimeMin + 'm' : `${game.playtimeMin} - ${game.playtimeMax}m`
 }
 
@@ -116,7 +111,8 @@ const formatPlaytime = (game) => {
 }
 
 .game-table {
-    font-size: x-small;
+    font-size: small;
+    margin-top: 1rem;
 }
 
 .game-tag {

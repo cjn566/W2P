@@ -1,6 +1,7 @@
 
 import fromXML from './xml2json'
 import { makeArray } from './makearray'
+import { formatGame } from '~/utils/format'
 
 async function bggQuery(url, errTitle = "Error", errMsg = "Oops. Something went wrong") {
   try {
@@ -49,6 +50,7 @@ function mapGameObjects(gamesXML) {
       image: game.image,
       thumbnail: game.thumbnail,
       name,
+      searchName: name.toLowerCase(),
       type: game.type,
       complexity: cv > 30? Number(parseFloat(game.statistics.ratings.averageweight.value).toFixed(1)) : 0,
       // complexityVotes: parseInt(game.statistics.ratings.numweights.value),
@@ -64,6 +66,8 @@ function mapGameObjects(gamesXML) {
       description: htmlDecode(game.description),
       tags: {}
     }
+    
+    formatGame(ret)
 
     // Tags / links
     game.link = makeArray(game.link)

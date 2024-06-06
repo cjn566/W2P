@@ -43,7 +43,6 @@ $breakpoints: (
 }
 
 .content {
-    padding: 0rem 2rem 2rem 2rem ;
     margin: 0 auto;
     height: 100%;
 }

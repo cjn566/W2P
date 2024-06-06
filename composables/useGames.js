@@ -262,24 +262,54 @@ export function commitSliderValues(prop, newValues) {
 
 export const filteredTags = ref([])
 
+export const searchTerm = ref('')
+
 export const filteredGames = computed(() => {
+  let ret = games.value
+
+  if (searchTerm.value.trim().length > 1) {
+    ret = ret.filter(g => g.searchName.includes(searchTerm.value.trim()))
+  }
+
   let checkingTags = filteredTags.value.length > 0
-  let ret = games.value.filter(g =>
+  ret = ret.filter(g =>
     g.filters.passesAllSliders &&
     (checkingTags ? g.filters.passesAllTags : true)
   )
 
-  // (checkingAllTags.value ?
-  //   g.filters.passesAllTags :
-  //   g.filters.passesAnyTag)
 
-
+  switch (sorting.value.active) {
+    case 'players':
+      if (sorting.value.descending) {
+        ret = ret.sort((a, b) => { return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000) })
+      } else {
+        ret = ret.sort((a, b) => { return b.playersMax - a.playersMax + ((b.playersMin - a.playersMin) / 1000) })
+      }
+      break
+    case 'playtime':
+      if (sorting.value.descending) {
+        ret = ret.sort((a, b) => { return a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000) })
+      } else {
+        ret = ret.sort((a, b) => { return b.playtimeMax - a.playtimeMax + ((b.playtimeMin - a.playtimeMin) / 1000) })
+      }
+      break
+    case 'name':
+      ret = ret.sort((a, b) => {
+        return a.name.localeCompare(b.name) * (sorting.value.descending ? -1 : 1)
+      })
+      break
+    default:
+      ret = ret.sort((a, b) => {
+        return (a[sorting.value.active] - b[sorting.value.active]) * (sorting.value.descending ? -1 : 1)
+      })
+      break
+  }
 
   return ret
 })
 
 export const sorting = ref({
-  descending: true,
+  descending: false,
   active: 'name'
   // name
   // rating
@@ -299,27 +329,4 @@ export function sortBy(prop) {
 
   sorting.value.active = prop
   sorting.value.descending = descending
-
-  switch (prop) {
-    case 'players':
-      filteredGames.value = filteredGames.value.sort((a, b) => {
-        if (descending) {
-          return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000)
-        } else {
-          return a.playersMax - b.playersMax + ((a.playersMin - b.playersMin) / 1000)
-        }
-      })
-    case 'playtime':
-      filteredGames.value = filteredGames.value.sort((a, b) => {
-        if (descending) {
-          return a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000)
-        } else {
-          return a.playtimeMax - b.playtimeMax + ((a.playtimeMin - b.playtimeMin) / 1000)
-        }
-      })
-    default:
-      filteredGames.value = filteredGames.value.sort((a, b) => {
-        return (a[prop] - b[prop]) * (descending ? -1 : 1)
-      })
-  }
 }

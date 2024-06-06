@@ -23,15 +23,16 @@
       <Checkbox v-model="itMe" :binary="true" />
 
 
-      <IconField iconPosition="left">
-        <InputIcon>
+      <InputGroup>
+        <InputGroupAddon>
           <i class="pi pi-search" />
-        </InputIcon>
-        <InputText v-model="value1" placeholder="Search" />
-      </IconField>
+        </InputGroupAddon>
+        <InputText v-model="searchTerm" placeholder="Find a game"/>
+        <Button icon="pi pi-times" @click="searchTerm = ''" />
+      </InputGroup>
 
 
-      <div v-if="status.gamesReady">
+      <div v-show="status.gamesReady">
 
         <!--Filters-->
         <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset">
@@ -41,7 +42,7 @@
 
           <SelectButton v-model="filterStyle" :options="filterStyleOptions">
             <template #option="slotProps">
-              <font-awesome-icon :icon="['fas', slotProps.option.icon]"/>
+              <font-awesome-icon :icon="['fas', slotProps.option.icon]" />
               {{ slotProps.option.label }}
             </template>
           </SelectButton>
@@ -52,12 +53,17 @@
 
         </Fieldset>
 
-        <GamesTable />
+
+        <Button @click="showTable = true">table</Button>
+        <Button @click="showTable = false">cards</Button>
+
+        <GamesTable v-if="showTable" />
+        <GamesCards v-else />
       </div>
-      <span v-else>Loading...</span>
+      <span v-show="!status.gamesReady">Loading...</span>
       <span v-if="!hasGames">
         {{ user.isSelf ? "You have no games in your library yet" :
-          user.name + " has no games in their library yet." }}
+    user.name + " has no games in their library yet." }}
       </span>
     </div>
 
@@ -73,8 +79,9 @@
 </template>
 
 <script setup>
-import { user, setUser, status } from '~/composables/useGames'
+import { user, setUser, status, searchTerm } from '~/composables/useGames'
 import { useToast } from 'primevue/usetoast'
+import RadioButton from 'primevue/radiobutton';
 // import QrcodeVue from 'qrcode.vue'
 
 // const value = ref('http://localhost:3000/user/colten-nye')
@@ -92,6 +99,7 @@ const hasGames = computed(() => {
 const itMe = ref(true)
 const editingGames = useState('editingGames', () => true)
 const adding = ref(false)
+const showTable = ref(false)
 const filtering = ref(true)
 
 const filterStyleOptions = ref([
@@ -188,8 +196,13 @@ await setUser(route.params.slug)
   justify-content: center;
   padding: 1rem 0;
   border-bottom: 1px solid $w2p-pallette-3;
+
   .title {
     margin-left: 1rem;
   }
+}
+
+#filters-fieldset {
+  margin-top: 1rem;
 }
 </style>

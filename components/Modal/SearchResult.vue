@@ -21,7 +21,7 @@
 
       </div>
     </template>
-  </card>
+  </Card>
 </template>
 
 <script setup>
