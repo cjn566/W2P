@@ -15,7 +15,7 @@
 
         <Divider />
 
-        <GamesDoubleSlider :inValues="indices.age.current" _label="What minimum maturity level?" prop="age"
+        <GamesDoubleSlider :inValues="indices.age.current" _label="What minimum age?" prop="age"
             :min="limits.age[0]" :max="limits.age[1]" :step="1" @set-value="debounceSliderUpdate" />
 
         <Divider />

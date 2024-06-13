@@ -86,17 +86,6 @@ import Tag from 'primevue/tag'
 import Row from 'primevue/row'                   // optional
 import { filteredGames, sortBy, sorting } from '~/composables/useGames'
 
-const formatPlayers = (game) => {
-    return game.playersMin == game.playersMax ? game.playersMin : `${game.playersMin} - ${game.playersMax}`
-}
-
-const formatPlaytime = (game) => {
-    if(!game.playtimeMin) return '-'
-    return game.playtimeMin == game.playtimeMax ? game.playtimeMin + 'm' : `${game.playtimeMin} - ${game.playtimeMax}m`
-}
-
-
-
 </script>
 
 <style>

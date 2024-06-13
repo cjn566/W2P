@@ -280,14 +280,14 @@ export const filteredGames = computed(() => {
 
   switch (sorting.value.active) {
     case 'players':
-      if (sorting.value.descending) {
+      if (!sorting.value.descending) {
         ret = ret.sort((a, b) => { return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000) })
       } else {
         ret = ret.sort((a, b) => { return b.playersMax - a.playersMax + ((b.playersMin - a.playersMin) / 1000) })
       }
       break
     case 'playtime':
-      if (sorting.value.descending) {
+      if (!sorting.value.descending) {
         ret = ret.sort((a, b) => { return a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000) })
       } else {
         ret = ret.sort((a, b) => { return b.playtimeMax - a.playtimeMax + ((b.playtimeMin - a.playtimeMin) / 1000) })
@@ -295,7 +295,7 @@ export const filteredGames = computed(() => {
       break
     case 'name':
       ret = ret.sort((a, b) => {
-        return a.name.localeCompare(b.name) * (sorting.value.descending ? -1 : 1)
+        return b.name.localeCompare(a.name) * (sorting.value.descending ? -1 : 1)
       })
       break
     default:

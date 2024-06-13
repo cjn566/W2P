@@ -25,6 +25,8 @@ export const useMedia = (query) => {
    return matches
 }
 
+export const isMobile = useMedia("(max-width: 640px)")
+
 
 /*
 if ('ontouchstart' in window || navigator.maxTouchPoints) {

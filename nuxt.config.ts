@@ -14,7 +14,17 @@ export default defineNuxtConfig({
       '@sidebase/nuxt-auth',
       '@nuxt/devtools',
       'nuxt-primevue',
-    ],    
+      // '@nuxtjs/tailwindcss',
+    ],
+    primevue: {
+      options: {
+        // unstyled: true
+      },
+      importPT: {
+        as: 'Aura',
+        from: '@/assets/styles/tailwind-presets/aura/'
+      }
+    },
     auth: {
       provider: {
         type: 'authjs',
