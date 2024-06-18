@@ -25,7 +25,9 @@ export const useMedia = (query) => {
    return matches
 }
 
+
 export const isMobile = useMedia("(max-width: 640px)")
+export const isDesktop = useMedia("(max-width: 768px)")
 
 
 /*

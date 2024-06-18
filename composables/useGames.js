@@ -70,6 +70,7 @@ export var limits = {}
 
 function extendGames() {
   games.value = games.value.map((g) => {
+    g.selected = false
     g.ownedExpansions = []
     g.isExpansionFor = []
     g.filters = {
@@ -264,6 +265,8 @@ export const filteredTags = ref([])
 
 export const searchTerm = ref('')
 
+export const editingGames = ref(false)
+
 export const filteredGames = computed(() => {
   let ret = games.value
 
@@ -309,7 +312,7 @@ export const filteredGames = computed(() => {
 })
 
 export const sorting = ref({
-  descending: false,
+  descending: true,
   active: 'name'
   // name
   // rating

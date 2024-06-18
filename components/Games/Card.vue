@@ -1,5 +1,6 @@
 <template>
     <div class="card">
+        <Checkbox v-if="editingGames" v-model="game.selected" :binary="true" class="select-game"/>
         <span id="image-container">
             <img :src="game.thumbnail" alt="Game Thumbnail" class="card-image" />
         </span>
@@ -41,6 +42,7 @@
 </template>
 
 <script setup>
+import { editingGames } from '~/composables/useGames';
 import { isMobile } from '~/composables/useMedia'
 const props = defineProps(['game', 'sort'])
 

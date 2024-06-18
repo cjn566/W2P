@@ -10,7 +10,6 @@
 <script setup>
 
 import { useMedia } from '~/composables/useMedia'
-const isMobile = useMedia("(max-width: 425px)")
 
     
 </script>

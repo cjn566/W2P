@@ -1,27 +1,28 @@
 <template>
-
-
-  <div class="whose-games-container other-person-header" v-if="!itMe">
-    <img :src="user.image" class="person-image" alt="avatar">
-    <h1 style="display: inline;">{{ user.name }}'s Games</h1>
-  </div>
-
-  <div v-else class="whose-games-container">
-    <h1>Your Games</h1>
-    <div >
-      <Button icon="pi pi-plus" @click="navigateTo('./add')" />
-    </div>
-  </div>
-
-  <Checkbox v-model="itMe" :binary="true" />
-
-
-
-
   <div v-show="status.gamesReady">
 
+
+    <div class="whose-games-container other-person-header" v-if="!itMe">
+      <img :src="user.image" class="person-image" alt="avatar">
+      <h1 style="display: inline;">{{ user.name }}'s Games</h1>
+    </div>
+
+    <div v-else class="whose-games-container">
+      <h1>Your Games</h1>
+      <div id="header-buttons">
+        <div id="btn-edit">
+          <Button size="small" icon="pi pi-pencil" @click="editingGames = !editingGames" />
+        </div>
+        <div id="btn-add-games" :style="editingGames? '':'visibility: hidden'">
+          <Button size="small" icon="pi pi-plus" @click="navigateTo('./add')" />
+        </div>
+      </div>
+    </div>
+
+    <Checkbox v-model="itMe" :binary="true" />
+
     <!--Filters-->
-    <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset" :pt="{ legend: 'legend' }">
+    <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset" :pt="{ root: 'filter-container', legend: 'legend' }">
       <template #legend>
         <i class="pi pi-filter"></i>
       </template>
@@ -57,19 +58,17 @@
   <span v-show="!status.gamesReady">Loading...</span>
   <span v-if="!hasGames">
     {{ user.isSelf ? "You have no games in your library yet" :
-    user.name + " has no games in their library yet." }}
+      user.name + " has no games in their library yet." }}
   </span>
-
 </template>
 
 <script setup>
-import { user, status, searchTerm } from '~/composables/useGames'
+import { user, status, searchTerm, editingGames } from '~/composables/useGames'
 
 definePageMeta({
   path: ''
 })
 
-const editingGames = ref(false)
 
 const filterStyleOptions = ref([
   { label: 'Simple', value: 'simple', icon: 'magnifying-glass' },
@@ -81,6 +80,10 @@ const showTable = ref(false)
 
 const hasGames = computed(() => {
   return user.value.games.length > 0
+})
+
+const someSelected = computed(() => {
+  return user.value.games.some(g => g.selected)
 })
 
 
@@ -97,14 +100,31 @@ const itMe = ref(true)
 .btn-filter-style {
   position: absolute;
   right: 8%;
-  top: 265px;
+  top: -45px;
+}
+
+.filter-container {
+  position: relative
 }
 
 .whose-games-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  background-color: #28a745;
+  width: 80%;
+  margin: 0.5rem auto;
+  border-radius: 0.5rem;
+  position: relative;
+}
+
+#header-buttons {
+  position: absolute;
+  right: 1rem;
+}
+
+h1 {
+  margin: 5px;
 }
 
 .other-person-header {
@@ -119,13 +139,13 @@ const itMe = ref(true)
   margin-right: 1rem;
 }
 
-.btn-editing {
-  background-color: #28a745;
-  border-color: #28a745;
+#btn-edit {
+  margin-right: 1rem;
+  display: inline-block;
 }
 
-#btn-edit-games {
-  margin-left: 1rem;
+#btn-add-games {
+  display: inline-block;
 }
 
 

@@ -20,10 +20,10 @@ export default defineNuxtConfig({
       options: {
         // unstyled: true
       },
-      importPT: {
-        as: 'Aura',
-        from: '@/assets/styles/tailwind-presets/aura/'
-      }
+      //importPT: {
+        // as: 'Aura',
+        // from: '@/assets/styles/tailwind-presets/aura/'
+      //}
     },
     auth: {
       provider: {

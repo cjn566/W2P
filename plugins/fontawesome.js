@@ -1,6 +1,7 @@
 import { library, config } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
+    fas,
     faBars,
     faRightFromBracket,
     faDice,
@@ -24,7 +25,7 @@ import {
 
 /* add icons to the library */
 
-library.add( faGear, faCircleQuestion, faCalendarDays, 
+library.add( fas, faGear, faCircleQuestion, faCalendarDays, 
     faUsers, faDice, faBars, faRightFromBracket, 
     faPen, faChessBoard, faStar, faBrain, faPeopleGroup,
     faHourglassHalf, faPersonCane, faCalendar, faFilter, faFilterCircleXmark, faMagnifyingGlass, faMicroscope)

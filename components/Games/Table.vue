@@ -1,12 +1,16 @@
 <template>
     <div>
-        <DataTable :value="filteredGames" dataKey="userGameId" showGridlines stripedRows scrollable scroll-height="90vh"
-            class="game-table" size="large">
+        <DataTable :value="filteredGames" dataKey="userGameId" lazy showGridlines stripedRows scrollable
+            scroll-height="90vh" class="game-table" size="large">
+
+            <Column v-if="editingGames" selectionMode="multiple" headerStyle="width: 3rem"></Column>
 
             <!-- Game -->
             <Column frozen>
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'chess-board']" style="color: #0058f0;" size="2x" @click="sortBy('name')"/>
+                    <div class="header-btn" @click="sortBy('name')">
+                        <font-awesome-icon :icon="['fas', 'chess-board']" size="2x" class="header-icon" />
+                    </div>
                 </template>
                 <template #body="{ data }">
                     <div class="flex align-items-center gap-2">
@@ -16,9 +20,11 @@
             </Column>
 
             <!-- Rating -->
-            <Column field="rating" >
+            <Column field="rating">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'star']" style="color: #0058f0;" size="2x" @click="sortBy('rating')"/>
+                    <div class="header-btn" @click="sortBy('rating')">
+                        <font-awesome-icon :icon="['fas', 'star']" size="2x" class="header-icon" />
+                    </div>
                 </template>
                 <template #body="{ data }">
                     {{ data.display.rating }}
@@ -26,9 +32,12 @@
             </Column>
 
             <!-- complexity -->
-            <Column field="complexity" >
+            <Column field="complexity">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'brain']" style="color: #0058f0;" size="2x" @click="sortBy('complexity')" />
+                    
+                    <div class="header-btn" @click="sortBy('complexity')">
+                        <font-awesome-icon :icon="['fas', 'brain']" size="2x" class="header-icon" />
+                    </div>
                 </template>
                 <template #body="{ data }">
                     {{ data.display.complexity }}
@@ -36,9 +45,12 @@
             </Column>
 
             <!-- Players -->
-            <Column >
+            <Column>
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'people-group']" style="color: #0058f0;" size="2x" @click="sortBy('players')"/>
+                    
+                    <div class="header-btn" @click="sortBy('players')">
+                        <font-awesome-icon :icon="['fas', 'people-group']" size="2x" class="header-icon" />
+                    </div>
                 </template>
                 <template #body="{ data }">
                     {{ data.display.players }}
@@ -46,9 +58,12 @@
             </Column>
 
             <!-- Play Time  -->
-            <Column >
+            <Column>
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'hourglass-half']" style="color: #0058f0;" size="2x"  @click="sortBy('playtime')"/>
+                    
+                    <div class="header-btn" @click="sortBy('playtime')">
+                        <font-awesome-icon :icon="['fas', 'hourglass-half']" size="2x" class="header-icon" />
+                    </div>
                 </template>
                 <template #body="{ data }">
                     {{ data.display.playtime }}
@@ -58,7 +73,9 @@
             <!-- Age -->
             <Column>
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'person-cane']" style="color: #0058f0;" size="2x" @click="sortBy('age')"/>
+                    <div class="header-btn" @click="sortBy('age')">
+                        <font-awesome-icon :icon="['fas', 'person-cane']" size="2x" class="header-icon" />
+                    </div>
                 </template>
                 <template #body="{ data }">
                     {{ data.display.age }}
@@ -68,7 +85,10 @@
             <!-- Year Published -->
             <Column field="year">
                 <template #header>
-                    <font-awesome-icon :icon="['fas', 'calendar']" style="color: #0058f0;" size="2x" @click="sortBy('year')"/>
+                    
+                    <div class="header-btn" @click="sortBy('year')">
+                        <font-awesome-icon :icon="['fas', 'calendar']" size="2x" class="header-icon" />
+                    </div>
                 </template>
                 <template #body="{ data }">
                     {{ data.display.year }}
@@ -84,7 +104,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Row from 'primevue/row'                   // optional
-import { filteredGames, sortBy, sorting } from '~/composables/useGames'
+import { editingGames, filteredGames, sortBy, sorting } from '~/composables/useGames'
 
 </script>
 
@@ -107,4 +127,15 @@ import { filteredGames, sortBy, sorting } from '~/composables/useGames'
 .game-tag {
     margin: 2px
 }
+
+.header-btn {
+    :hover {
+        cursor: pointer;
+    }
+}
+
+.header-icon {
+    color: #0058f0;
+}
+
 </style>
