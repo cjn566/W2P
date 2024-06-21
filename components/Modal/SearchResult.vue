@@ -43,7 +43,7 @@ async function addGame() {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .card {
   width: 300px;
   margin: 1rem;

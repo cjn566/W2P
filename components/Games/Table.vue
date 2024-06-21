@@ -108,7 +108,8 @@ import { editingGames, filteredGames, sortBy, sorting } from '~/composables/useG
 
 </script>
 
-<style>
+
+<style lang="scss" scoped>
 .p-column-header-content {
     justify-content: center;
 }

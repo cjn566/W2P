@@ -13,7 +13,7 @@
         <div id="btn-edit">
           <Button size="small" icon="pi pi-pencil" @click="editingGames = !editingGames" />
         </div>
-        <div id="btn-add-games" :style="editingGames? '':'visibility: hidden'">
+        <div id="btn-add-games" :style="editingGames ? '' : 'visibility: hidden'">
           <Button size="small" icon="pi pi-plus" @click="navigateTo('./add')" />
         </div>
       </div>
@@ -22,9 +22,10 @@
     <Checkbox v-model="itMe" :binary="true" />
 
     <!--Filters-->
-    <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset" :pt="{ root: 'filter-container', legend: 'legend' }">
+    <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset"
+      :pt="{ root: 'filter-container', legend: 'legend' }">
       <template #legend>
-        <i class="pi pi-filter"></i>
+        Search and Filter
       </template>
 
       <SelectButton v-model="filterStyle" :options="filterStyleOptions" :pt="{ root: 'btn-filter-style' }">
@@ -32,8 +33,7 @@
           <font-awesome-icon :icon="['fas', slotProps.option.icon]" />
         </template>
       </SelectButton>
-
-
+      
       <InputGroup>
         <InputGroupAddon>
           <i class="pi pi-search" />
@@ -43,22 +43,33 @@
       </InputGroup>
 
       <FilterVisualBar />
-      <FilterSimpleUI v-show="filterStyle.value == 'simple'" />
-      <FilterAdvancedUI v-show="filterStyle.value == 'advanced'" />
+      <Divider />
+      <FilterSimpleUI v-if="filterStyle.value == 'simple'" />
+      <FilterAdvancedUI v-else="filterStyle.value == 'advanced'" />
 
     </Fieldset>
 
+    <div id="games-container">
+      <span v-if="!filteredGames.length">There are no games that fit the search criteria.</span>
+      <div v-else>
 
-    <Button @click="showTable = true">table</Button>
-    <Button @click="showTable = false">cards</Button>
+        <SelectButton v-model="showTable" :options="listStyleOptions" :pt="{ root: 'btn-list-style' }">
+          <template #option="slotProps">
+            <font-awesome-icon :icon="['fas', slotProps.option.icon]" />
+          </template>
+        </SelectButton>
 
-    <GamesTable v-if="showTable" />
-    <GamesCards v-else />
+        <GamesTable v-if="showTable.value" />
+        <GamesCards v-else />
+      </div>
+    </div>
+
+    <div class="bottom-spacer"></div>
   </div>
   <span v-show="!status.gamesReady">Loading...</span>
   <span v-if="!hasGames">
     {{ user.isSelf ? "You have no games in your library yet" :
-      user.name + " has no games in their library yet." }}
+    user.name + " has no games in their library yet." }}
   </span>
 </template>
 
@@ -71,10 +82,15 @@ definePageMeta({
 
 
 const filterStyleOptions = ref([
-  { label: 'Simple', value: 'simple', icon: 'magnifying-glass' },
+  { label: 'Simple', value: 'simple', icon: 'magnifying-glass', tooltip: 'Search and filter games' },
   { label: 'Advanced', value: 'advanced', icon: 'microscope' }
 ])
-const filterStyle = ref(filterStyleOptions.value[0])
+const filterStyle = ref(filterStyleOptions.value[1])
+
+const listStyleOptions = ref([
+  { label: 'Cards', value: false, icon: 'bars-progress' },
+  { label: 'Table', value: true, icon: 'bars' }
+])
 
 const showTable = ref(false)
 
@@ -97,6 +113,24 @@ const itMe = ref(true)
   flex-direction: row;
 }
 
+#games-container {
+  position: relative;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  background-color: $w2p-pallette-4;
+  border-radius: 0.6rem;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn-list-style {
+  position: absolute;
+  right: 8%;
+  top: -20px;
+}
+
 .btn-filter-style {
   position: absolute;
   right: 8%;
@@ -106,6 +140,7 @@ const itMe = ref(true)
 .filter-container {
   position: relative
 }
+
 
 .whose-games-container {
   display: flex;
@@ -151,5 +186,9 @@ h1 {
 
 #filters-fieldset {
   margin-top: 1rem;
+}
+
+.bottom-spacer {
+  height: 4rem;
 }
 </style>

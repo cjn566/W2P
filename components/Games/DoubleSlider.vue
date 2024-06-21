@@ -4,6 +4,7 @@
     <span class="p-inputgroup-addon">{{ value[0] }}</span>
     <Slider class="slider-thing" style="width: 6rem;" v-model="value" range :min="min" :max="max" :step="step" />
     <span class="p-inputgroup-addon">{{ value[1] }}</span>
+    <Button v-if="dirty" icon="pi pi-times" @click="resetFilters"/>
   </div>
 </template>
 
@@ -19,11 +20,20 @@ watch(props.inValues, (nv, ov)=>{
 
 const displayValues = ref([props.min, props.max])
 
+const dirty = ref(false)
+
+const resetFilters = () => {
+  displayValues.value = [props.min, props.max]
+  emit('setValue', props.prop, null)
+  dirty.value = false
+}
+
 const value = computed({
   get() {
     return displayValues.value
   },
   set(newVals) {
+    dirty.value = true
     if(newVals[0] != displayValues.value[0]){
       // left side is changing
       if (newVals[0] > newVals[1]) {

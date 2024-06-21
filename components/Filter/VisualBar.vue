@@ -1,5 +1,5 @@
 <template>
-    <div id="count">Showing {{ isFiltering? filteredGames.length + " of " : '' }} {{games.length}} games</div>
+    <div id="count">Showing {{ isFiltering? filteredGames.length + " of " : 'all ' }} {{games.length}} games</div>
     <div class="visual-bar">
         <span v-show="isFiltering" v-for="box in set" class="mark" :class="{ active: box }" :style="{backgroundColor: box? activeColor : '#101010'}"></span>
     </div>

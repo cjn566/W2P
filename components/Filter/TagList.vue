@@ -1,33 +1,35 @@
 <template>
-    
-
-    <Tag v-for="tag in filteredTags" :key="tag.id" class="tag active" @click="clickedTag(tag)">
-        {{ tag.name }}
-    </Tag>
-    <Divider />
-
-    <ScrollPanel class="tag-scroller">
-        <Tag v-for="tag in tags" :key="tag.id" class="tag" :class="{ active: tag.filterActive, grayed: !tag.showCount }"
-            @click='clickedTag(tag)'>
-            {{ tag.name }}
-            <Badge :value="tag.showCount" severity="success"></Badge>
-        </Tag>
-    </ScrollPanel>
+    <div id="tags-container">
+        <div id="header">
+            <div id="active-tags">
+                <Chip v-for="tag in filteredTags" :key="tag.id" :label="tag.name" removable class="selected-tag active"
+                    @click="clickedTag(tag)" />
+            </div>
+            <div id="sort-btns"></div>
+            <SelectButton v-model="sort" :options="sortOptions" :pt="{ root: 'btn-sort' }">
+                <template #option="slotProps">
+                    <font-awesome-icon :icon="['fas', slotProps.option.icon]" />
+                </template>
+            </SelectButton>
+        </div>
+        <Divider />
+        <ScrollPanel id="tag-scroller">
+            <Tag v-for="tag in tags" :key="tag.id" class="tag" :severity="tag.showCount ? '' : 'secondary'"
+                :class="{ active: tag.filterActive }" @click='clickedTag(tag)'>
+                {{ tag.name }}
+                <Badge :value="tag.showCount" :severity="tag.showCount ? 'success' : 'secondary'" class="count" />
+            </Tag>
+        </ScrollPanel>
+    </div>
 </template>
 
-
-
 <script setup>
-// <InputSwitch v-model="checkingAllTags" /> Only show games that match all selected tags.
 
-import Divider from 'primevue/divider'
-import Tag from 'primevue/tag'
-import Badge from 'primevue/badge'
-import ScrollPanel from 'primevue/scrollpanel'
-import InputSwitch from 'primevue/inputswitch'
-import { watch } from 'vue'
-
-import { filteredTags, filteredGames } from '~/composables/useGames'
+const sortOptions = ref([
+    { label: 'Alphabetical', sortByName: true, icon: 'arrow-down-a-z' },
+    { label: 'Count', sortByName: false, icon: 'hashtag' }
+])
+const sort = ref(sortOptions.value[0])
 
 function clickedTag(tag) {
     let tagIdx = filteredTags.value.indexOf(tag)
@@ -118,7 +120,74 @@ watch(filteredGames, (newGames, oldGames) => {
     })
 })
 
+watch(sort, (newSort, oldSort) => {
+    if (newSort.sortByName) {
+        tags.value = tags.value.sort((a, b) => a.name.localeCompare(b.name))
+    } else {
+        tags.value = tags.value.sort((a, b) => b.showCount - a.showCount)
+    }
+})
+
 
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+#tags-container {
+    background-color: $w2p-pallette-4;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+}
+
+#header {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    min-height: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+#active-tags {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+}
+
+#sort-btns {
+    flex-shrink: 1;
+    display: flex;
+    align-items: center;
+}
+
+.tag {
+    margin: 0.15rem;
+    cursor: pointer;
+}
+
+.selected-tag {
+    margin-left: 0.5rem;
+}
+
+.active-icon {
+    margin-left: 2px;
+    font-size: 0.75rem;
+}
+
+#tag-scroller {
+    height: 300px;
+    width: 100%;
+}
+
+.grayed {
+    background-color: #aaaaaa;
+}
+
+.count {
+    margin-left: 3px;
+}
+
+.active {
+    background-color: #0058f0;
+    color: white;
+}
+</style>

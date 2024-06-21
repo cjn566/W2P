@@ -113,49 +113,7 @@ function extendGames() {
     })
   })
 
-  limits = makeLimits()
-  indices.value = makeIndices()
-
-  status.value.gamesReady = true
-}
-
-export const dev_expGames = computed(() => {
-  return games.value.filter((g) => { return g.ownedExpansions?.length || g.isExpansionFor?.length })
-    .map((g) => {
-      return {
-        name: g.name,
-        ownedExpansions: g.ownedExpansions,
-        isExpansionFor: g.isExpansionFor
-      }
-    })
-})
-
-
-// Makes an ascending sorted array 
-function makeIndex(minKey, maxKey = null) {
-  const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
-  return {
-    sorted: [
-      minSorted,
-      maxKey ?
-        games.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
-        : minSorted
-    ],
-    current: [
-      {
-        value: null,
-        index: null
-      },
-      {
-        value: null,
-        index: null
-      }
-    ]
-  }
-}
-
-function makeLimits() {
-  return games.value.reduce((limits, game) => {
+  limits = games.value.reduce((limits, game) => {
     if (game.complexity > 0.1) {
       limits.complexity[0] = Math.min(limits.complexity[0], game.complexity)
       limits.complexity[1] = Math.max(limits.complexity[1], game.complexity)
@@ -201,9 +159,47 @@ function makeLimits() {
         -1
       ]
     })
+
+
+  indices.value = makeIndices()
+
+  status.value.gamesReady = true
 }
 
+export const dev_expGames = computed(() => {
+  return games.value.filter((g) => { return g.ownedExpansions?.length || g.isExpansionFor?.length })
+    .map((g) => {
+      return {
+        name: g.name,
+        ownedExpansions: g.ownedExpansions,
+        isExpansionFor: g.isExpansionFor
+      }
+    })
+})
 
+
+// Makes an ascending sorted array 
+function makeIndex(minKey, maxKey = null) {
+  const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
+  return {
+    sorted: [
+      minSorted,
+      maxKey ?
+        games.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
+        : minSorted
+    ],
+    current: [
+      {
+        value: null,
+        index: null
+      },
+      {
+        value: null,
+        index: null
+      }
+    ]
+  }
+}
 
 function makeIndices() {
   let ret = {
@@ -227,37 +223,46 @@ function makeIndices() {
   return ret
 }
 
-
-
-
 export function commitSliderValues(prop, newValues) {
-  let foo = indices.value[prop]
-  for (let ltgt = 0; ltgt < 2; ltgt++) {
-    let prevIdx = foo.current[ltgt].index ?? (ltgt ? foo.sorted[ltgt].length - 1 : 0)
-    let newIdx
-    if (ltgt) {
-      newIdx = foo.sorted[ltgt].findLastIndex(g => newValues[ltgt] >= g[1])
-    } else {
-      newIdx = foo.sorted[ltgt].findIndex(g => newValues[ltgt] <= g[1])
-    }
-    foo.current[ltgt].value = newValues[ltgt]
-    foo.current[ltgt].index = newIdx
-    let toggleCount = prevIdx - newIdx
-    if (!toggleCount) continue
-    let begin = 0, end = 0, toggle = true
-    if (toggleCount > 0) {
-      begin = newIdx + ltgt
-      end = prevIdx + ltgt
-      toggle = ltgt === 0
-    } else {
-      begin = prevIdx + ltgt
-      end = newIdx + ltgt
-      toggle = ltgt === 1
-    }
-    foo.sorted[ltgt].slice(begin, end).forEach(bar => {
-      bar[0].sliders[prop][ltgt] = toggle
-      bar[0].passesAllSliders = !Object.entries(bar[0].sliders).some(x => !x[1][0] || !x[1][1])
+  if (newValues === null) { // Clear all and include null values
+    indices.value[prop].current[0].index = null
+    indices.value[prop].current[0].value = limits[prop][0]
+    indices.value[prop].current[1].index = null
+    indices.value[prop].current[1].value = limits[prop][1]
+    games.value.forEach(game => {
+      game.filters.sliders[prop][0] = true
+      game.filters.sliders[prop][1] = true
+      game.filters.passesAllSliders = !Object.entries(game.filters.sliders).some(x => !x[1][0] || !x[1][1])
     })
+  } else {
+    let foo = indices.value[prop]
+    for (let ltgt = 0; ltgt < 2; ltgt++) {
+      let prevIdx = foo.current[ltgt].index ?? (ltgt ? foo.sorted[ltgt].length - 1 : 0)
+      let newIdx
+      if (ltgt) {
+        newIdx = foo.sorted[ltgt].findLastIndex(g => newValues[ltgt] >= g[1])
+      } else {
+        newIdx = foo.sorted[ltgt].findIndex(g => newValues[ltgt] <= g[1])
+      }
+      foo.current[ltgt].value = newValues[ltgt]
+      foo.current[ltgt].index = newIdx
+      let toggleCount = prevIdx - newIdx
+      if (!toggleCount) continue
+      let begin = 0, end = 0, toggle = true
+      if (toggleCount > 0) {
+        begin = newIdx + ltgt
+        end = prevIdx + ltgt
+        toggle = ltgt === 0
+      } else {
+        begin = prevIdx + ltgt
+        end = newIdx + ltgt
+        toggle = ltgt === 1
+      }
+      foo.sorted[ltgt].slice(begin, end).forEach(bar => {
+        bar[0].sliders[prop][ltgt] = toggle
+        bar[0].passesAllSliders = !Object.entries(bar[0].sliders).some(x => !x[1][0] || !x[1][1])
+      })
+    }
   }
 }
 

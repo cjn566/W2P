@@ -37,4 +37,7 @@ const debounceSliderUpdate = debounce((prop, values) => commitSliderValues(prop,
 
 </script>
 
-<style scoped></style>
+
+<style lang="scss" scoped>
+
+</style>
