@@ -9,7 +9,7 @@
             <Column frozen>
                 <template #header>
                     <div class="header-btn" @click="sortBy('name')">
-                        <font-awesome-icon :icon="['fas', 'chess-board']" size="2x" class="header-icon" />
+                        <font-awesome-icon :icon="['fas', 'arrow-down-a-z']" size="2x" class="header-icon" />
                     </div>
                 </template>
                 <template #body="{ data }">

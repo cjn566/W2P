@@ -63,6 +63,22 @@ export async function addGames(newGames) {
   extendGames()
 }
 
+export async function removeGames(deadGames) {
+  status.value.gamesReady = false
+  deadGames = makeArray(deadGames)
+  const gameIDs = deadGames.map(x => x.userGameId)
+  const res = (await useFetch('/api/collection/remove',
+    {
+      method: 'post',
+      body: gameIDs
+    })).data.value
+  res.forEach((r) => {
+    games.value = games.value.filter(game => game.userGameId !== r.userGameId)
+    // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
+  })
+  extendGames()
+}
+
 export const indices = ref()
 export var limits = {}
 
@@ -201,6 +217,8 @@ function makeIndex(minKey, maxKey = null) {
   }
 }
 
+
+
 function makeIndices() {
   let ret = {
     complexity: makeIndex('complexity'),
@@ -237,6 +255,7 @@ export function commitSliderValues(prop, newValues) {
   } else {
     let foo = indices.value[prop]
     for (let ltgt = 0; ltgt < 2; ltgt++) {
+      if(newValues[ltgt] === foo.current[ltgt].value) continue
       let prevIdx = foo.current[ltgt].index ?? (ltgt ? foo.sorted[ltgt].length - 1 : 0)
       let newIdx
       if (ltgt) {

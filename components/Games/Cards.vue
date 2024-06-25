@@ -14,13 +14,13 @@ import { filteredGames, sorting } from '~/composables/useGames'
 const scrollTarget = ref(null)
 
 const sortProperties = [
-       { value: 'name', name: 'Name', icon: 'pi pi-sort-alpha-up' },
-       { value: 'rating', name: 'Rating', icon: 'pi pi-star' },
-       { value: 'complexity', name: 'Complexity', icon: 'pi pi-gear' },
-       { value: 'players', name: 'Players', icon: 'pi pi-users' },
-       { value: 'playtime', name: 'Play time', icon: 'pi pi-hourglass' },
-       { value: 'age', name: 'Age', icon: 'pi pi-user' },
-       { value: 'year', name: 'Year', icon: 'pi pi-calendar' }
+       { value: 'name', name: 'Name', icon: 'arrow-down-a-z' },
+       { value: 'rating', name: 'Rating', icon: 'star' },
+       { value: 'complexity', name: 'Complexity', icon: 'brain' },
+       { value: 'players', name: 'Players', icon: 'people-group' },
+       { value: 'playtime', name: 'Play time', icon: 'hourglass-half' },
+       { value: 'age', name: 'Age', icon: 'person-cane' },
+       { value: 'year', name: 'Year', icon: 'calendar' }
 ]
 
 const scroll = () => {

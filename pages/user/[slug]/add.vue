@@ -95,7 +95,7 @@ async function searchGames(event) {
     results.value = res.map(game => {
         game.owns = user.value.games.some(x => x.bgg_game_id == game.bgg_game_id)
         return game
-    }).sort((a, b) => b.owns - a.owns)
+    }).sort((a, b) => 10*(b.owns - a.owns) + (b.rating - a.rating))
     searched.value = true
     loading.value = false
 }

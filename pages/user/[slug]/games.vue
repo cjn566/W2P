@@ -2,7 +2,7 @@
   <div v-show="status.gamesReady">
 
 
-    <div class="whose-games-container other-person-header" v-if="!itMe">
+    <div class="whose-games-container other-person-header" v-if="!user.isSelf">
       <img :src="user.image" class="person-image" alt="avatar">
       <h1 style="display: inline;">{{ user.name }}'s Games</h1>
     </div>
@@ -19,8 +19,6 @@
       </div>
     </div>
 
-    <Checkbox v-model="itMe" :binary="true" />
-
     <!--Filters-->
     <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset"
       :pt="{ root: 'filter-container', legend: 'legend' }">
@@ -33,7 +31,7 @@
           <font-awesome-icon :icon="['fas', slotProps.option.icon]" />
         </template>
       </SelectButton>
-      
+
       <InputGroup>
         <InputGroupAddon>
           <i class="pi pi-search" />
@@ -43,6 +41,7 @@
       </InputGroup>
 
       <FilterVisualBar />
+      <GamesActiveFilters />
       <Divider />
       <FilterSimpleUI v-if="filterStyle.value == 'simple'" />
       <FilterAdvancedUI v-else="filterStyle.value == 'advanced'" />
@@ -102,6 +101,13 @@ const someSelected = computed(() => {
   return user.value.games.some(g => g.selected)
 })
 
+watch(filterStyle, () => {
+  commitSliderValues('complexity', null)
+  commitSliderValues('players', null)
+  commitSliderValues('playtime', null)
+  commitSliderValues('age', null)
+  commitSliderValues('year', null)
+})
 
 const itMe = ref(true)
 
@@ -146,7 +152,7 @@ const itMe = ref(true)
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #28a745;
+  background-color: $w2p-pallette-4;
   width: 80%;
   margin: 0.5rem auto;
   border-radius: 0.5rem;

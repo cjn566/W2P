@@ -3,7 +3,7 @@
         :icon="sort == sorting.active ? (sorting.descending ? 'pi pi-chevron-down' : 'pi pi-chevron-up') : 'pi pi-circle'">
         <template #default>
             <i :class="sort == sorting.active ? (sorting.descending ? 'pi pi-chevron-down' : 'pi pi-chevron-up') : 'pi pi-circle'" />
-            <i v-if="isDesktop" class="label" :class="icon" />
+            <font-awesome-icon v-if="isDesktop" class="label" :icon="['fas', icon]" size="2x"/>
             <span v-else class="label">{{ label }}</span>
         </template>
     </Button>
