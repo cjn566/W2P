@@ -144,8 +144,9 @@ const itMe = ref(true)
 }
 
 .filter-container {
-  position: relative
+  position: relative;
 }
+
 
 
 .whose-games-container {

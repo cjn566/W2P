@@ -1,27 +1,27 @@
 <template>
     <div>
-        <GamesDoubleSlider :inValues="indices.complexity.current" _label="How Complex?" prop="complexity"
-            :min="limits.complexity[0]" :max="limits.complexity[1]" :step="0.1" @set-value="debounceSliderUpdate" />
+        <GamesDoubleSlider :inValues="filters.complexity" _label="How Complex?" prop="complexity"
+            :min="limits.complexity[0]" :max="limits.complexity[1]" :step="0.1"/>
 
         <Divider />
 
-        <GamesDoubleSlider :inValues="indices.players.current" _label="How many players?" prop="players"
-            :min="limits.players[0]" :max="limits.players[1]" :step="1" @set-value="debounceSliderUpdate" />
+        <GamesDoubleSlider :inValues="filters.players" _label="How many players?" prop="players"
+            :min="1" :max="9" maxLabel="9+" :step="1"/>
 
         <Divider />
 
-        <GamesDoubleSlider :inValues="indices.playtime.current" _label="Play for how long?" prop="playtime"
-            :min="limits.playtime[0]" :max="limits.playtime[1]" :step="10" @set-value="debounceSliderUpdate" />
+        <GamesDoubleSlider :inValues="filters.playtime" _label="Play for how long?" prop="playtime"
+            :min="limits.playtime[0]" :max="limits.playtime[1]" :step="10"/>
 
         <Divider />
 
-        <GamesDoubleSlider :inValues="indices.age.current" _label="What minimum age?" prop="age"
-            :min="limits.age[0]" :max="limits.age[1]" :step="1" @set-value="debounceSliderUpdate" />
+        <GamesDoubleSlider :inValues="filters.age" _label="What minimum age?" prop="age"
+            :min="limits.age[0]" :max="limits.age[1]" :step="1"/>
 
         <Divider />
 
-        <GamesDoubleSlider :inValues="indices.year.current" _label="Older games or newer?" prop="year" :min="limits.year[0]"
-            :max="limits.year[1]" :step="1" @set-value="debounceSliderUpdate" />
+        <GamesDoubleSlider :inValues="filters.year" _label="Older games or newer?" prop="year"
+            :min="limits.year[1] - 25" :max="limits.year[1]" :minLabel="'<' + (limits.year[1] - 25)" :step="1"/>
 
         <Divider />
 
@@ -30,10 +30,9 @@
 </template>
 
 <script setup>
-import { debounce } from '~/utils/debounce'
-import { commitSliderValues, indices, limits } from '~/composables/useGames'
+import { filters, limits } from '~/composables/useGames'
 import Divider from 'primevue/divider'
-const debounceSliderUpdate = debounce((prop, values) => commitSliderValues(prop, values), 100)
+
 
 </script>
 

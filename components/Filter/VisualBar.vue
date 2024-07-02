@@ -48,7 +48,7 @@ $mark-height: 4px;
     justify-content: center;
     align-items: center;
     gap: 1px;
-    height: $mark-height + 2px;
+    min-height: $mark-height + 2px;
 }
 
 .mark {
@@ -60,5 +60,6 @@ $mark-height: 4px;
 
 .active {
     height: $mark-height + 2px;
+    background-color: '#101010'
 }
 </style>

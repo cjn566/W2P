@@ -87,7 +87,7 @@ function mapGameObjects(gamesXML) {
 
 // TODO: could be a max number of games in one query, might need to do batches
 export async function getGameInfo(gameIds) {
-  let allGames = null//JSON.parse(localStorage.getItem('allGames'))
+  let allGames = JSON.parse(localStorage.getItem('allGames'))
   if(!allGames){
     const results = await bggQuery(`thing?id=${gameIds.join()}&stats=1`)
     allGames = mapGameObjects(makeArray(results.items.item))

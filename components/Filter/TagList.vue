@@ -1,7 +1,7 @@
 <template>
     <div id="tags-container">
         <div id="header">
-            <SelectButton v-model="sort" :options="sortOptions" :pt="{ root: 'btn-sort' }">
+            <SelectButton v-model="tagSort" :options="sortOptions" :pt="{ root: 'btn-sort' }">
                 <template #option="slotProps">
                     <font-awesome-icon :icon="['fas', slotProps.option.icon]" />
                 </template>
@@ -19,7 +19,18 @@
 
 <script setup>
 
-import { sort, sortOptions, tags, clickedTag } from '~/composables/useTags'
+import { sortTags, tags, clickedTag } from '~/composables/useGames'
+
+const sortOptions = ref([
+  { label: 'Alphabetical', sortByName: true, icon: 'arrow-down-a-z' },
+  { label: 'Count', sortByName: false, icon: 'hashtag' }
+])
+
+const tagSort = ref(sortOptions.value[0])
+
+watch(tagSort, (newSort, oldSort) => {
+  sortTags(newSort.sortByName)
+})
 
 </script>
 
