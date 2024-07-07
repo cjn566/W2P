@@ -8,7 +8,7 @@
             </SelectButton>
         </div>
         <ScrollPanel id="tag-scroller">
-            <Tag v-for="tag in tags" :key="tag.id" class="tag" :severity="tag.showCount ? '' : 'secondary'"
+            <Tag v-for="tag in tagList" :key="tag.id" class="tag" :severity="tag.showCount ? '' : 'secondary'"
                 :class="{ active: tag.filterActive }" @click='clickedTag(tag)'>
                 {{ tag.name }}
                 <Badge :value="tag.showCount" :severity="tag.showCount ? 'success' : 'secondary'" class="count" />
@@ -19,7 +19,9 @@
 
 <script setup>
 
-import { sortTags, tags, clickedTag } from '~/composables/useGames'
+import { sortTags, clickedTag } from '~/composables/useGames'
+
+const props = defineProps(['tagList'])
 
 const sortOptions = ref([
   { label: 'Alphabetical', sortByName: true, icon: 'arrow-down-a-z' },
@@ -77,7 +79,6 @@ watch(tagSort, (newSort, oldSort) => {
 }
 
 #tag-scroller {
-    height: 300px;
     width: 100%;
 }
 

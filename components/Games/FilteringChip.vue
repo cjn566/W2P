@@ -1,11 +1,11 @@
 <template>
     <Chip v-if="index.active" :label="label" removable class="chip"
-        @click="commitSliderValues(field, null)" />
+        @click="clearSlider(field)" />
 </template>
 
 <script setup>
 
-import { commitSliderValues } from '~/composables/useGames'
+import { clearSlider } from '~/composables/useGames'
 const props = defineProps(['index', 'field'])
 
 const label = computed(() => {

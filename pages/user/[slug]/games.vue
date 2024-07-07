@@ -14,7 +14,7 @@
           <Button size="small" icon="pi pi-pencil" @click="editingGames = !editingGames" />
         </div>
         <div id="btn-add-games" :style="editingGames ? '' : 'visibility: hidden'">
-          <Button size="small" icon="pi pi-plus" @click="navigateTo('./add')" />
+          <Button size="small" icon="pi pi-plus" @click="goToAdd()" />
         </div>
       </div>
     </div>
@@ -73,12 +73,16 @@
 </template>
 
 <script setup>
-import { user, status, searchTerm, editingGames } from '~/composables/useGames'
+import { user, status, searchTerm, editingGames, clearAllSliders } from '~/composables/useGames'
 
 definePageMeta({
   path: ''
 })
 
+const route = useRoute()
+function goToAdd() {
+  navigateTo(route.path.endsWith('/') ? `${route.path}add` : `${route.path}/add`)
+}
 
 const filterStyleOptions = ref([
   { label: 'Simple', value: 'simple', icon: 'magnifying-glass', tooltip: 'Search and filter games' },
@@ -102,11 +106,7 @@ const someSelected = computed(() => {
 })
 
 watch(filterStyle, () => {
-  commitSliderValues('complexity', null)
-  commitSliderValues('players', null)
-  commitSliderValues('playtime', null)
-  commitSliderValues('age', null)
-  commitSliderValues('year', null)
+  clearAllSliders()
 })
 
 const itMe = ref(true)

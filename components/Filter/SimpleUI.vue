@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { commitSliderValues, limits } from '~/composables/useGames'
+import { setSlider, limits, filters } from '~/composables/useGames'
 
 const gameLength = ref(null)
 const gameLengthText = ref('')
@@ -43,37 +43,64 @@ const numPlayersOptions = ref([
     { name: '9+', value: 9 }
 ])
 
+watch(() => filters.value.playtime.active, (isActive) => {
+    if(!isActive){
+        gameLength.value = null
+        resetLength()
+    }
+})
+
+function resetLength(){
+    gameLengthText.value = ''
+}
+
 const updateLength = (newLength) => {
     if (newLength === null) {
-        commitSliderValues('playtime', null)
-        gameLengthText.value = ''
+        clearSlider('playtime')
+        resetLength()
     } else {
         switch (newLength.value) {
             case 1:
-                commitSliderValues('playtime', [limits.playtime[0], 15])
+                setSlider('playtime', 0, limits.playtime[0])
+                setSlider('playtime', 1, 15)
                 gameLengthText.value = 'fast'
                 break
             case 2:
-                commitSliderValues('playtime', [16, 60])
+                setSlider('playtime', 0, 16)
+                setSlider('playtime', 1, 60)
                 gameLengthText.value = 'medium length'
                 break
             case 3:
-                commitSliderValues('playtime', [61, limits.playtime[1]])
+                setSlider('playtime', 0, 61)
+                setSlider('playtime', 1, limits.playtime[1])
                 gameLengthText.value = 'long'
                 break
         }
     }
 }
 
+watch(() => filters.value.players.active, (isActive) => {
+    if(!isActive){
+        numPlayers.value = null
+        resetPlayers()
+    }
+})
+
+function resetPlayers(){
+    numPlayersText.value = ''
+}
+
 const updateNumPlayers = (newNumPlayers) => {
     if (newNumPlayers === null) {
-        commitSliderValues('players', null)
-        numPlayersText.value = ''
+        clearSlider('players')
+        resetPlayers()
     } else if (newNumPlayers.value === 9) {
-        commitSliderValues('players', [9, limits.players[1]])
+        setSlider('players', 0, 9)
+        setSlider('players', 1, limits.players[1])
         numPlayersText.value = ' for 9+ players'
     } else {
-        commitSliderValues('players', [newNumPlayers.value, newNumPlayers.value])
+        setSlider('players', 0, newNumPlayers.value)
+        setSlider('players', 1, newNumPlayers.value)
         numPlayersText.value = ' for ' + newNumPlayers.name + ' player' + (newNumPlayers.value > 1 ? 's' : '')
     }
 }
@@ -82,48 +109,6 @@ const updateNumPlayers = (newNumPlayers) => {
 const showText = computed(() => {
     return gameLength.value !== null || numPlayers.value !== null
 })
-
-function clickButton(setting, idx) {
-    switch (setting) {
-        case 'time':
-            settings.value.time.active = idx
-            switch (idx) {
-                case 1:
-                    commitSliderValues('playtime', [limits.playtime[0], 15])
-                    break
-                case 2:
-                    commitSliderValues('playtime', [15, 60])
-                    break
-                case 3:
-                    commitSliderValues('playtime', [60, limits.playtime[1]])
-                    break
-                case 0:
-                    commitSliderValues('playtime', [limits.playtime[0], limits.playtime[1]])
-                    panel.value = 'none'
-                    break
-            }
-            break
-        case 'players':
-            settings.value.players.active = idx
-            switch (idx) {
-                case 1:
-                    commitSliderValues('players', [1, 1])
-                    break
-                case 2:
-                    commitSliderValues('players', [2, 2])
-                    break
-                case 3:
-                    commitSliderValues('players', [3, 20])
-                    break
-                case 0:
-                    commitSliderValues('playtime', [limits.players[0], limits.players[1]])
-                    panel.value = 'none'
-                    break
-            }
-            break
-
-    }
-}
 
 </script>
 

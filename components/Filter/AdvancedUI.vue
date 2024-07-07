@@ -6,7 +6,7 @@
         <Divider />
 
         <GamesDoubleSlider :inValues="filters.players" _label="How many players?" prop="players"
-            :min="1" :max="9" maxLabel="9+" :step="1"/>
+            :min="1" :max="12" maxLabel="12+" :step="1"/>
 
         <Divider />
 
@@ -21,18 +21,32 @@
         <Divider />
 
         <GamesDoubleSlider :inValues="filters.year" _label="Older games or newer?" prop="year"
-            :min="limits.year[1] - 25" :max="limits.year[1]" :minLabel="'<' + (limits.year[1] - 25)" :step="1"/>
+            :min="minYear.val" :max="limits.year[1]" :minLabel="minYear.label" :step="1"/>
 
         <Divider />
 
-        <FilterTagList />
+        <FilterTagList :tagList="tags"/>
     </div>
 </template>
 
 <script setup>
-import { filters, limits } from '~/composables/useGames'
+import { filters, limits, tags } from '~/composables/useGames'
 import Divider from 'primevue/divider'
 
+const minYear = computed(() => {
+    let foo = limits.year[1] - 25
+    if(foo > limits.year[0]){
+        return {
+            val: foo,
+            label: '<' + foo
+        }
+    } else {
+        return {
+            val: limits.year[0],
+            label: limits.year[0]
+        }
+    }
+})
 
 </script>
 

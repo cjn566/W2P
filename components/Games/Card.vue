@@ -1,5 +1,5 @@
 <template>
-    <div class="card">
+    <div class="card" @click="emit('show-details')">
         <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash"/>
         <span id="image-container">
             <img :src="game.thumbnail" alt="Game Thumbnail" class="card-image" />
@@ -45,6 +45,7 @@
 import { editingGames, getGameURL } from '~/composables/useGames';
 import { isMobile } from '~/composables/useMedia'
 const props = defineProps(['game', 'sort'])
+const emit = defineEmits(['show-details'])
 
 
 </script>
@@ -57,9 +58,9 @@ const props = defineProps(['game', 'sort'])
     flex-direction: row;
     padding: 0.6rem;
     border-radius: 0.4rem;
-    margin-top: 1rem;
     height: 10rem;
     background-color: $w2p-pallette-5;
+    cursor: pointer;
 }
 
 #details {

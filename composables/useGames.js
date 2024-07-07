@@ -179,7 +179,7 @@ function extendGames() {
     })
 
 
-  
+
 
   indices.value = makeIndices()
 
@@ -189,7 +189,7 @@ function extendGames() {
 }
 
 export const filters = computed(() => {
-  return Object.fromEntries(Object.entries(indices.value).map(([k, v]) => [k, 
+  return Object.fromEntries(Object.entries(indices.value).map(([k, v]) => [k,
     {
       active: v.current[0].index !== null || v.current[1].index !== null,
       values: [
@@ -249,78 +249,83 @@ function makeIndices() {
   return ret
 }
 
+export function clearAllFilters() {
+  clearAllTags()
+  clearAllSliders()
+}
 
-export function commitSliderValues(prop, newValues) {
-  if (newValues === null) { // Clear all, set to limits and indices to null
-    indices.value[prop].current[0].index = null
-    indices.value[prop].current[0].value = limits[prop][0]
-
-    indices.value[prop].current[1].index = null
-    indices.value[prop].current[1].value = limits[prop][1]
-    
-    games.value.forEach(game => {
-      game.filters.sliders[prop][0] = true
-      game.filters.sliders[prop][1] = true
-      game.filters.passesAllSliders = !Object.entries(game.filters.sliders).some(x => !x[1][0] || !x[1][1])
-    })
-  } else {
-    let propSet = indices.value[prop]
-    let clearSide = false
-
-    // First process less than, then greater than
-    for (let ltgt = 0; ltgt < 2; ltgt++) {
-
-      // If the value is the same, skip
-      if(newValues[ltgt] === propSet.current[ltgt].value) continue
-
-      // If the value is null, that side is cleared. Set value to limit, process games, then set index to null
-      if(newValues[ltgt] === null){
-        newValues[ltgt] = limits[prop][ltgt]
-        clearSide = true
-      }
-
-      // Get the previous index. If it's null, set to the end or beginning
-      let prevIdx = propSet.current[ltgt].index ?? (ltgt ? propSet.sorted[ltgt].length - 1 : 0)
-      let newIdx
-
-      // Find the new index out of the sorted array. If it's being reset, it will be the first or last
-      if (ltgt) {
-        newIdx = clearSide ? (propSet.sorted[ltgt].length - 1) : propSet.sorted[ltgt].findLastIndex(g => newValues[ltgt] >= g[1])
-      } else {
-        newIdx = clearSide ? 0 : propSet.sorted[ltgt].findIndex(g => newValues[ltgt] <= g[1])
-      }
-
-      // Set the new value and index. If it's being reset, the index is null
-      propSet.current[ltgt].value = newValues[ltgt]
-      propSet.current[ltgt].index = clearSide ? null : newIdx
-
-      // Compute how many games need to be toggled
-      let toggleCount = prevIdx - newIdx
-
-      // If no games, then skip
-      if (!toggleCount) continue
-
-      let begin = 0, end = 0, toggle = true
-      // If moving left vs right, the begin and end are swapped
-      // and set whether games now pass or fail the filter
-      if (toggleCount > 0) {
-        begin = newIdx + ltgt
-        end = prevIdx + ltgt
-        toggle = ltgt === 0
-      } else {
-        begin = prevIdx + ltgt
-        end = newIdx + ltgt
-        toggle = ltgt === 1
-      }
-
-      // Process through the games and set the pass state for the filter,
-      // then check if the game passes all filters
-      propSet.sorted[ltgt].slice(begin, end).forEach(bar => {
-        bar[0].sliders[prop][ltgt] = toggle
-        bar[0].passesAllSliders = !Object.entries(bar[0].sliders).some(x => !x[1][0] || !x[1][1])
-      })
-    }
+export function clearAllSliders() {
+  for (const prop in filters.value) {
+    if (filters.value[prop].active) clearSlider(prop)
   }
+}
+
+export function clearSlider(prop) {
+  // Clear all, set to limits and indices to null
+  indices.value[prop].current[0].index = null
+  indices.value[prop].current[0].value = limits[prop][0]
+
+  indices.value[prop].current[1].index = null
+  indices.value[prop].current[1].value = limits[prop][1]
+
+  games.value.forEach(game => {
+    game.filters.sliders[prop][0] = true
+    game.filters.sliders[prop][1] = true
+    game.filters.passesAllSliders = !Object.entries(game.filters.sliders).some(x => !x[1][0] || !x[1][1])
+  })
+}
+
+export function setSlider(prop, LT, newVal) {
+
+  // Get the appropriate filter set
+  let propSet = indices.value[prop]
+
+  // If the value is the same, skip
+  if (newVal === propSet.current[LT].value) return
+
+  // Get the previous index. If it's null, set to the end or beginning
+  let prevIdx = propSet.current[LT].index ?? (LT ? propSet.sorted[LT].length - 1 : 0)
+  let newIdx
+
+  // Find the new index out of the sorted array. If it's being reset, it will be the first or last
+  if (newVal === null) {
+    newIdx = LT ? (propSet.sorted[LT].length - 1) : 0
+    propSet.current[LT].index = null
+  } else {
+    if (LT) {
+      newIdx = propSet.sorted[LT].findLastIndex(g => newVal >= g[1])
+    } else {
+      newIdx = propSet.sorted[LT].findIndex(g => newVal <= g[1])
+    }
+    propSet.current[LT].index = newIdx
+  }
+  propSet.current[LT].value = newVal
+
+  // Compute how many games need to be toggled
+  let toggleCount = prevIdx - newIdx
+
+  // If no games, then skip
+  if (!toggleCount) return
+
+  let begin = 0, end = 0, toggle = true
+  // If moving left vs right, the begin and end are swapped
+  // and set whether games now pass or fail the filter
+  if (toggleCount > 0) {
+    begin = newIdx + LT
+    end = prevIdx + LT
+    toggle = LT === 0
+  } else {
+    begin = prevIdx + LT
+    end = newIdx + LT
+    toggle = LT === 1
+  }
+
+  // Process through the games and set the pass state for the filter,
+  // then check if the game passes all filters
+  propSet.sorted[LT].slice(begin, end).forEach(bar => {
+    bar[0].sliders[prop][LT] = toggle
+    bar[0].passesAllSliders = !Object.entries(bar[0].sliders).some(x => !x[1][0] || !x[1][1])
+  })
 }
 
 export const filteredTags = ref([])
@@ -414,34 +419,34 @@ export function clickedTag(tag) {
   let tagIdx = filteredTags.value.indexOf(tag)
   let added = tagIdx === -1
   if (added) {
-      tag.filterActive = true
-      filteredTags.value.push(tag)
+    tag.filterActive = true
+    filteredTags.value.push(tag)
   } else {
-      tag.filterActive = false
-      filteredTags.value.splice(tagIdx, 1)
+    tag.filterActive = false
+    filteredTags.value.splice(tagIdx, 1)
   }
 
   let numCurrentTags = filteredTags.value.length
   let checkAllGames = numCurrentTags > 1 || (numCurrentTags === 1 && !added)
 
   for (const game of tag.members) {
-      game.filters.tags[tag.id] = added
-      game.filters.passesAnyTag = Object.entries(game.filters.tags).some(x => x[1])
-      if (!checkAllGames) {
-          game.filters.passesAllTags = added
-      } else {
-          game.filters.passesAllTags = !filteredTags.value.some(tag => !game.filters.tags[tag.id])
-      }
+    game.filters.tags[tag.id] = added
+    game.filters.passesAnyTag = Object.entries(game.filters.tags).some(x => x[1])
+    if (!checkAllGames) {
+      game.filters.passesAllTags = added
+    } else {
+      game.filters.passesAllTags = !filteredTags.value.some(tag => !game.filters.tags[tag.id])
+    }
   }
 
   // Go through all filtered games and re-check if they meet all tags
   if (checkAllGames) {
-      filteredTags.value.forEach(tag => {
-          tag.members.forEach(game => {
-              game.filters.passesAllTags = !filteredTags.value.some(tag => !game.filters.tags[tag.id])
+    filteredTags.value.forEach(tag => {
+      tag.members.forEach(game => {
+        game.filters.passesAllTags = !filteredTags.value.some(tag => !game.filters.tags[tag.id])
 
-          })
       })
+    })
   }
 }
 
@@ -452,54 +457,54 @@ export const tags = ref([])
 function buildTagList() {
   let foo = {}
   games.value.forEach((game) => {
-      for (const linkId in game.tags) {
-          if (foo.hasOwnProperty(linkId)) {
-              foo[linkId].members.push(game)
-          } else {
-              foo[linkId] = {
-                  name: game.tags[linkId],
-                  members: [game]
-              }
-          }
-          game.filters.tags[linkId] = false
+    for (const linkId in game.tags) {
+      if (foo.hasOwnProperty(linkId)) {
+        foo[linkId].members.push(game)
+      } else {
+        foo[linkId] = {
+          name: game.tags[linkId],
+          members: [game]
+        }
       }
+      game.filters.tags[linkId] = false
+    }
   })
 
   const arr = []
   for (const [tagId, tag] of Object.entries(foo)) {
-      if (tag.members.length > 1)
-          arr.push({
-              id: tagId,
-              name: tag.name,
-              members: tag.members,
-              showCount: tag.members.length,
-              filterActive: false
-          })
+    if (tag.members.length > 1)
+      arr.push({
+        id: tagId,
+        name: tag.name,
+        members: tag.members,
+        showCount: tag.members.length,
+        filterActive: false
+      })
   }
   tags.value = arr
 }
 
 export function sortTags(byName) {
   if (byName) {
-      tags.value = tags.value.sort((a, b) => a.name.localeCompare(b.name))
+    tags.value = tags.value.sort((a, b) => a.name.localeCompare(b.name))
   } else {
-      tags.value = tags.value.sort((a, b) => b.showCount - a.showCount)
-  }  
+    tags.value = tags.value.sort((a, b) => b.showCount - a.showCount)
+  }
 }
 
 watch(filteredGames, (newGames, oldGames) => {
   let temp = {}
   newGames.forEach((game) => {
-      for (const linkId in game.tags) {
-          if (temp.hasOwnProperty(linkId)) {
-              temp[linkId]++
-          } else {
-              temp[linkId] = 1
-          }
+    for (const linkId in game.tags) {
+      if (temp.hasOwnProperty(linkId)) {
+        temp[linkId]++
+      } else {
+        temp[linkId] = 1
       }
+    }
   })
 
   tags.value.forEach(t => {
-      t.showCount = temp[t.id] ?? 0
+    t.showCount = temp[t.id] ?? 0
   })
 })
