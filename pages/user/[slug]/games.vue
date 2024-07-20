@@ -1,7 +1,7 @@
 <template>
   <div v-show="status.gamesReady">
 
-
+    {{ isMobile }}
     <div class="whose-games-container other-person-header" v-if="!user.isSelf">
       <img :src="user.image" class="person-image" alt="avatar">
       <h1 style="display: inline;">{{ user.name }}'s Games</h1>
@@ -74,6 +74,7 @@
 
 <script setup>
 import { user, status, searchTerm, editingGames, clearAllSliders } from '~/composables/useGames'
+import {isMobile} from '~/composables/useMedia'
 
 definePageMeta({
   path: ''

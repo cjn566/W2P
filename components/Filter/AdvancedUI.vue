@@ -1,31 +1,31 @@
 <template>
     <div>
-        <GamesDoubleSlider :inValues="filters.complexity" _label="How Complex?" prop="complexity"
-            :min="limits.complexity[0]" :max="limits.complexity[1]" :step="0.1"/>
+        <GamesDoubleSlider :inValues="filters.complexity" _label="Complexity:" prop="complexity"
+            :min="limits.complexity[0]" :max="limits.complexity[1]" :step="0.1" :suffix="' / 5'"/>
 
-        <Divider />
 
-        <GamesDoubleSlider :inValues="filters.players" _label="How many players?" prop="players"
-            :min="1" :max="12" maxLabel="12+" :step="1"/>
+        <GamesDoubleSlider :inValues="filters.players" _label="Player count:" prop="players"
+            :min="1" :max="12" maxLabel="12+" :step="1" :suffix="' players'"/>
 
-        <Divider />
 
-        <GamesDoubleSlider :inValues="filters.playtime" _label="Play for how long?" prop="playtime"
-            :min="limits.playtime[0]" :max="limits.playtime[1]" :step="10"/>
+        <GamesDoubleSlider :inValues="filters.playtime" _label="Duration:" prop="playtime"
+            :min="limits.playtime[0]" :max="limits.playtime[1]" :step="10" :suffix="' minutes'"/>
 
-        <Divider />
 
-        <GamesDoubleSlider :inValues="filters.age" _label="What minimum age?" prop="age"
-            :min="limits.age[0]" :max="limits.age[1]" :step="1"/>
+        <GamesDoubleSlider :inValues="filters.age" _label="Maturity:" prop="age"
+            :min="limits.age[0]" :max="limits.age[1]" :step="1" :suffix="'y.o.'"/>
 
-        <Divider />
 
-        <GamesDoubleSlider :inValues="filters.year" _label="Older games or newer?" prop="year"
+        <GamesDoubleSlider :inValues="filters.year" _label="Publish Date:" prop="year"
             :min="minYear.val" :max="limits.year[1]" :minLabel="minYear.label" :step="1"/>
 
         <Divider />
 
-        <FilterTagList :tagList="tags"/>
+        <Button id="btn-show-tags" icon="pi pi-sliders-v" @click="showTags = true" />
+
+        <Dialog v-model:visible="showTags" modal dismissableMask header="Filter by Tags">
+            <FilterTagList :tagList="tags"/>
+        </Dialog>
     </div>
 </template>
 
@@ -38,7 +38,7 @@ const minYear = computed(() => {
     if(foo > limits.year[0]){
         return {
             val: foo,
-            label: '<' + foo
+            label: '< ' + foo
         }
     } else {
         return {
@@ -47,6 +47,8 @@ const minYear = computed(() => {
         }
     }
 })
+
+const showTags = ref(false)
 
 </script>
 

@@ -1,5 +1,5 @@
 <template>
-       <div id="main-container" ref="scrollTarget">
+       <div id="cards-main-container" ref="scrollTarget">
               <div id="sort-container">
                      <GamesSortButton v-for="property in sortProperties" :sort="property.value" :label="property.name"
                             :icon="property.icon" @scroll="scroll" />
@@ -49,7 +49,7 @@ const scroll = () => {
 }
 </script>
 <style lang="scss">
-#main-container {
+#cards-main-container {
        width: 100%;
 }
 

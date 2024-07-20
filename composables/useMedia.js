@@ -1,5 +1,6 @@
 // useMedia.js
 import { ref, watchEffect } from "vue";
+import mobile from 'is-mobile'
 
 export const useMedia = (query) => {
    const matches = ref(true);
@@ -26,7 +27,7 @@ export const useMedia = (query) => {
 }
 
 
-export const isMobile = useMedia("(max-width: 640px)")
+export const isMobile = mobile()
 export const isDesktop = useMedia("(max-width: 768px)")
 
 
