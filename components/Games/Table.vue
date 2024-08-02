@@ -101,10 +101,8 @@
 
 <script setup>
 import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Tag from 'primevue/tag'
-import Row from 'primevue/row'                   // optional
-import { editingGames, filteredGames, sortBy, sorting } from '~/composables/useGames'
+import Column from 'primevue/column'             // optional
+import { editingGames, filteredGames, sortBy } from '~/composables/useGames'
 
 </script>
 

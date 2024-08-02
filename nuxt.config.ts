@@ -1,10 +1,12 @@
+import ripple from "./assets/styles/tailwind-presets/aura/ripple";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     ssr: false,
     css: [
       '@/assets/styles/main.scss',      
       '@fortawesome/fontawesome-svg-core/styles.css',      
-      'primevue/resources/themes/lara-dark-blue/theme.css',
+      //'primevue/resources/themes/lara-dark-blue/theme.css',
       'primeicons/primeicons.css'
     ],
     build: {
@@ -13,17 +15,22 @@ export default defineNuxtConfig({
     modules: [
       '@sidebase/nuxt-auth',
       '@nuxt/devtools',
-      'nuxt-primevue',
-      // '@nuxtjs/tailwindcss',
+      '@primevue/nuxt-module',
+      '@nuxtjs/tailwindcss',
     ],
     primevue: {
       options: {
-        // unstyled: true
+        // theme: {
+        //   preset: 'Aura',
+        // },
+        // ripple: true,
+        unstyled: true
       },
-      //importPT: {
-        // as: 'Aura',
-        // from: '@/assets/styles/tailwind-presets/aura/'
-      //}
+      // autoImport: true
+      importPT: {
+        as: 'Aura',
+        from: '@/assets/styles/tailwind-presets/aura/'
+      }
     },
     auth: {
       provider: {

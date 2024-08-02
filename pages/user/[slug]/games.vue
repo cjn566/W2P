@@ -89,7 +89,7 @@ const filterStyleOptions = ref([
   { label: 'Simple', value: 'simple', icon: 'magnifying-glass', tooltip: 'Search and filter games' },
   { label: 'Advanced', value: 'advanced', icon: 'microscope' }
 ])
-const filterStyle = ref(filterStyleOptions.value[1])
+const filterStyle = ref(filterStyleOptions.value[0])
 
 const listStyleOptions = ref([
   { label: 'Cards', value: false, icon: 'bars-progress' },

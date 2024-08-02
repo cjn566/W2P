@@ -14,6 +14,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.2.1",
     "@fortawesome/free-solid-svg-icons": "^6.2.1",
     "@fortawesome/vue-fontawesome": "^3.0.2",
+    "@primevue/nuxt-module": "^4.0.3",
     "@sidebase/nuxt-auth": "^0.6.0",
     "nuxt": "^3.2.3",
     "nuxt-primevue": "^0.3.0",
@@ -21,16 +22,17 @@
   },
   "dependencies": {
     "@nuxt/devtools": "^0.6.1",
+    "@nuxtjs/tailwindcss": "^6.12.1",
     "@popperjs/core": "^2.11.7",
     "@vue/compat": "^3.3.4",
-    "bootstrap": "^5",
     "debounce": "^1.2.1",
     "is-mobile": "^4.0.0",
     "pg": "^8.10.0",
     "primeicons": "^6.0.1",
     "primevue": "^3.52.0",
     "qrcode.vue": "^3.4.1",
-    "slugify": "^1.6.6"
+    "slugify": "^1.6.6",
+    "tailwindcss-primeui": "^0.3.4"
   },
   "overrides": {
     "next-auth": "4.21.1"

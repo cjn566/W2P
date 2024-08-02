@@ -19,8 +19,8 @@
             </span>
 
 
-            <div id="both-panes">
-                <div class="side-pane border-right">
+            <div id="both-panes border-">
+                <div class="side-pane">
                     <div class="panel border-bottom" :class="sort == 'complexity' ? 'active' : ''">
                             {{ game.display.complexity }} / 5
                     </div>
