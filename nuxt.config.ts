@@ -12,11 +12,16 @@ export default defineNuxtConfig({
     build: {
       // transpile: ["primevue"]
     },
+    app: {
+      head: {
+        viewport: 'width=device-width, initial-scale=1',
+      }
+    },
     modules: [
       '@sidebase/nuxt-auth',
       '@nuxt/devtools',
       '@primevue/nuxt-module',
-      '@nuxtjs/tailwindcss',
+      '@nuxtjs/tailwindcss'
     ],
     primevue: {
       options: {
@@ -29,7 +34,7 @@ export default defineNuxtConfig({
       // autoImport: true
       importPT: {
         as: 'Aura',
-        from: '@/assets/styles/tailwind-presets/aura/'
+        from: '@/assets/styles/tailwind-presets/aura'
       }
     },
     auth: {

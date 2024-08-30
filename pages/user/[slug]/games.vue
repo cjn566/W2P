@@ -26,9 +26,9 @@
         Search and Filter
       </template>
 
-      <SelectButton v-model="filterStyle" :options="filterStyleOptions" :pt="{ root: 'btn-filter-style' }">
+      <SelectButton v-model="filterStyle" :options="filterStyleOptions" optionLabel="label" dataKey="value">
         <template #option="slotProps">
-          <font-awesome-icon :icon="['fas', slotProps.option.icon]" />
+          <i :class="slotProps.option.icon"></i>
         </template>
       </SelectButton>
 
@@ -52,13 +52,14 @@
       <span v-if="!filteredGames.length">There are no games that fit the search criteria.</span>
       <div v-else>
 
-        <SelectButton v-model="showTable" :options="listStyleOptions" :pt="{ root: 'btn-list-style' }">
+        <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
+          :pt="{ root: 'btn-list-style' }">
           <template #option="slotProps">
-            <font-awesome-icon :icon="['fas', slotProps.option.icon]" />
+            <i :class="slotProps.option.icon"></i>
           </template>
         </SelectButton>
 
-        <GamesTable v-if="showTable.value" />
+        <GamesTable v-if="showTable" />
         <GamesCards v-else />
       </div>
     </div>
@@ -74,7 +75,7 @@
 
 <script setup>
 import { user, status, searchTerm, editingGames, clearAllSliders } from '~/composables/useGames'
-import {isMobile} from '~/composables/useMedia'
+import { isMobile } from '~/composables/useMedia'
 
 definePageMeta({
   path: ''
@@ -86,14 +87,14 @@ function goToAdd() {
 }
 
 const filterStyleOptions = ref([
-  { label: 'Simple', value: 'simple', icon: 'magnifying-glass', tooltip: 'Search and filter games' },
-  { label: 'Advanced', value: 'advanced', icon: 'microscope' }
+  { label: 'Quick Search', value: 'simple', icon: 'pi pi-search' },
+  { label: 'Advanced Filter', value: 'advanced', icon: 'pi pi-wrench' }
 ])
 const filterStyle = ref(filterStyleOptions.value[0])
 
 const listStyleOptions = ref([
-  { label: 'Cards', value: false, icon: 'bars-progress' },
-  { label: 'Table', value: true, icon: 'bars' }
+  { label: 'Cards', value: false, icon: 'pi pi-th-large' },
+  { label: 'Table', value: true, icon: 'pi pi-align-justify' }
 ])
 
 const showTable = ref(false)

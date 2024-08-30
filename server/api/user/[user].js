@@ -1,5 +1,6 @@
 import query from '../../db'
 import { getServerSession } from '#auth'
+import { getGameInfo } from '../../utils/boardgamegeek'
 export default defineEventHandler(async (event) => {    
 
 
@@ -47,7 +48,11 @@ export default defineEventHandler(async (event) => {
     }
 
     // If we made it here, they are allowed to see games
-    const games = (await query('SELECT id, bgg_game_id FROM app.games WHERE user_email = $1', [user.email])).rows
+    let gameIds = (await query('SELECT id, bgg_game_id FROM app.games WHERE user_email = $1', [user.email])).rows
+    let games = (await getGameInfo(gameIds.map(x => x.bgg_game_id))).map((game) => {
+        game.userGameId = gameIds.find((x) => x.bgg_game_id == game.bgg_game_id).id
+        return game
+    })
 
     return {
         ...user,

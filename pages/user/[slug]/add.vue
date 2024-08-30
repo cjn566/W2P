@@ -1,9 +1,9 @@
 <template>
 
-        <div id="add-games-header">
-            <Button icon="pi pi-arrow-left" @click="navigateTo('./')" />
-            <span class="title">Add games to your library</span>
-        </div>
+    <div id="add-games-header">
+        <Button icon="pi pi-arrow-left" @click="navigateTo('./')" />
+        <span class="title">Add games to your library</span>
+    </div>
 
 
     <div id="main-container">
@@ -35,7 +35,7 @@
                 </div>
                 <Divider />
                 <div class="setting-row">
-                    <Checkbox class="form-check-input" type="checkbox" v-model="exact" id="cbExact" />
+                    <Checkbox class="form-check-input" type="checkbox" v-model="exact" id="cbExact" :binary="true" />
                     <label class="label" for="cbExact">
                         Exact match
                     </label>
@@ -55,7 +55,7 @@
 
         <ProgressSpinner v-show="loading" />
         <div class="result-container">
-            <ModalSearchResult v-for="game in displayGames" key="game.bgg_game_id" :game="game" @added="added" />
+            <ModalSearchResult v-for="game in results" key="game.bgg_game_id" :game="game" @added="added" />
             <p v-if="searched && !results.length">No results.</p>
         </div>
     </div>
@@ -63,7 +63,6 @@
 
 <script setup>
 import { debounce } from 'debounce'
-import { gameSearch } from '../../utils/boardgamegeek'
 import { user } from '~/composables/useGames'
 
 const showSettings = ref(false)
@@ -78,9 +77,9 @@ const loading = ref(false)
 const input = ref(null)
 
 
-const displayGames = computed(() => {
-    return results.value.filter(game => game.type == boardgameVsExpansion.value)
-})
+// const displayGames = computed(() => {
+//     return results.value.filter(game => game.type == boardgameVsExpansion.value)
+// })
 
 async function searchGames(event) {
     // return if not at least 2chars in the search
@@ -91,13 +90,25 @@ async function searchGames(event) {
     loading.value = true
     searched.value = false
     results.value = []
-    const res = await gameSearch(queryText.value.trim(), boardgameVsExpansion.value, exact.value, limit.value)
-    results.value = res.map(game => {
-        game.owns = user.value.games.some(x => x.bgg_game_id == game.bgg_game_id)
-        return game
-    }).sort((a, b) => 10*(b.owns - a.owns) + (b.rating - a.rating))
-    searched.value = true
-    loading.value = false
+    nextTick(() => {
+        useFetch('/api/bgg/search',
+            {
+                method: 'get',
+                query: {
+                    text: queryText.value.trim(),
+                    type: boardgameVsExpansion.value,
+                    exact: exact.value,
+                    limit: limit.value
+                }
+            }).then(res => {
+                results.value = res.data.value.map(game => {
+                    game.owns = user.value.games.some(x => x.bgg_game_id == game.bgg_game_id)
+                    return game
+                }).sort((a, b) => 10 * (b.owns - a.owns) + (b.rating - a.rating))
+                searched.value = true
+                loading.value = false
+            })
+    })
 }
 
 const added = () => {
@@ -110,18 +121,16 @@ const added = () => {
 </script>
 
 <style lang="scss" scoped>
-
-
 #add-games-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 0;
-  border-bottom: 1px solid $w2p-pallette-3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid $w2p-pallette-3;
 
-  .title {
-    margin-left: 1rem;
-  }
+    .title {
+        margin-left: 1rem;
+    }
 }
 
 #main-container {

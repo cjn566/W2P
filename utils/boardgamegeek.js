@@ -1,7 +1,6 @@
 
 import fromXML from './xml2json'
 import { makeArray } from './makearray'
-import { formatGame } from '~/utils/format'
 
 async function bggQuery(url, errTitle = "Error", errMsg = "Oops. Something went wrong") {
   try {
@@ -52,12 +51,12 @@ function mapGameObjects(gamesXML) {
       name,
       searchName: name.toLowerCase(),
       type: game.type,
-      complexity: cv > 30? Number(parseFloat(game.statistics.ratings.averageweight.value).toFixed(1)) : 0,
+      complexity: cv > 30 ? Number(parseFloat(game.statistics.ratings.averageweight.value).toFixed(1)) : 0,
       // complexityVotes: parseInt(game.statistics.ratings.numweights.value),
-      rating: rv > 30? Number(parseFloat(game.statistics.ratings.bayesaverage.value).toFixed(1)) : 0,
+      rating: rv > 30 ? Number(parseFloat(game.statistics.ratings.bayesaverage.value).toFixed(1)) : 0,
       // ratingVotes: parseInt(game.statistics.ratings.usersrated.value),
       rank,
-      playersMin:parseInt(game.minplayers.value),
+      playersMin: parseInt(game.minplayers.value),
       playersMax: parseInt(game.maxplayers.value),
       playtimeMin: parseInt(game.minplaytime.value),
       playtimeMax: parseInt(game.maxplaytime.value),
@@ -66,8 +65,7 @@ function mapGameObjects(gamesXML) {
       description: htmlDecode(game.description),
       tags: {}
     }
-    
-    formatGame(ret)
+
 
     // Tags / links
     game.link = makeArray(game.link)
@@ -85,13 +83,16 @@ function mapGameObjects(gamesXML) {
   })
 }
 
-// TODO: could be a max number of games in one query, might need to do batches
+
 export async function getGameInfo(gameIds) {
   let allGames = JSON.parse(localStorage.getItem('allGames'))
-  if(!allGames){
-    const results = await bggQuery(`thing?id=${gameIds.join()}&stats=1`)
-    allGames = mapGameObjects(makeArray(results.items.item))
-    localStorage.setItem('allGames', JSON.stringify(allGames))
+  if (!allGames) {
+    allGames = (await useFetch('/api/bgg/gameData',
+      {
+        method: 'post',
+        body: gameIds
+      })).data.value
+    // localStorage.setItem('allGames', JSON.stringify(allGames))
   }
   return allGames
 }

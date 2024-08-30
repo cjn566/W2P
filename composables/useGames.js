@@ -1,5 +1,5 @@
 
-import { validTagTypes, getGameInfo } from '~/utils/boardgamegeek'
+// import { validTagTypes, getGameInfo } from '~/utils/boardgamegeek'
 import { makeArray } from '~/utils/makearray'
 // import { useToast } from 'primevue/usetoast'
 // const toast = useToast()
@@ -32,11 +32,8 @@ export async function setUser(slug) {
     return
   }
   status.value.gamesReady = false
-  const gameData = await getGameInfo(res.games.map((game) => game.bgg_game_id))
-  games.value = gameData.map((g) => {
-    g.userGameId = res.games.find((x) => x.bgg_game_id == g.bgg_game_id).id
-    return g
-  })
+  // const gameData = await getGameInfo(res.games.map((game) => game.bgg_game_id))
+  games.value = res.games
   extendGames()
 }
 
