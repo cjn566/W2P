@@ -1,7 +1,7 @@
 import query from '../db'
 import fromXML from './xml2json'
 import { makeArray } from './makearray'
-import { pino } from './pino'
+import { pino } from 'pino'
 const logger = pino({ name: 'bgg' })
 
 async function bggQuery(url, errTitle = "Error", errMsg = "Oops. Something went wrong") {

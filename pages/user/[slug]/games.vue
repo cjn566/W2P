@@ -20,44 +20,74 @@
     </div>
 
     <!--Filters-->
-    <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset"
+    <!-- <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset"
       :pt="{ root: 'filter-container', legend: 'legend' }">
       <template #legend>
         Search and Filter
       </template>
 
-      <SelectButton v-model="filterStyle" :options="filterStyleOptions" optionLabel="label" dataKey="value">
-        <template #option="slotProps">
+<SelectButton v-model="filterStyle" :options="filterStyleOptions" optionLabel="label" dataKey="value">
+  <template #option="slotProps">
           <i :class="slotProps.option.icon"></i>
         </template>
-      </SelectButton>
+</SelectButton>
 
-      <InputGroup>
-        <InputGroupAddon>
-          <i class="pi pi-search" />
-        </InputGroupAddon>
-        <InputText v-model="searchTerm" placeholder="Find a game" />
-        <Button icon="pi pi-times" :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
-      </InputGroup>
+<InputGroup>
+  <InputGroupAddon>
+    <i class="pi pi-search" />
+  </InputGroupAddon>
+  <InputText v-model="searchTerm" placeholder="Find a game" />
+  <Button icon="pi pi-times" :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
+</InputGroup>
 
-      <FilterVisualBar />
-      <GamesActiveFilters />
-      <Divider />
-      <FilterSimpleUI v-if="filterStyle.value == 'simple'" />
-      <FilterAdvancedUI v-else="filterStyle.value == 'advanced'" />
+<FilterVisualBar />
+<GamesActiveFilters />
+<Divider />
+<FilterSimpleUI v-if="filterStyle.value == 'simple'" />
+<FilterAdvancedUI v-else="filterStyle.value == 'advanced'" />
 
-    </Fieldset>
+</Fieldset> -->
 
-    <div id="games-container">
+
+
+    <div class="relative flex flex-col items-center">
       <span v-if="!filteredGames.length">There are no games that fit the search criteria.</span>
       <div v-else>
 
-        <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
+
+
+        <div class="sticky-btns flex *:w-1/2 *:rounded-none *:border-blue-900 *:text-3xl"
+          :class="{ hide: hideSticky }">
+          <Button class="border-r-2" @click="showSort = true">
+            <div>
+              <div>Sort </div>
+              <div class="text-sm">({{ sorting.active }} {{ sorting.descending? 'desc' : 'asc' }})</div>
+            </div>
+          </Button>
+          <Button @click="showFilter = true">Filter</Button>
+        </div>
+
+        <Drawer v-model:visible="showSort" header="Sort By" class="bg-green-900 ">
+          <GamesSortBtnSidePanel v-for="property in sortProperties" :sort="property.value" :label="property.name"
+            :icon="property.icon" @scroll="closeCallback" />
+        </Drawer>
+
+        <Drawer v-model:visible="showFilter" header="Filter" position="right">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+            dolore
+            magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+            commodo
+            consequat.</p>
+        </Drawer>
+
+        <!-- <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
           :pt="{ root: 'btn-list-style' }">
           <template #option="slotProps">
             <i :class="slotProps.option.icon"></i>
           </template>
-        </SelectButton>
+        </SelectButton> -->
+
+        <ScrollTop />
 
         <GamesTable v-if="showTable" />
         <GamesCards v-else />
@@ -74,12 +104,25 @@
 </template>
 
 <script setup>
-import { user, status, searchTerm, editingGames, clearAllSliders } from '~/composables/useGames'
+import { user, status, searchTerm, editingGames, clearAllSliders, sorting } from '~/composables/useGames'
 import { isMobile } from '~/composables/useMedia'
-
+import { PrimeIcons } from '@primevue/core/api'
 definePageMeta({
   path: ''
 })
+
+const showSort = ref(false)
+const showFilter = ref(false)
+
+const sortProperties = [
+  { value: 'name', name: 'Name', icon: 'arrow-down-a-z' },
+  { value: 'rating', name: 'Rating', icon: 'star' },
+  { value: 'complexity', name: 'Complexity', icon: 'brain' },
+  { value: 'players', name: 'Players', icon: 'people-group' },
+  { value: 'playtime', name: 'Play time', icon: 'hourglass-half' },
+  { value: 'age', name: 'Age', icon: 'person-cane' },
+  { value: 'year', name: 'Year', icon: 'calendar' }
+]
 
 const route = useRoute()
 function goToAdd() {
@@ -87,14 +130,14 @@ function goToAdd() {
 }
 
 const filterStyleOptions = ref([
-  { label: 'Quick Search', value: 'simple', icon: 'pi pi-search' },
-  { label: 'Advanced Filter', value: 'advanced', icon: 'pi pi-wrench' }
+  { label: 'Quick Search', value: 'simple', icon: PrimeIcons.SEARCH },
+  { label: 'Advanced Filter', value: 'advanced', icon: PrimeIcons.FILTER }
 ])
 const filterStyle = ref(filterStyleOptions.value[0])
 
 const listStyleOptions = ref([
-  { label: 'Cards', value: false, icon: 'pi pi-th-large' },
-  { label: 'Table', value: true, icon: 'pi pi-align-justify' }
+  { label: 'Cards', value: false, icon: PrimeIcons.TH_LARGE },
+  { label: 'Table', value: true, icon: PrimeIcons.ALIGN_JUSTIFY }
 ])
 
 const showTable = ref(false)
@@ -113,25 +156,60 @@ watch(filterStyle, () => {
 
 const itMe = ref(true)
 
+// STICKY SCROLL
+const hideDistance = 50, showDistance = 50
+let lastScrollTop, lastScrollBottom, lastScrollY
+const hideSticky = ref(false)
+const handleScroll = () => {
+  const st = window.scrollY || document.documentElement.scrollTop
+  if (st - lastScrollY > 0) {
+    // Scrolling Down
+    lastScrollBottom = st
+    if (st - lastScrollTop > hideDistance) {
+      hideSticky.value = true
+    }
+  } else {
+    // Scrolling Up
+    lastScrollTop = st
+    if (lastScrollBottom - st > showDistance) {
+      hideSticky.value = false
+    }
+  }
+  lastScrollY = st <= 0 ? 0 : st
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
 </script>
 
 <style lang="scss" scoped>
+.sticky-btns {
+  position: sticky;
+  top: 0;
+  height: 4rem;
+  z-index: 50;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+.hide {
+  top: -4.1rem;
+}
+
+
+
 #filterFlexContainer {
   display: flex;
   flex-direction: row;
 }
 
-#games-container {
-  position: relative;
-  margin-top: 2rem;
-  padding-top: 1rem;
-  background-color: $w2p-pallette-4;
-  border-radius: 0.6rem;
-  padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
 .btn-list-style {
   position: absolute;

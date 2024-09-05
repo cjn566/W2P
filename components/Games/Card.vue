@@ -1,43 +1,46 @@
 <template>
-    <div class="card" @click="emit('show-details')">
-        <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash"/>
-        <span id="image-container">
-            <img :src="game.thumbnail" alt="Game Thumbnail" class="card-image" />
-        </span>
-        <span id="details">
+    <div class="bg-blue-900 flex p-2 h-40 m-1 pointer" @click="emit('show-details')">
+        <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash" />
+        <div class="img-container">
+            <img class="m-auto h-full object-contain object-center" :src="game.thumbnail" alt="Game Thumbnail" />
+        </div>
 
-            <span id="header">
-                <span id="hex">
-                    <span id="hex-icon">&#x2B22;</span>
-                    <span id="rating" :class="sort == 'rating' ? 'active' : ''">{{ game.display.rating }}</span>
+        <div class="flex-grow flex flex-col ml-2">
+            <div class="flex">
+                <span class="flex items-center justify-center w-10">
+                    <span class="absolute text-green-800 text-6xl">&#x2B22;</span>
+                    <span class="text-lg font-bold z-10 shadow" :class="{ active: sort == 'rating' }">
+                        {{ game.display.rating }}
+                    </span>
                 </span>
 
-                <a :href="getGameURL(game.bgg_game_id)" target="_blank" rel="noopener noreferrer" id="bgg-link">
-                    <span id="name" :class="sort == 'name' ? 'active' : ''">{{ game.name }}</span>
-                    <span id="year" :class="sort == 'year' ? 'active' : ''"> ({{ game.display.year }})</span>
+                <a class="ml-2" :href="getGameURL(game.bgg_game_id)" target="_blank"
+                    rel="noopener noreferrer">
+                    <div class="shadow line-clamp-1" :class="{ active: sort == 'name' }">{{ game.name }}</div>
+                    <div class="shadow text-sm" :class="{ active: sort == 'year' }"> {{ game.display.year }}</div>
                 </a>
-            </span>
+            </div>
 
 
-            <div id="both-panes border-">
-                <div class="side-pane">
-                    <div class="panel border-bottom" :class="sort == 'complexity' ? 'active' : ''">
-                            {{ game.display.complexity }} / 5
+            <div class="flex flex-grow *:w-1/2 *:flex *:flex-col">
+                <div class="border-right">
+                    <div class="cell  border-bottom" :class="sort == 'players' ? 'active' : ''">
+                        {{ game.display.players }}{{ isMobile ? 'p' : ' Players' }}
                     </div>
-                    <div class="panel" :class="sort == 'players' ? 'active' : ''">
-                            {{ game.display.players }}{{ isMobile ? 'p' : ' Players' }}
+                    <div class="cell" :class="sort == 'complexity' ? 'active' : ''">
+                        {{ game.display.complexity }} / 5
                     </div>
                 </div>
-                <div class="side-pane">
-                    <div class="panel border-bottom" :class="sort == 'playtime' ? 'active' : ''">
-                            {{ game.display.playtime }}{{ isMobile ? 'm' : ' Minutes' }}
+                <div>
+                    <div class=" cell border-bottom" :class="sort == 'playtime' ? 'active' : ''">
+                        {{ game.display.playtime }}{{ isMobile ? 'm' : ' Minutes' }}
                     </div>
-                    <div class="panel" :class="sort == 'age' ? 'active' : ''">
+                    <div class="cell" :class="sort == 'age' ? 'active' : ''">
                         {{ isMobile ? `${game.display.age}y+` : `Age ${game.display.age} and up` }}
                     </div>
                 </div>
             </div>
-        </span>
+        </div>
     </div>
 </template>
 
@@ -51,25 +54,6 @@ const emit = defineEmits(['show-details'])
 </script>
 
 <style lang="scss" scoped>
-
-.card {
-    display: flex;
-    font-size: large;
-    flex-direction: row;
-    padding: 0.6rem;
-    border-radius: 0.4rem;
-    height: 10rem;
-    background-color: $w2p-pallette-5;
-    cursor: pointer;
-}
-
-#details {
-    display: flex;
-    flex-direction: column;
-    margin-left: 1rem;
-    width: 100%;
-}
-
 .border-right {
     border-right: 1px solid $w2p-pallette-3;
 }
@@ -78,78 +62,18 @@ const emit = defineEmits(['show-details'])
     border-bottom: 1px solid $w2p-pallette-3;
 }
 
-#both-panes {
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
+.img-container {
+    flex: 0 0 40%;
 }
 
-.side-pane {
-    flex-grow: 1;
+.cell {
     display: flex;
-    flex-direction: column;
-}
-
-.panel {
-    display: flex;
-    flex-grow: 1;
-    align-items: center;
     justify-content: center;
-}
-
-#image-container {
-    width: 230px;
-}
-
-.card-image {
-    height: 100%;
-    width: 100%;
-    flex-basis: 20%;
-    object-fit: contain;
-    object-position: 50% 50%;
-}
-
-
-#header {
-    display: flex;
-    margin: 1rem;
-}
-
-#hex {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    width: 2.5rem;
+    height: 50%;
 }
 
-#hex-icon {
-    font-size: 3.5rem;
-    position: absolute;
-    color: #1978B3;
-}
-
-#rating {
-    font-size: 1.1rem;
-    font-weight: bold;
-    text-shadow: 0 0 5px black;
-    z-index: 5;
-}
-
-#bgg-link {
-    color: white;
-    display: inline;
-    width: fit-content;
-    margin-left: 1rem;
-}
-
-#name {
-    font-size: 1.3rem;
-    text-shadow: 0 0 5px black;
-
-}
-
-#year {
-    font-size: 1rem;
+.shadow {
     text-shadow: 0 0 5px black;
 }
 

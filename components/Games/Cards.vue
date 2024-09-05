@@ -1,13 +1,12 @@
 <template>
-       <div id="cards-main-container" ref="scrollTarget">
-              <div id="sort-container">
-                     <GamesSortButton v-for="property in sortProperties" :sort="property.value" :label="property.name"
-                            :icon="property.icon" @scroll="scroll" />
-              </div>
-              <div id="scrollTarget"></div>
-              <GamesCard v-for="g in filteredGames" :game="g" :sort="sorting.active" :key="g.userGameId"
-                     class="game-card-li" @show-details="showDetails(g)" />
-       </div>
+       <!-- <div id="sort-container">
+              <GamesSortButton v-for="property in sortProperties" :sort="property.value" :label="property.name"
+                     :icon="property.icon" @scroll="scroll" />
+       </div> -->
+       <div ref="scrollTarget" class="h-16"></div>
+
+       <GamesCard v-for="g in filteredGames" :game="g" :sort="sorting.active" :key="g.userGameId"
+              @show-details="showDetails(g)" />
 
        <Dialog v-model:visible="showingDetails" modal dismissableMask :header="_game.name" id="game-dialog">
               <template #container>
@@ -49,14 +48,6 @@ const scroll = () => {
 }
 </script>
 <style lang="scss">
-#cards-main-container {
-       width: 100%;
-}
-
-.game-card-li {
-       margin: 0.5rem;
-}
-
 #game-dialog {
        max-width: 80%;
 }
@@ -82,5 +73,6 @@ const scroll = () => {
        position: sticky;
        top: 0;
        z-index: 9;
+       height: 4rem;
 }
 </style>
