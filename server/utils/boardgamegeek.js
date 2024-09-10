@@ -92,30 +92,28 @@ function mapGameObjects(gamesXML) {
 export async function getGameInfo(gameIds) {
 
   // Check if the DB has a recent version of the game data
-  let redis
+  let DBGames = [], APIGames = []
+  let needGameIds = gameIds
   try {
     let age = process.env.CACHE_GAME_AGE_DAYS || 7
     redis = await query(`SELECT data FROM app.bgg_game_data WHERE bgg_game_id =ANY($1) AND modified > now() - interval '${age} day'`, [gameIds])
+
+    if (redis.rowCount > 0) {
+      DBGames = redis.rows.map((g) => JSON.parse(g.data))
+    }
+
+    // Get IDs of games that need to be fetched from the API
+    gameIds = gameIds.filter((gameId) => !DBGames.some((g) => g.bgg_game_id == gameId))
   } catch (error) {
     console.warn('Redis Error: ', error)
   }
 
-  let DBGames = []
-  if(redis.rowCount > 0) {
-    DBGames = redis.rows.map((g) => JSON.parse(g.data))
-  }
-
-  // Get IDs of games that need to be fetched from the API
-  let needGameIds = gameIds.filter((gameId) => !DBGames.some((g) => g.bgg_game_id == gameId))
-
-  let APIGames = []
-
-  if (needGameIds.length > 0) {
+  if (gameIds.length > 0) {
     // API only handles 20 at a time, so break it into chunks
     const chunkSize = 20
     let reqs = []
-    for (let i = 0; i < needGameIds.length; i += chunkSize) {
-      const chunk = needGameIds.slice(i, i + chunkSize);
+    for (let i = 0; i < gameIds.length; i += chunkSize) {
+      const chunk = gameIds.slice(i, i + chunkSize);
       const url = `thing?id=${chunk.join()}&stats=1`
       reqs.push(bggQuery(url))
     }
@@ -143,7 +141,7 @@ export async function getGameInfo(gameIds) {
 
     try {
       Promise.all(saveGames)
-      logger.info('Saved' + saveGames.length + 'games to DB', {games: saveGames.length})
+      logger.info('Saved' + saveGames.length + 'games to DB', { games: saveGames.length })
     } catch (error) {
       console.warn('Save Games Error: ', error)
     }
@@ -163,13 +161,13 @@ export async function gameSearch(query, type = 'boardgame', exact = false, limit
   if (!('item' in results.items)) return []
   let results2 = await getGameInfo(
     makeArray(results.items.item)
-    .filter(game => game.name.type == "primary")
-    .slice(0, limit)
-    .map(x => x.id))
-  results2 =  results2.filter((game) => game.type == type)
-  .sort((a, b) => {
-    return b.ratingVotes - a.ratingVotes
-  })
+      .filter(game => game.name.type == "primary")
+      .slice(0, limit)
+      .map(x => x.id))
+  results2 = results2.filter((game) => game.type == type)
+    .sort((a, b) => {
+      return b.ratingVotes - a.ratingVotes
+    })
   return results2
 }
 

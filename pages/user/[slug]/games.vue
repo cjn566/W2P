@@ -26,27 +26,82 @@
         Search and Filter
       </template>
 
-<SelectButton v-model="filterStyle" :options="filterStyleOptions" optionLabel="label" dataKey="value">
-  <template #option="slotProps">
-          <i :class="slotProps.option.icon"></i>
-        </template>
-</SelectButton>
 
-<InputGroup>
-  <InputGroupAddon>
-    <i class="pi pi-search" />
-  </InputGroupAddon>
-  <InputText v-model="searchTerm" placeholder="Find a game" />
-  <Button icon="pi pi-times" :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
-</InputGroup>
-
-<FilterVisualBar />
-<GamesActiveFilters />
-<Divider />
-<FilterSimpleUI v-if="filterStyle.value == 'simple'" />
-<FilterAdvancedUI v-else="filterStyle.value == 'advanced'" />
 
 </Fieldset> -->
+
+    <InputGroup>
+      <InputGroupAddon>
+        <i class="pi pi-search" />
+      </InputGroupAddon>
+      <InputText v-model="searchTerm" placeholder="Find a game" />
+      <Button icon="pi pi-times" :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
+    </InputGroup>
+
+    <div class="sticky-btns flex *:w-1/2 *:rounded-none *:text-3xl" :class="{ hide: hideSticky }">
+      <Button @click="showSort = true" class="border-0 border-r-2 border-white">Sort
+          <div class="text-sm absolute bottom-0">
+            {{ sorting.active }}
+            <i v-if="sorting.descending" class="pi pi-chevron-down" />
+            <i v-else class="pi pi-chevron-up" />
+          </div>
+      </Button>
+      <Button @click="showFilter = true" class="border-0">
+        Filter
+        <div class="text-sm absolute bottom-0">
+          {{ numActiveFilters }} filter{{ numActiveFilters === 1 ? '' : 's' }},
+          {{ filteredGames.length }}/{{ games.length }} games
+        </div>
+      </Button>
+    </div>
+
+
+    <Drawer v-model:visible="showSort">
+      <template #container="{ closeCallback }">
+        <div class="flex flex-col h-full w-max ">
+          <div class="flex items-center justify-between px-6 pt-4 shrink-0 text-2xl">
+            Sort By
+            <span class="">
+              <Button type="button" @click="closeCallback" icon="pi pi-times" rounded outlined></Button>
+            </span>
+          </div>
+          <GamesSortBtnSidePanel v-for="property in sortProperties" :sort="property" @clicked="closeCallback" />
+        </div>
+      </template>
+    </Drawer>
+
+    <Drawer v-model:visible="showFilter" position="right">
+      <template #container="{ closeCallback }">
+        <div class="flex flex-col h-full px-2">
+          <div class="flex items-center justify-between px-6 pt-4 shrink-0 text-2xl mb-4">
+            Filter
+            <span class="">
+              <Button type="button" @click="closeCallback" icon="pi pi-times" rounded outlined></Button>
+            </span>
+          </div>
+
+
+          <FilterVisualBar />
+          <GamesActiveFilters />
+
+          <div class="flex justify-center w-full items-center">
+            <SelectButton v-model="filterStyle" :options="filterStyleOptions" optionLabel="label" dataKey="value" />
+          </div>
+
+          <FilterSimpleUI v-if="filterStyle.value == 'simple'" />
+          <FilterAdvancedUI v-else="filterStyle.value == 'advanced'" />
+
+
+        </div>
+      </template>
+    </Drawer>
+
+    <!-- <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
+          :pt="{ root: 'btn-list-style' }">
+          <template #option="slotProps">
+            <i :class="slotProps.option.icon"></i>
+          </template>
+        </SelectButton> -->
 
 
 
@@ -56,36 +111,6 @@
 
 
 
-        <div class="sticky-btns flex *:w-1/2 *:rounded-none *:border-blue-900 *:text-3xl"
-          :class="{ hide: hideSticky }">
-          <Button class="border-r-2" @click="showSort = true">
-            <div>
-              <div>Sort </div>
-              <div class="text-sm">({{ sorting.active }} {{ sorting.descending? 'desc' : 'asc' }})</div>
-            </div>
-          </Button>
-          <Button @click="showFilter = true">Filter</Button>
-        </div>
-
-        <Drawer v-model:visible="showSort" header="Sort By" class="bg-green-900 ">
-          <GamesSortBtnSidePanel v-for="property in sortProperties" :sort="property.value" :label="property.name"
-            :icon="property.icon" @scroll="closeCallback" />
-        </Drawer>
-
-        <Drawer v-model:visible="showFilter" header="Filter" position="right">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-            dolore
-            magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-            commodo
-            consequat.</p>
-        </Drawer>
-
-        <!-- <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
-          :pt="{ root: 'btn-list-style' }">
-          <template #option="slotProps">
-            <i :class="slotProps.option.icon"></i>
-          </template>
-        </SelectButton> -->
 
         <ScrollTop />
 
@@ -99,7 +124,7 @@
   <span v-show="!status.gamesReady">Loading...</span>
   <span v-if="!hasGames">
     {{ user.isSelf ? "You have no games in your library yet" :
-    user.name + " has no games in their library yet." }}
+      user.name + " has no games in their library yet." }}
   </span>
 </template>
 
@@ -112,17 +137,24 @@ definePageMeta({
 })
 
 const showSort = ref(false)
-const showFilter = ref(false)
+const showFilter = ref(true)
 
 const sortProperties = [
-  { value: 'name', name: 'Name', icon: 'arrow-down-a-z' },
-  { value: 'rating', name: 'Rating', icon: 'star' },
-  { value: 'complexity', name: 'Complexity', icon: 'brain' },
-  { value: 'players', name: 'Players', icon: 'people-group' },
-  { value: 'playtime', name: 'Play time', icon: 'hourglass-half' },
-  { value: 'age', name: 'Age', icon: 'person-cane' },
-  { value: 'year', name: 'Year', icon: 'calendar' }
+  { value: 'name', name: 'Name', icon: 'arrow-down-a-z', descLabel: 'A', ascLabel: 'Z' },
+  { value: 'rating', name: 'Rating', icon: 'star', descLabel: 'highest', ascLabel: 'lowest' },
+  { value: 'complexity', name: 'Complexity', icon: 'brain', descLabel: 'heaviest', ascLabel: 'easiest' },
+  { value: 'players', name: 'Players', icon: 'people-group', descLabel: 'most', ascLabel: 'fewest' },
+  { value: 'playtime', name: 'Play time', icon: 'hourglass-half', descLabel: 'longest', ascLabel: 'shortest' },
+  { value: 'age', name: 'Age', icon: 'person-cane', descLabel: 'mature', ascLabel: 'young' },
+  { value: 'year', name: 'Year', icon: 'calendar', descLabel: 'newest', ascLabel: 'oldest' }
 ]
+
+const sortDrawerPT = {
+  root: 'bg-green-900',
+  header: 'bg-blue-800 flex justify-end',
+  title: 'bg-red-500',
+  pcCloseButton: 'text-red-500'
+}
 
 const route = useRoute()
 function goToAdd() {
@@ -130,8 +162,8 @@ function goToAdd() {
 }
 
 const filterStyleOptions = ref([
-  { label: 'Quick Search', value: 'simple', icon: PrimeIcons.SEARCH },
-  { label: 'Advanced Filter', value: 'advanced', icon: PrimeIcons.FILTER }
+  { label: 'Quick Find', value: 'simple', icon: PrimeIcons.SEARCH },
+  { label: 'Advanced Search', value: 'advanced', icon: PrimeIcons.FILTER }
 ])
 const filterStyle = ref(filterStyleOptions.value[0])
 
@@ -192,7 +224,7 @@ onBeforeUnmount(() => {
 .sticky-btns {
   position: sticky;
   top: 0;
-  height: 4rem;
+  height: 4.5rem;
   z-index: 50;
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -200,7 +232,7 @@ onBeforeUnmount(() => {
 }
 
 .hide {
-  top: -4.1rem;
+  top: -4.6rem;
 }
 
 

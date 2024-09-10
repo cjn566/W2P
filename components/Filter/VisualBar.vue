@@ -1,7 +1,7 @@
 <template>
-    <div id="count">Showing {{ isFiltering? filteredGames.length + " of " : 'all ' }} {{games.length}} games</div>
-    <div class="visual-bar">
-        <span v-show="isFiltering" v-for="box in set" class="mark" :class="{ active: box }" :style="{backgroundColor: box? activeColor : '#101010'}"></span>
+    <div class="text-center">Displaying {{ isFiltering? filteredGames.length + " of " : 'all ' }} {{games.length}} games</div>
+    <div class="flex gap-[1px] h-4 mx-1 items-center">
+        <span v-show="isFiltering" v-for="box in set" class="grow box-content h-[4px] max-w-[4px]" :style="{backgroundColor: box? activeColor : '#101010'}"></span>
     </div>
 </template>
 
@@ -30,36 +30,4 @@ const activeColor = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-$mark-height: 4px;
-
-#count {
-    margin-top: 1rem;
-    text-align: center;
-    margin-bottom: 2px;
-
-    :first-child,
-    :last-child {
-        border-radius: 50%;
-    }
-}
-
-.visual-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1px;
-    min-height: $mark-height + 2px;
-}
-
-.mark {
-    flex-grow: 1;
-    height: $mark-height;
-    background-color: #ffffff;
-    box-sizing: content-box;
-}
-
-.active {
-    height: $mark-height + 2px;
-    background-color: '#101010'
-}
 </style>

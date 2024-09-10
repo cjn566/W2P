@@ -19,21 +19,30 @@ export const games = ref([])
 
 export async function setUser(slug) {
   if (user.value.slug == slug) return
-  const res = (await useFetch(`/api/user/${slug}`)).data.value
-  // TODO: handle errors, set status on user
-  if (res.err_code) {
-    // toast.add({ severity: 'error', summary: 'Error', detail: 'Could not find that user', life: 3000 })
-    return
+
+  // DEBUG
+  let ls = localStorage.getItem('user')
+  if (ls !== null) {
+    user.value = JSON.parse(ls)
   }
-  user.value = res
+  else {
+    const res = (await useFetch(`/api/user/${slug}`)).data.value
+    // TODO: handle errors, set status on user
+    if (res.err_code) {
+      // toast.add({ severity: 'error', summary: 'Error', detail: 'Could not find that user', life: 3000 })
+      return
+    }
+    user.value = res
+    localStorage.setItem('user', JSON.stringify(res))
+  }
   // Fetch the user's games
-  if (res.games.length == 0) {
+  if (user.value.games.length == 0) {
     status.value.gamesReady = true
     return
   }
   status.value.gamesReady = false
   // const gameData = await getGameInfo(res.games.map((game) => game.bgg_game_id))
-  games.value = res.games
+  games.value = user.value.games
   extendGames()
 }
 
@@ -197,6 +206,9 @@ export const filters = computed(() => {
   ]));
 })
 
+export const numActiveFilters = computed(()=>{
+  return filteredTags.value.length + Object.entries(filters.value).filter(f => f[1].active).length
+})
 
 
 // array the size of steps in the range, element is [value, game count]
@@ -362,12 +374,9 @@ export const sorting = ref({
   // year
 })
 
-export function sortBy(prop) {
-  let descending = true
+export function sortBy(prop, descending) {
 
-  if (sorting.value.active == prop) {
-    descending = !sorting.value.descending
-  }
+  if(prop === sorting.value.prop && descending === sorting.value.descending) return
 
   sorting.value.active = prop
   sorting.value.descending = descending
