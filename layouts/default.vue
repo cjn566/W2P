@@ -1,7 +1,7 @@
 <template>
     <div>
         <Header />
-        <div class="content">
+        <div class="px-1 h-[150%]">
             <slot />
         </div>
     </div>

@@ -3,10 +3,7 @@
     {{ contentUnavailable.message }}
   </div>
   <div v-else>
-
     <NuxtPage />
-
-
   </div>
 </template>
 
@@ -22,10 +19,6 @@ import { useToast } from 'primevue/usetoast'
 const toast = useToast()
 
 const route = useRoute()
-
-
-
-
 
 const contentUnavailable = computed(() => {
   if (user?.err_code) {

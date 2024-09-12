@@ -1,15 +1,11 @@
 <template>
-  <div v-show="status.gamesReady">
 
-    {{ isMobile }}
-    <div class="whose-games-container other-person-header" v-if="!user.isSelf">
+  <div v-if="status.userReady">
+    <!-- Whose games are we seeing? -->
+    <div class="flex h-16 bg-zinc-500  rounded-tr-xl  rounded-tl-xl">
       <img :src="user.image" class="person-image" alt="avatar">
-      <h1 style="display: inline;">{{ user.name }}'s Games</h1>
-    </div>
-
-    <div v-else class="whose-games-container">
-      <h1>Your Games</h1>
-      <div id="header-buttons">
+      <h1 style="display: inline;">{{ user.name }}</h1>
+      <div v-if="!user.isSelf" id="header-buttons">
         <div id="btn-edit">
           <Button size="small" icon="pi pi-pencil" @click="editingGames = !editingGames" />
         </div>
@@ -18,44 +14,45 @@
         </div>
       </div>
     </div>
-
-    <!--Filters-->
-    <!-- <Fieldset :toggleable="true" :collapsed="false" id="filters-fieldset"
-      :pt="{ root: 'filter-container', legend: 'legend' }">
-      <template #legend>
-        Search and Filter
-      </template>
+  </div>
 
 
+  <div v-show="status.gamesReady">
 
-</Fieldset> -->
+    <!-- Sticky Stuff - Sort, Search, Filter -->
+    <div ref="scrollTarget" />
+    <div class="sticky-btns flex flex-col" :class="{ hide: hideSticky }">
+      <!-- Search Bar -->
+      <div class="flex">
+        <IconField class="flex grow">
+          <InputIcon class="pi pi-search" />
+          <InputText class="grow rounded-none" v-model="searchTerm" placeholder="Find a game" />
+        </IconField>
+        <Button class="rounded-none" icon="pi pi-times" :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
+      </div>
 
-    <InputGroup>
-      <InputGroupAddon>
-        <i class="pi pi-search" />
-      </InputGroupAddon>
-      <InputText v-model="searchTerm" placeholder="Find a game" />
-      <Button icon="pi pi-times" :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
-    </InputGroup>
-
-    <div class="sticky-btns flex *:w-1/2 *:rounded-none *:text-3xl" :class="{ hide: hideSticky }">
-      <Button @click="showSort = true" class="border-0 border-r-2 border-white">Sort
+      <div class="flex *:text-3xl *:w-1/2 h-[4.5rem]">
+        <!-- Sort Button -->
+        <Button @click="showSort = true" class="rounded-none rounded-bl-xl border-0 border-r-2 border-white">
+          Sort
           <div class="text-sm absolute bottom-0">
             {{ sorting.active }}
             <i v-if="sorting.descending" class="pi pi-chevron-down" />
             <i v-else class="pi pi-chevron-up" />
           </div>
-      </Button>
-      <Button @click="showFilter = true" class="border-0">
-        Filter
-        <div class="text-sm absolute bottom-0">
-          {{ numActiveFilters }} filter{{ numActiveFilters === 1 ? '' : 's' }},
-          {{ filteredGames.length }}/{{ games.length }} games
-        </div>
-      </Button>
+        </Button>
+        <!-- Filter Button -->
+        <Button @click="showFilter = true" class="rounded-none rounded-br-xl border-0">
+          Filter
+          <div class="text-sm absolute bottom-0">
+            {{ numActiveFilters || 'no' }} filter{{ numActiveFilters === 1 ? '' : 's' }},
+            {{ filteredGames.length }}/{{ games.length }} games
+          </div>
+        </Button>
+      </div>
     </div>
 
-
+    <!-- Sort Drawer -->
     <Drawer v-model:visible="showSort">
       <template #container="{ closeCallback }">
         <div class="flex flex-col h-full w-max ">
@@ -65,11 +62,13 @@
               <Button type="button" @click="closeCallback" icon="pi pi-times" rounded outlined></Button>
             </span>
           </div>
-          <GamesSortBtnSidePanel v-for="property in sortProperties" :sort="property" @clicked="closeCallback" />
+          <GamesSortBtnSidePanel v-for="property in sortProperties" :sort="property"
+            @clicked="scrollToTop(closeCallback)" />
         </div>
       </template>
     </Drawer>
 
+    <!-- Filter Drawer -->
     <Drawer v-model:visible="showFilter" position="right">
       <template #container="{ closeCallback }">
         <div class="flex flex-col h-full px-2">
@@ -105,18 +104,14 @@
 
 
 
-    <div class="relative flex flex-col items-center">
-      <span v-if="!filteredGames.length">There are no games that fit the search criteria.</span>
-      <div v-else>
+    <!-- The Games List -->
+    <span v-if="!filteredGames.length">There are no games that fit the search criteria.</span>
+    <div v-else>
+      <!-- <Paginator :totalRecords="filteredGames.length" :rows="50"  v-model:first="firstGame"/> -->
+      <ScrollTop />
 
-
-
-
-        <ScrollTop />
-
-        <GamesTable v-if="showTable" />
-        <GamesCards v-else />
-      </div>
+      <GamesTable v-if="showTable" />
+      <GamesCards v-else />
     </div>
 
     <div class="bottom-spacer"></div>
@@ -124,7 +119,7 @@
   <span v-show="!status.gamesReady">Loading...</span>
   <span v-if="!hasGames">
     {{ user.isSelf ? "You have no games in your library yet" :
-      user.name + " has no games in their library yet." }}
+    user.name + " has no games in their library yet." }}
   </span>
 </template>
 
@@ -136,8 +131,10 @@ definePageMeta({
   path: ''
 })
 
+const firstGame = ref(0)
+
 const showSort = ref(false)
-const showFilter = ref(true)
+const showFilter = ref(false)
 
 const sortProperties = [
   { value: 'name', name: 'Name', icon: 'arrow-down-a-z', descLabel: 'A', ascLabel: 'Z' },
@@ -154,6 +151,14 @@ const sortDrawerPT = {
   header: 'bg-blue-800 flex justify-end',
   title: 'bg-red-500',
   pcCloseButton: 'text-red-500'
+}
+
+
+const scrollTarget = ref(null)
+const scrollToTop = (ccb) => {
+  scrollTarget.value.scrollIntoView({ behavior: 'smooth' })
+  hideSticky.value = true
+  ccb()
 }
 
 const route = useRoute()
@@ -224,7 +229,6 @@ onBeforeUnmount(() => {
 .sticky-btns {
   position: sticky;
   top: 0;
-  height: 4.5rem;
   z-index: 50;
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -232,7 +236,7 @@ onBeforeUnmount(() => {
 }
 
 .hide {
-  top: -4.6rem;
+  top: -7rem;
 }
 
 
@@ -261,30 +265,11 @@ onBeforeUnmount(() => {
 
 
 
-.whose-games-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: $w2p-pallette-4;
-  width: 80%;
-  margin: 0.5rem auto;
-  border-radius: 0.5rem;
-  position: relative;
-}
-
 #header-buttons {
   position: absolute;
   right: 1rem;
 }
 
-h1 {
-  margin: 5px;
-}
-
-.other-person-header {
-  display: flex;
-  align-items: center;
-}
 
 .person-image {
   height: 4rem;

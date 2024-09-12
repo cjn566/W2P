@@ -38,7 +38,6 @@ watch(tagSort, (newSort, oldSort) => {
 
 <style lang="scss" scoped>
 #tags-container {
-    background-color: $w2p-pallette-4;
     border-radius: 0.5rem;
     padding: 0.5rem;
 }

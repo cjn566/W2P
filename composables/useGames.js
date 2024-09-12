@@ -11,7 +11,7 @@ export function getGameURL(id) {
 export const user = ref({})
 
 export const status = ref({
-  user: 'unset',
+  userReady: false,
   gamesReady: false
 })
 
@@ -35,6 +35,7 @@ export async function setUser(slug) {
     user.value = res
     localStorage.setItem('user', JSON.stringify(res))
   }
+  status.value.userReady = true
   // Fetch the user's games
   if (user.value.games.length == 0) {
     status.value.gamesReady = true
@@ -93,7 +94,9 @@ const indices = ref({})
 // removeGames,
 
 function extendGames() {
+  let dp = new DOMParser()
   games.value = games.value.map((g) => {
+    g.description = dp.parseFromString(g.description, 'text/html').documentElement.textContent
     g.selected = false
     g.ownedExpansions = []
     g.isExpansionFor = []
@@ -207,7 +210,7 @@ export const filters = computed(() => {
 })
 
 export const numActiveFilters = computed(()=>{
-  return filteredTags.value.length + Object.entries(filters.value).filter(f => f[1].active).length
+  return filteredTags.value.length + Object.entries(filters.value).filter(f => f[1].active).length + (searchTerm.value.trim().length > 1 ? 1 : 0)
 })
 
 
@@ -347,7 +350,8 @@ export const filteredGames = computed(() => {
   let ret = games.value
 
   if (searchTerm.value.trim().length > 1) {
-    ret = ret.filter(g => g.searchName.includes(searchTerm.value.trim()))
+    console.log('searching', searchTerm.value)
+    ret = ret.filter(g => g.searchName.includes(searchTerm.value.trim().toLowerCase()))
   }
 
   let checkingTags = filteredTags.value.length > 0
@@ -355,10 +359,6 @@ export const filteredGames = computed(() => {
     g.filters.passesAllSliders &&
     (checkingTags ? g.filters.passesAllTags : true)
   )
-
-
-
-
   return ret
 })
 
@@ -383,17 +383,28 @@ export function sortBy(prop, descending) {
 
   switch (prop) {
     case 'players':
-      if (descending) {
-        games.value = games.value.sort((a, b) => { return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000) })
+      if (!descending) {
+        games.value = games.value.sort((a, b) => { 
+          if(!a.playersMax && !a.playersMin) return 1
+          if(!b.playersMax && !b.playersMin) return -1
+          return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000) })
       } else {
-        games.value = games.value.sort((a, b) => { return b.playersMax - a.playersMax + ((b.playersMin - a.playersMin) / 1000) })
+        games.value = games.value.sort((a, b) => { 
+          return  b.playersMax - a.playersMax + ((b.playersMin - a.playersMin) / 1000)
+        })
       }
       break
     case 'playtime':
-      if (!sorting.value.descending) {
-        games.value = games.value.sort((a, b) => { return a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000) })
+      if (!descending) {
+        games.value = games.value.sort((a, b) => { 
+          if(!a.playtimeMax && !a.playtimeMin) return 1
+          if(!b.playtimeMax && !b.playtimeMin) return -1
+          return ( a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000) )
+        })
       } else {
-        games.value = games.value.sort((a, b) => { return b.playtimeMax - a.playtimeMax + ((b.playtimeMin - a.playtimeMin) / 1000) })
+        games.value = games.value.sort((a, b) => { 
+          return b.playtimeMax - a.playtimeMax + ((b.playtimeMin - a.playtimeMin) / 1000) 
+        })
       }
       break
     case 'name':
@@ -403,7 +414,9 @@ export function sortBy(prop, descending) {
       break
     default:
       games.value = games.value.sort((a, b) => {
-        return (a[sorting.value.active] - b[sorting.value.active]) * (sorting.value.descending ? -1 : 1)
+        if(!a[sorting.value.active]) return 1
+        if(!b[sorting.value.active]) return -1
+        return ( a[sorting.value.active] - b[sorting.value.active] ) * (sorting.value.descending ? -1 : 1)
       })
       break
   }

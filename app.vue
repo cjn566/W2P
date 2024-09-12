@@ -7,10 +7,24 @@
   </div>
 </template>
 
+
+<script setup>
+useHead({
+  bodyAttrs: {
+  },
+  htmlAttrs: {
+  },
+})
+
+</script>
+
+
 <style lang="scss" scoped>
 #app {
   width: 100%;
   margin: 0 auto;
+
+  background-color: var();
 
   @media only screen and (min-width: $tablet-breakpoint) {
     max-width: $tablet-breakpoint;

@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-blue-900 flex p-2 h-40 m-1 pointer" @click="emit('show-details')">
+    <div class="bg-surface-600 rounded-md flex p-2 h-40 my-1 pointer" @click="emit('show-details')">
         <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash" />
         <div class="img-container">
             <img class="m-auto h-full object-contain object-center" :src="game.thumbnail" alt="Game Thumbnail" />
@@ -14,21 +14,23 @@
                     </span>
                 </span>
 
-                <a class="ml-2" :href="getGameURL(game.bgg_game_id)" target="_blank"
-                    rel="noopener noreferrer">
+                <a class="ml-2" :href="getGameURL(game.bgg_game_id)" target="_blank" rel="noopener noreferrer">
                     <div class="shadow line-clamp-1" :class="{ active: sort == 'name' }">{{ game.name }}</div>
                     <div class="shadow text-sm" :class="{ active: sort == 'year' }"> {{ game.display.year }}</div>
                 </a>
             </div>
 
 
-            <div class="flex flex-grow *:w-1/2 *:flex *:flex-col">
+            <div class="flex flex-grow *:w-1/2 *:flex *:flex-col text-lg">
                 <div class="border-right">
                     <div class="cell  border-bottom" :class="sort == 'players' ? 'active' : ''">
                         {{ game.display.players }}{{ isMobile ? 'p' : ' Players' }}
                     </div>
-                    <div class="cell" :class="sort == 'complexity' ? 'active' : ''">
-                        {{ game.display.complexity }} / 5
+                    <div class="cell">
+                        <div>
+                            <span :class="sort == 'complexity' ? 'active' : ''"> {{ game.display.complexity }}</span>
+                            <span class="text-xs"> / 5</span>
+                        </div>
                     </div>
                 </div>
                 <div>
@@ -45,7 +47,7 @@
 </template>
 
 <script setup>
-import { editingGames, getGameURL } from '~/composables/useGames';
+import { editingGames, getGameURL, sorting } from '~/composables/useGames';
 import { isMobile } from '~/composables/useMedia'
 const props = defineProps(['game', 'sort'])
 const emit = defineEmits(['show-details'])
@@ -55,11 +57,11 @@ const emit = defineEmits(['show-details'])
 
 <style lang="scss" scoped>
 .border-right {
-    border-right: 1px solid $w2p-pallette-3;
+    border-right: 1px solid blue;
 }
 
 .border-bottom {
-    border-bottom: 1px solid $w2p-pallette-3;
+    border-bottom: 1px solid blue;
 }
 
 .img-container {

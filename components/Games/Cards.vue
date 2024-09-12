@@ -1,12 +1,9 @@
 <template>
-       <!-- <div id="sort-container">
-              <GamesSortButton v-for="property in sortProperties" :sort="property.value" :label="property.name"
-                     :icon="property.icon" @scroll="scroll" />
-       </div> -->
-       <div ref="scrollTarget" class="h-16"></div>
 
-       <GamesCard v-for="g in filteredGames" :game="g" :sort="sorting.active" :key="g.userGameId"
-              @show-details="showDetails(g)" />
+       <TransitionGroup name="fade">
+              <GamesCard v-for="g in filteredGames" :game="g" :sort="sorting.active" :key="g.userGameId"
+                     @show-details="showDetails(g)" />
+       </TransitionGroup>
 
        <Dialog v-model:visible="showingDetails" modal dismissableMask :header="_game.name" id="game-dialog">
               <template #container>
@@ -23,16 +20,7 @@
 
 <script setup>
 import { filteredGames, sorting, tags } from '~/composables/useGames'
-const scrollTarget = ref(null)
-const sortProperties = [
-       { value: 'name', name: 'Name', icon: 'arrow-down-a-z' },
-       { value: 'rating', name: 'Rating', icon: 'star' },
-       { value: 'complexity', name: 'Complexity', icon: 'brain' },
-       { value: 'players', name: 'Players', icon: 'people-group' },
-       { value: 'playtime', name: 'Play time', icon: 'hourglass-half' },
-       { value: 'age', name: 'Age', icon: 'person-cane' },
-       { value: 'year', name: 'Year', icon: 'calendar' }
-]
+
 const _game = ref({})
 const _gameTags = computed(() => {
        return tags.value.filter(t => _game.value.tags.hasOwnProperty(t.id))
@@ -43,11 +31,32 @@ const showDetails = (game) => {
        showingDetails.value = true
 }
 
-const scroll = () => {
-       scrollTarget.value.scrollIntoView({ behavior: 'smooth' });
-}
 </script>
 <style lang="scss">
+
+/* 1. declare transition */
+.fade-move,
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+/* 2. declare enter from and leave to state */
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scaleY(0.01);
+}
+
+/* 3. ensure leaving items are taken out of layout flow so that moving
+      animations can be calculated correctly. */
+.fade-leave-active {
+  position: absolute;
+}
+
+
+
+
 #game-dialog {
        max-width: 80%;
 }
@@ -57,7 +66,6 @@ const scroll = () => {
        flex-direction: column;
        align-items: center;
        gap: 1rem;
-       background-color: $w2p-pallette-5;
 }
 
 .description {

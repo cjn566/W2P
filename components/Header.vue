@@ -71,8 +71,6 @@ const toggle = (event) => {
 .btn-login {
     margin: 10px;
     border-radius: 5px;
-    background-color: $w2p-pallette-1;
-    color: $w2p-pallette-4;
 }
 
 header {
@@ -81,7 +79,6 @@ header {
     justify-content: space-between;
     width: 100%;
     height: 4rem;
-    background-color: $w2p-pallette-4;
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
 }

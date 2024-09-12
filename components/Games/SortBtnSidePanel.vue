@@ -21,7 +21,7 @@
 <script setup>
 import { sortBy, sorting } from '~/composables/useGames'
 const props = defineProps(['sort'])
-const emit = defineEmits(['scroll'])
+const emit = defineEmits(['clicked'])
 
 const isDesc = computed(() => {
     return (sorting.value.active == props.sort.value && sorting.value.descending)
