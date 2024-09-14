@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-surface-600 rounded-md flex p-2 h-40 my-1 pointer" @click="emit('show-details')">
+    <div class="bg-surface-300 rounded-md flex p-2 h-40 my-1 pointer" @click="emit('show-details')">
         <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash" />
         <div class="img-container">
             <img class="m-auto h-full object-contain object-center" :src="game.thumbnail" alt="Game Thumbnail" />
@@ -23,7 +23,7 @@
 
             <div class="flex flex-grow *:w-1/2 *:flex *:flex-col text-lg">
                 <div class="border-right">
-                    <div class="cell  border-bottom" :class="sort == 'players' ? 'active' : ''">
+                    <div class="cell  border-bottom" :class="sort == 'players' ? 'bg-highlight' : ''">
                         {{ game.display.players }}{{ isMobile ? 'p' : ' Players' }}
                     </div>
                     <div class="cell">

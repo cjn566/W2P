@@ -1,19 +1,21 @@
 <template>
-    <div class="simple-container">
+    <div class="flex flex-col justify-center items-center">
         Game length:
-        <div class="btn-set">
+        <div class="m-2">
             <SelectButton v-model="gameLength" :options="gameLengthOptions" optionLabel="name"
                 @update:modelValue="updateLength" />
         </div>
         Players:
-        <div class="btn-set">
+        <div class="m-2">
             <SelectButton v-model="numPlayers" :options="numPlayersOptions" optionLabel="name"
                 @update:modelValue="updateNumPlayers" />
+            <Button v-for="n in [1,2,3,4,5,6,7,8,'9+']" :label="n" @click="updateNumPlayers"/>
         </div>
         <div id="display-text-container">
-            <p :class="{ 'hide-text': !showText }">Showing <b class="highlight">{{ gameLengthText }}</b> games<b
-                    class="highlight">{{
-                numPlayersText }}</b>:</p>
+            <div v-show="showText">
+                Showing <b class="bg-highlight">{{ gameLengthText }}</b> games
+                <b class="highlight">{{ numPlayersText }}</b>
+            </div>
         </div>
     </div>
 </template>
@@ -21,6 +23,7 @@
 <script setup>
 import { setSlider, limits, filters } from '~/composables/useGames'
 
+// Game Length Stuff
 const gameLength = ref(null)
 const gameLengthText = ref('')
 const gameLengthOptions = ref([
@@ -29,28 +32,14 @@ const gameLengthOptions = ref([
     { name: 'Long', value: 3 }
 ])
 
-const numPlayers = ref(null)
-const numPlayersText = ref('')
-const numPlayersOptions = ref([
-    { name: '1', value: 1 },
-    { name: '2', value: 2 },
-    { name: '3', value: 3 },
-    { name: '4', value: 4 },
-    { name: '5', value: 5 },
-    { name: '6', value: 6 },
-    { name: '7', value: 7 },
-    { name: '8', value: 8 },
-    { name: '9+', value: 9 }
-])
-
 watch(() => filters.value.playtime.active, (isActive) => {
-    if(!isActive){
+    if (!isActive) {
         gameLength.value = null
         resetLength()
     }
 })
 
-function resetLength(){
+function resetLength() {
     gameLengthText.value = ''
 }
 
@@ -79,18 +68,35 @@ const updateLength = (newLength) => {
     }
 }
 
+// Num Players Stuff
+const numPlayers = ref(null)
+const numPlayersText = ref('')
+const numPlayersOptions = ref([
+    { name: '1', value: 1 },
+    { name: '2', value: 2 },
+    { name: '3', value: 3 },
+    { name: '4', value: 4 },
+    { name: '5', value: 5 },
+    { name: '6', value: 6 },
+    { name: '7', value: 7 },
+    { name: '8', value: 8 },
+    { name: '9+', value: 9 }
+])
+
 watch(() => filters.value.players.active, (isActive) => {
-    if(!isActive){
+    if (!isActive) {
         numPlayers.value = null
         resetPlayers()
     }
 })
 
-function resetPlayers(){
+function resetPlayers() {
     numPlayersText.value = ''
 }
 
 const updateNumPlayers = (newNumPlayers) => {
+    console.log(newNumPlayers)
+    return
     if (newNumPlayers === null) {
         clearSlider('players')
         resetPlayers()
@@ -101,7 +107,7 @@ const updateNumPlayers = (newNumPlayers) => {
     } else {
         setSlider('players', 0, newNumPlayers.value)
         setSlider('players', 1, newNumPlayers.value)
-        numPlayersText.value = ' for ' + newNumPlayers.name + ' player' + (newNumPlayers.value > 1 ? 's' : '')
+        numPlayersText.value = ' for ' + newNumPlayers.name + ' player' + pl(newNumPlayers.value)
     }
 }
 
@@ -114,24 +120,8 @@ const showText = computed(() => {
 
 
 <style lang="scss" scoped>
-.simple-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-}
-
-.btn-set {
-    margin: 0.5rem;
-}
-
 .active {
     border: 3px solid gold;
-}
-
-.hide-text {
-    visibility: hidden;
 }
 
 #display-text-container {

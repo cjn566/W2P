@@ -1,14 +1,14 @@
 <template>
-    <header>
+    <header class="flex items-center justify-between h-16 bg-surface-200">
         <a href="/">
-            <img id="logo" src="~/assets/logo.svg" alt="logo" />
+            <img class="h-12 mx-2 rounded-md" src="~/assets/logo.svg" alt="logo" />
         </a>
-        whattoplay.net
+        bgsift.net
         <div v-if="isAuthenticated">
-            <img @click="toggle" class="profile__img" :src="profileImageURL" />
+            <img v-if="profileImageURL" @click="toggle" class="w-8 rounded-full mx-4 border-2 border-orange-600" :src="profileImageURL" />
             <Menu ref="menu" :model="items" :popup="true" />
         </div>
-        <Button v-else class="btn-login" @click="navigateTo('/login')">
+        <Button v-else class="mx-2" @click="navigateTo('/login')">
             Sign up or Log In
         </Button>
     </header>
@@ -65,39 +65,5 @@ const toggle = (event) => {
 
 </script>
 
-
-
-<style lang="scss" scoped>
-.btn-login {
-    margin: 10px;
-    border-radius: 5px;
-}
-
-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    height: 4rem;
-    border-bottom-left-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
-}
-
-.right-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    width: 100%;
-}
-
-#logo {
-    height: 3rem;
-    margin: 10px;
-}
-
-.profile__img {
-    width: 3.5rem;
-    margin: 10px;
-    border-radius: 50%;
-}
+<style scoped>
 </style>

@@ -3,13 +3,13 @@
   <div v-if="status.userReady">
     <!-- Whose games are we seeing? -->
     <div class="flex h-16 bg-zinc-500  rounded-tr-xl  rounded-tl-xl">
-      <img :src="user.image" class="person-image" alt="avatar">
+      <img :src="user.image" class="h-16 w-16 rounded-full mr-4" alt="avatar">
       <h1 style="display: inline;">{{ user.name }}</h1>
-      <div v-if="!user.isSelf" id="header-buttons">
-        <div id="btn-edit">
+      <div v-if="user.isSelf" class="absolute right-4">
+        <div class="mr-4">
           <Button size="small" icon="pi pi-pencil" @click="editingGames = !editingGames" />
         </div>
-        <div id="btn-add-games" :style="editingGames ? '' : 'visibility: hidden'">
+        <div class="" :style="editingGames ? '' : 'visibility: hidden'">
           <Button size="small" icon="pi pi-plus" @click="goToAdd()" />
         </div>
       </div>
@@ -26,7 +26,7 @@
       <div class="flex">
         <IconField class="flex grow">
           <InputIcon class="pi pi-search" />
-          <InputText class="grow rounded-none" v-model="searchTerm" placeholder="Find a game" />
+          <InputText class="grow rounded-none" v-model="searchTerm" placeholder="Find by name" />
         </IconField>
         <Button class="rounded-none" icon="pi pi-times" :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
       </div>
@@ -45,7 +45,7 @@
         <Button @click="showFilter = true" class="rounded-none rounded-br-xl border-0">
           Filter
           <div class="text-sm absolute bottom-0">
-            {{ numActiveFilters || 'no' }} filter{{ numActiveFilters === 1 ? '' : 's' }},
+            {{ numActiveFilters || 'no' }} filter{{pl(numActiveFilters)}},
             {{ filteredGames.length }}/{{ games.length }} games
           </div>
         </Button>
@@ -82,11 +82,12 @@
 
           <FilterVisualBar />
           <GamesActiveFilters />
-
+          <Divider />
           <div class="flex justify-center w-full items-center">
             <SelectButton v-model="filterStyle" :options="filterStyleOptions" optionLabel="label" dataKey="value" />
           </div>
 
+          <Divider />
           <FilterSimpleUI v-if="filterStyle.value == 'simple'" />
           <FilterAdvancedUI v-else="filterStyle.value == 'advanced'" />
 
@@ -96,17 +97,17 @@
     </Drawer>
 
     <!-- <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
-          :pt="{ root: 'btn-list-style' }">
-          <template #option="slotProps">
-            <i :class="slotProps.option.icon"></i>
-          </template>
-        </SelectButton> -->
+      :pt="{ root: 'absolute right-[8%] -top-[20px]' }">
+      <template #option="slotProps">
+        <i :class="slotProps.option.icon"></i>
+      </template>
+    </SelectButton> -->
 
 
 
     <!-- The Games List -->
     <span v-if="!filteredGames.length">There are no games that fit the search criteria.</span>
-    <div v-else>
+    <div v-else ref="gamesList">
       <!-- <Paginator :totalRecords="filteredGames.length" :rows="50"  v-model:first="firstGame"/> -->
       <ScrollTop />
 
@@ -114,7 +115,7 @@
       <GamesCards v-else />
     </div>
 
-    <div class="bottom-spacer"></div>
+    <div class="h-16" />
   </div>
   <span v-show="!status.gamesReady">Loading...</span>
   <span v-if="!hasGames">
@@ -180,11 +181,11 @@ const listStyleOptions = ref([
 const showTable = ref(false)
 
 const hasGames = computed(() => {
-  return user.value.games.length > 0
+  return user.value.games?.length > 0
 })
 
 const someSelected = computed(() => {
-  return user.value.games.some(g => g.selected)
+  return user.value.games?.some(g => g.selected)
 })
 
 watch(filterStyle, () => {
@@ -215,13 +216,40 @@ const handleScroll = () => {
   lastScrollY = st <= 0 ? 0 : st
 }
 
+const gamesList = ref(null)
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  window.addEventListener("touchstart", touchStart, false);
+  window.addEventListener("touchend", touchEnd, false);
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener("touchstart", touchStart);
+  window.removeEventListener("touchend", touchEnd);
 })
+
+let touchStartX
+const swipeDistance = 100
+const touchStart = (e) => {
+  touchStartX = e.changedTouches[0].clientX
+}
+const touchEnd = (e) => {
+  if (e.changedTouches[0].clientX - touchStartX > swipeDistance) {
+    // Swiped Right
+    if(!showFilter.value) {
+      showSort.value = true
+    }
+    showFilter.value = false
+  } else if (touchStartX - e.changedTouches[0].clientX > swipeDistance) {
+    // Swiped Left
+    if(!showSort.value) {
+      showFilter.value = true
+    }
+    showSort.value = false
+  }
+}
 
 </script>
 
@@ -237,62 +265,5 @@ onBeforeUnmount(() => {
 
 .hide {
   top: -7rem;
-}
-
-
-
-#filterFlexContainer {
-  display: flex;
-  flex-direction: row;
-}
-
-
-.btn-list-style {
-  position: absolute;
-  right: 8%;
-  top: -20px;
-}
-
-.btn-filter-style {
-  position: absolute;
-  right: 8%;
-  top: -45px;
-}
-
-.filter-container {
-  position: relative;
-}
-
-
-
-#header-buttons {
-  position: absolute;
-  right: 1rem;
-}
-
-
-.person-image {
-  height: 4rem;
-  width: 4rem;
-  border-radius: 50%;
-  margin-right: 1rem;
-}
-
-#btn-edit {
-  margin-right: 1rem;
-  display: inline-block;
-}
-
-#btn-add-games {
-  display: inline-block;
-}
-
-
-#filters-fieldset {
-  margin-top: 1rem;
-}
-
-.bottom-spacer {
-  height: 4rem;
 }
 </style>

@@ -350,7 +350,6 @@ export const filteredGames = computed(() => {
   let ret = games.value
 
   if (searchTerm.value.trim().length > 1) {
-    console.log('searching', searchTerm.value)
     ret = ret.filter(g => g.searchName.includes(searchTerm.value.trim().toLowerCase()))
   }
 

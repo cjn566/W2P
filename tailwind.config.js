@@ -1,6 +1,6 @@
 
 export default {
-  darkMode: 'class', // This enables dark mode based on the presence of the "dark" class in the HTML tag
+  darkMode: ['selector', '[class*="p-dark"]'],// 'class', // This enables dark mode based on the presence of the "dark" class in the HTML tag
   content: [
     "./assets/styles/tailwind-presets/aura/**/*.{js,vue,ts}",
     `./components/**/*.{vue,js,ts}`,
