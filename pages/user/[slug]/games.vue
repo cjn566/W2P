@@ -45,7 +45,7 @@
         <Button @click="showFilter = true" class="rounded-none rounded-br-xl border-0">
           Filter
           <div class="text-sm absolute bottom-0">
-            {{ numActiveFilters || 'no' }} filter{{pl(numActiveFilters)}},
+            {{ numActiveFilters || 'no' }} filter{{ pl(numActiveFilters) }},
             {{ filteredGames.length }}/{{ games.length }} games
           </div>
         </Button>
@@ -88,8 +88,8 @@
           </div>
 
           <Divider />
-          <FilterSimpleUI v-if="filterStyle.value == 'simple'" />
-          <FilterAdvancedUI v-else="filterStyle.value == 'advanced'" />
+          <FilterSimpleUI v-show="filterStyle.value == 'simple'" />
+          <FilterAdvancedUI v-show="filterStyle.value == 'advanced'" />
 
 
         </div>
@@ -112,7 +112,26 @@
       <ScrollTop />
 
       <GamesTable v-if="showTable" />
-      <GamesCards v-else />
+      <TransitionGroup v-else name="fade">
+        <GamesCard v-for="g in filteredGames" :game="g" :sort="sorting.active" :key="g.userGameId"
+          @show-details="showDetails(g)" />
+      </TransitionGroup>
+
+      <Button v-if="filteredGames.length < games.length && filteredGames.length > 1" @click="randomGame"
+        label="Pick a random game for me" />
+
+      <Dialog v-model:visible="showingDetails" modal dismissableMask :header="_game.name" id="game-dialog">
+        <template #container>
+          <div class="popup-container">
+            <GamesCard :game="_game" />
+            <div class="description">
+              {{ _game.description }}
+            </div>
+            <FilterTagList :tagList="_gameTags" />
+          </div>
+        </template>
+      </Dialog>
+
     </div>
 
     <div class="h-16" />
@@ -152,6 +171,21 @@ const sortDrawerPT = {
   header: 'bg-blue-800 flex justify-end',
   title: 'bg-red-500',
   pcCloseButton: 'text-red-500'
+}
+
+const _game = ref({})
+const _gameTags = computed(() => {
+  return tags.value.filter(t => _game.value.tags.hasOwnProperty(t.id))
+})
+const showingDetails = ref(false)
+const showDetails = (game) => {
+  _game.value = game
+  showingDetails.value = true
+}
+
+const randomGame = () => {
+  const randomIndex = Math.floor(Math.random() * filteredGames.value.length)
+  showDetails(filteredGames.value[randomIndex])
 }
 
 
@@ -238,13 +272,13 @@ const touchStart = (e) => {
 const touchEnd = (e) => {
   if (e.changedTouches[0].clientX - touchStartX > swipeDistance) {
     // Swiped Right
-    if(!showFilter.value) {
+    if (!showFilter.value) {
       showSort.value = true
     }
     showFilter.value = false
   } else if (touchStartX - e.changedTouches[0].clientX > swipeDistance) {
     // Swiped Left
-    if(!showSort.value) {
+    if (!showSort.value) {
       showFilter.value = true
     }
     showSort.value = false
@@ -265,5 +299,25 @@ const touchEnd = (e) => {
 
 .hide {
   top: -7rem;
+}
+
+/* 1. declare transition */
+.fade-move,
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+/* 2. declare enter from and leave to state */
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scaleY(0.01);
+}
+
+/* 3. ensure leaving items are taken out of layout flow so that moving
+      animations can be calculated correctly. */
+.fade-leave-active {
+  position: absolute;
 }
 </style>

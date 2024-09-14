@@ -287,6 +287,9 @@ export function clearSlider(prop) {
   })
 }
 
+export const numPlayers = ref(null)
+export const gameLength = ref(null)
+
 export function setSlider(prop, LT, newVal) {
 
   // Get the appropriate filter set

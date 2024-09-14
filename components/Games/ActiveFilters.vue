@@ -2,7 +2,7 @@
 
 
 <template>
-    <div class="text-sm bg-slate-300 rounded-lg min-h-16">
+    <div class="text-sm bg-slate-300 rounded-lg min-h-20">
         
         <GamesFilteringChip v-for="(item, name) in filters" :index="item" :field="name" class="chip active-filter" />
 
