@@ -5,10 +5,10 @@
             <div class="text-xs">{{ sort.descLabel }}</div>
         </Button>
         <div class="grow">
-            <font-awesome-icon class="mx-4" :icon="['fas', sort.icon]"/>
+            <font-awesome-icon class="mx-4" :icon="['fas', sort.icon]" />
             <span class="mr-4">
-            {{ sort.name }}
-        </span>
+                {{ sort.name }}
+            </span>
         </div>
         <Button class="btn" :class="{ active: isAsc }" @click="doClick(false)">
             <i class="pi pi-chevron-up" />
@@ -39,7 +39,6 @@ const doClick = (desc) => {
 </script>
 
 <style lang="scss" scoped>
-
 .btn {
     display: flex;
     flex-direction: column;
@@ -51,6 +50,7 @@ const doClick = (desc) => {
     color: whitesmoke;
     border-radius: 4px;
 }
+
 .active {
     background-color: #0058f0;
     color: white;

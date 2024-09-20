@@ -93,10 +93,9 @@ export async function getGameInfo(gameIds) {
 
   // Check if the DB has a recent version of the game data
   let DBGames = [], APIGames = []
-  let needGameIds = gameIds
   try {
     let age = process.env.CACHE_GAME_AGE_DAYS || 7
-    redis = await query(`SELECT data FROM app.bgg_game_data WHERE bgg_game_id =ANY($1) AND modified > now() - interval '${age} day'`, [gameIds])
+    let redis = await query(`SELECT data FROM app.bgg_game_data WHERE bgg_game_id =ANY($1) AND modified > now() - interval '${age} day'`, [gameIds])
 
     if (redis.rowCount > 0) {
       DBGames = redis.rows.map((g) => JSON.parse(g.data))
@@ -141,7 +140,7 @@ export async function getGameInfo(gameIds) {
 
     try {
       Promise.all(saveGames)
-      logger.info('Saved' + saveGames.length + 'games to DB', { games: saveGames.length })
+      logger.info('Saved ' + saveGames.length + ' games to DB', { games: saveGames.length })
     } catch (error) {
       console.warn('Save Games Error: ', error)
     }

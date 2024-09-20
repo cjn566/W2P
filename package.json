@@ -34,7 +34,8 @@
     "primevue": "^4.0.5",
     "qrcode.vue": "^3.4.1",
     "slugify": "^1.6.6",
-    "tailwindcss-primeui": "^0.3.4"
+    "tailwindcss-primeui": "^0.3.4",
+    "vue3-touch-events": "^4.2.0"
   },
   "overrides": {
     "next-auth": "4.21.1"

@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" class="dark">
     <Toast />
     <NuxtLayout>
       <NuxtPage />
@@ -13,6 +13,7 @@ useHead({
   bodyAttrs: {
   },
   htmlAttrs: {
+    // class: 'p-dark',
   },
 })
 

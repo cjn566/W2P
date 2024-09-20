@@ -3,15 +3,15 @@
         Game length:
         <div class="m-2">
             <SelectButton v-model="gameLength" :options="gameLengthOptions" optionLabel="name"
-                @update:modelValue="updateLength" />
+                @update:modelValue="updateLength"/>
         </div>
-        Players:
+        Number of Players:
         <div v-for="y in [0, 1, 2]" class="flex justify-center my-2">
-            <Button v-for="x in [1, 2, 3]" class="w-12 my-2" :outlined="!(numPlayers == (y * 3 + x))"
+            <Button v-for="x in [1, 2, 3]" severity="info" class="w-12 m-2" :outlined="(numPlayers == (y * 3 + x))"
                 :label="(y * 3 + x).toString()" @click="updateNumPlayers((y * 3 + x))" />
         </div>
-        <Button class="w-12 my-2" :outlined="numPlayers !== '10+'" label="10+" @click="updateNumPlayers(10)" />
-        <div class="mx-auto px-8" v-show="showText">
+        <Button class="w-12 my-2" severity="info" :outlined="numPlayers == '10+'" label="10+" @click="updateNumPlayers(10)" />
+        <div class="text-center px-8" v-show="showText">
             Showing <b class="bg-highlight">{{ gameLengthText }}</b> games
             <b class="bg-highlight">{{ numPlayersText }}</b>
         </div>

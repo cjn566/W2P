@@ -20,12 +20,12 @@ export const games = ref([])
 export async function setUser(slug) {
   if (user.value.slug == slug) return
 
-  // DEBUG
-  let ls = localStorage.getItem('user')
-  if (ls !== null) {
-    user.value = JSON.parse(ls)
-  }
-  else {
+  // DEBUG (if server caching not set up)
+  // let ls = localStorage.getItem('user')
+  // if (ls !== null) {
+  //   user.value = JSON.parse(ls)
+  // }
+  // else {
     const res = (await useFetch(`/api/user/${slug}`)).data.value
     // TODO: handle errors, set status on user
     if (res.err_code) {
@@ -34,7 +34,7 @@ export async function setUser(slug) {
     }
     user.value = res
     localStorage.setItem('user', JSON.stringify(res))
-  }
+  //}
   status.value.userReady = true
   // Fetch the user's games
   if (user.value.games.length == 0) {
@@ -187,12 +187,11 @@ function extendGames() {
       ]
     })
 
-
-
-
   indices.value = makeIndices()
 
   buildTagList()
+
+  sortBy('name', true)
 
   status.value.gamesReady = true
 }

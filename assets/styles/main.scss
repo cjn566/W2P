@@ -1,25 +1,20 @@
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import './normalize.min.css';
 
-
-* {
-  // box-sizing: border-box;
-  // border: 1px solid red;
-}
 
 $base-font-size: 14px;
 
 html {
-  font-size: $base-font-size;
+    font-size: $base-font-size;
 }
 
 
 body {
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    
   font-size: $base-font-size;
+    background-color: $w2p-pallette-5;
+    color: $w2p-pallette-1;
 }
 
 /* Primary and Surface Palettes */
@@ -36,17 +31,18 @@ body {
   --p-primary-900: #064e3b;
   --p-primary-950: #022c22;
   --p-surface-0: #ffffff;
-  --p-surface-50: #f8fafc;
-  --p-surface-100: #f1f5f9;
-  --p-surface-200: #e2e8f0;
-  --p-surface-300: #cbd5e1;
-  --p-surface-400: #94a3b8;
-  --p-surface-500: #64748b;
-  --p-surface-600: #475569;
-  --p-surface-700: #334155;
-  --p-surface-800: #1e293b;
-  --p-surface-900: #0f172a;
-  --p-surface-950: #020617;
+  --p-surface-50: #e7f2fd;    /* Lightest Blue */
+  --p-surface-100: #cce4fb;   /* Lighter Blue */
+  --p-surface-200: #99c9f7;   /* Light Blue */
+  --p-surface-300: #66adf2;   /* Medium Light Blue */
+  --p-surface-400: #3392ee;   /* Medium Blue */
+  --p-surface-500: #0077ea;   /* Bright Blue */
+  --p-surface-600: #0063c3;   /* Darker Blue */
+  --p-surface-700: #004e9d;   /* Dark Blue */
+  --p-surface-800: #003a76;   /* Darker Blue */
+  --p-surface-900: #002753;   /* Darkest Blue */
+  --p-surface-950: #00152a;   /* Near Black Blue */
+
   --p-content-border-radius: 6px;
 }
 

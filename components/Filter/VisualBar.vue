@@ -2,15 +2,14 @@
     <div class="text-center">Displaying {{ true ? filteredGames.length + " of " : 'all ' }} {{ games.length }} games
     </div>
 
-    <div ref="graph" class="bg-slate-500">
-
+    <div ref="graph" class="">
         <div  v-if="useGap" class="boxes mt-8 flex h-4 gap-px mx-1 items-center">
             <span v-for="box in set" class="grow box-content h-[4px] transition-all" :style="boxStyle(box)"></span>
         </div>
 
         <div v-else class="h-10 p-2 rounded-sm flex items-center">
-            <div class="flex justify-center items-center w-full h-4 bg-slate-800 rounded">
-                <div class="h-8 rounded transition-all" :style="center" />
+            <div class="flex justify-center items-center w-full h-4 bg-slate-500 rounded">
+                <div class="h-8 rounded transition-all border-surface-500 border-2 box-content" :style="center" />
             </div>
         </div>        
 

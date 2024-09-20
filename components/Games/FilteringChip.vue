@@ -1,5 +1,5 @@
 <template>
-    <Chip v-if="index.active" :label="label" removable class="chip"
+    <Chip v-if="index.active" :label="label" removable class=""
         @click="clearSlider(field)" />
 </template>
 

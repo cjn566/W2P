@@ -25,7 +25,7 @@ export default defineNuxtConfig({
     '@sidebase/nuxt-auth',
     '@nuxt/devtools',
     '@primevue/nuxt-module',
-    '@nuxtjs/tailwindcss'
+    '@nuxtjs/tailwindcss',
   ],
 
   primevue: {
