@@ -1,22 +1,24 @@
 <template>
-  <div class="py-8 touch-none ">
-    <div class="flex justify-center">{{ _label }}</div>
+  <div class="py-8 px-1 touch-none ">
+    <div class="flex justify-center mb-2">{{ _label }}</div>
     <div class="flex items-center justify-center">
-      <span class="basis-14 text-right mr-2">{{ minLabel }}</span>
-      <div ref="baseBar" class="grow relative h-2 bg-slate-400">
+      <span class="flex justify-end end-label text-right mr-2">{{ minLabel }}</span>
+      <div ref="baseBar" class="grow relative h-1 bg-slate-400">
+        <div ref="activeBar" class="absolute h-1 active-bar z-1000" :style="activeBarStyle" />
         <span ref="minHandle" class="handle min-handle" :class="minHandleClass" :style="minHandleStyle"
-          @touchstart.stop="handleStart(true)" @touchend.stop="handleEnd(true)" @touchmove.stop="handleMove(true)">
-          <span v-show="curIncs[0] > 0"><span v-show="!isMerged"> {{ minDisplay }} </span></span>
+          @touchstart.stop="handleStart(true)" @touchend.stop="handleEnd(true)" @touchmove.stop="handleMoveMin()">
+          <span v-if="isMerged" class="merged-value z-50">{{ minDisplay }}</span>
+          <span v-else> {{ minDisplay }} </span>
           <span v-show="minGrabbed" class="popup">{{ minDisplay }}</span>
-          <span v-show="isMerged" class="merged-value">{{ minDisplay }}</span>
         </span>
         <span ref="maxHandle" class="handle max-handle" :class="maxHandleClass" :style="maxHandleStyle"
-          @touchstart.stop="handleStart(false)" @touchend.stop="handleEnd(false)" @touchmove.stop="handleMove(false)">
-          <span v-show="curIncs[1] < maxInc"> <span v-show="!isMerged"> {{ maxDisplay }} </span></span>
+          @touchstart.stop="handleStart(false)" @touchend.stop="handleEnd(false)" @touchmove.stop="handleMoveMax()">
+          <span v-show="!isMerged"> {{ maxDisplay }}</span>
           <span v-show="maxGrabbed" class="popup">{{ maxDisplay }}</span>
         </span>
       </div>
-      <span class="basis-14 ml-2">{{ maxLabel }}</span>
+      <span class="end-label ml-2 relative z-0">{{ maxLabel }}<span class="text-xs absolute top-full left-0 pt-1">{{
+      suffix }}</span></span>
     </div>
   </div>
 </template>
@@ -31,7 +33,7 @@ const minHandle = ref(null)
 const maxHandle = ref(null)
 const baseBar = ref(null)
 
-const isMerged = computed(() => curIncs.value[0] === curIncs.value[1])
+const isMerged = computed(() => curIncs.value[0] === curIncs.value[1] && curIncs.value[0] !== 0 && curIncs.value[1] !== maxInc)
 
 // Stylings
 // Min Handle
@@ -45,7 +47,7 @@ const minHandleStyle = computed(() => ({
   right: (100 - increments.value[curIncs.value[0]]?.percent) + '%'
 }))
 
-const minDisplay = computed(() => increments.value[curIncs.value[0]]?.value)
+const minDisplay = computed(() => (increments.value[curIncs.value[0]]?.value))
 
 // Max Handle
 const maxGrabbed = ref(false)
@@ -56,10 +58,15 @@ const maxHandleClass = computed(() => ({
 
 const maxHandleStyle = computed(() => ({
   left: increments.value[curIncs.value[1]]?.percent + '%',
-  'background-color': curIncs.value[1] === maxInc ? 'transparent' : ''
 }))
 
-const maxDisplay = computed(() => increments.value[curIncs.value[1]]?.value)
+const maxDisplay = computed(() => (increments.value[curIncs.value[1]]?.value))
+
+const activeBarStyle = computed(() => ({
+  width: (increments.value[curIncs.value[1]]?.percent - increments.value[curIncs.value[0]]?.percent) + '%',
+  left: increments.value[curIncs.value[0]]?.percent + '%',
+  display: (curIncs.value[0] === 0 && curIncs.value[1] === maxInc) ? 'none' : 'block'
+}))
 
 
 // Track handle positions and values
@@ -77,43 +84,62 @@ function handleStart(isMin) {
   // pop up for cur value
 }
 
-function handleMove(isMin) {
-  let side = isMin ? 0 : 1
+function handleMoveMin() {
   let numMoves = Math.trunc((event.changedTouches[0].clientX - lastTouchX) / widthPerIncrement)
   if (Math.abs(numMoves) >= 1) {
     lastTouchX += numMoves * widthPerIncrement
     if (numMoves > 0) {
       // move right
-      if (curIncs.value[side] < maxInc) {
-        curIncs.value[side] = Math.min(curIncs.value[side] + numMoves, maxInc)
-        if (!isMin) {
+      if (curIncs.value[0] < maxInc) {
+        curIncs.value[0] = Math.min(curIncs.value[0] + numMoves, maxInc)
+        dbMin(increments.value[curIncs.value[0]].value)
+        if (curIncs.value[0] > curIncs.value[1]) {
+          curIncs.value[1] = curIncs.value[0]
           if (curIncs.value[1] === maxInc) {
             dbMax(null)
           } else {
-            dbMax(increments.value[curIncs.value[1]].value)
-          }
-        } else {
-          dbMin(increments.value[curIncs.value[0]].value)
-          if (curIncs.value[0] > curIncs.value[1]) {
-            curIncs.value[1] = curIncs.value[0]
             dbMax(increments.value[curIncs.value[1]].value)
           }
         }
       }
     } else {
       // move left
-      if (curIncs.value[side] > 0) {
-        curIncs.value[side] = Math.max(curIncs.value[side] + numMoves, 0)
-        if (isMin) {
+      if (curIncs.value[0] > 0) {
+        curIncs.value[0] = Math.max(curIncs.value[0] + numMoves, 0)
+        if (curIncs.value[0] === 0) {
+          dbMin(null)
+        } else {
+          dbMin(increments.value[curIncs.value[0]].value)
+        }
+      }
+    }
+  }
+}
+
+function handleMoveMax() {
+  let numMoves = Math.trunc((event.changedTouches[0].clientX - lastTouchX) / widthPerIncrement)
+  if (Math.abs(numMoves) >= 1) {
+    lastTouchX += numMoves * widthPerIncrement
+    if (numMoves > 0) {
+      // move right
+      if (curIncs.value[1] < maxInc) {
+        curIncs.value[1] = Math.min(curIncs.value[1] + numMoves, maxInc)
+        if (curIncs.value[1] === maxInc) {
+          dbMax(null)
+        } else {
+          dbMax(increments.value[curIncs.value[1]].value)
+        }
+      }
+    } else {
+      // move left
+      if (curIncs.value[1] > 0) {
+        curIncs.value[1] = Math.max(curIncs.value[1] + numMoves, 0)
+        dbMax(increments.value[curIncs.value[1]].value)
+        if (curIncs.value[1] < curIncs.value[0]) {
+          curIncs.value[0] = curIncs.value[1]
           if (curIncs.value[0] === 0) {
             dbMin(null)
           } else {
-            dbMin(increments.value[curIncs.value[0]].value)
-          }
-        } else {
-          dbMax(increments.value[curIncs.value[1]].value)
-          if (curIncs.value[1] < curIncs.value[0]) {
-            curIncs.value[0] = curIncs.value[1]
             dbMin(increments.value[curIncs.value[0]].value)
           }
         }
@@ -155,19 +181,8 @@ onMounted(() => {
   curIncs.value[1] = maxInc
 })
 
-
-// Want to immediately see the result of sliding the knob around, but defer to what prop says it should be.
-
 const dbMin = debounce((nv) => setSlider(props.prop, 0, nv), 200)
 const dbMax = debounce((nv) => setSlider(props.prop, 1, nv), 200)
-
-// function setDisplayValues(nvs) {
-//   displayValues.value =
-//     [
-//       nvs[0] == null || (nvs[0] <= props.min) ? (props.minLabel || props.min) : nvs[0],
-//       nvs[1] == null || (nvs[1] >= props.max) ? (props.maxLabel || props.max) : nvs[1]
-//     ]
-// }
 
 watch(() => props.inValues.values[0], (nv) => {
   if (nv === null || nv <= props.min) {
@@ -192,9 +207,11 @@ watch(() => props.inValues.values[1], (nv) => {
 </script>
 
 <style lang="scss">
-$handle-width: 60px;
-$handle-height: 24px;
-$handle-active-color: var(--p-primary-600);
+$handle-width: 50px;
+$handle-height: 20px;
+$active-bg: var(--p-surface-400);
+$active-bar: gold;
+$active-border: var(--p-primary-800);
 
 .handle {
   display: flex;
@@ -202,47 +219,67 @@ $handle-active-color: var(--p-primary-600);
   justify-content: center;
   width: $handle-width;
   height: $handle-height;
-  top: calc((-1 * $handle-height + 0.35rem) / 2);
+  box-sizing: content-box;
+  z-index: 10;
+  top: calc((-1 * $handle-height) / 2);
   position: absolute;
   background-color: transparent;
-  border: 2px solid black;
+  color: transparent;
+  border: 3px double var(--p-surface-300);
   transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
   cursor: grab;
 }
 
-.active {
-  background-color: $handle-active-color;
-  border-color: var(--p-primary-900);
-  color: white;
+.end-label {
+  flex-basis: $handle-width;
 }
+
 
 .merged-value {
   display: flex;
   align-items: center;
   justify-content: center;
   position: absolute;
-  width: calc($handle-width * 4/3);
-  z-index: 50;
-  background-color: $handle-active-color;
+  height: $handle-height;
+  width: calc($handle-width * 2);
+  border-radius: 10px;
+  background-color: $active-bg;
   pointer-events: none;
-  top: 2px;
-  right: -43px;
+  right: calc(-1 * $handle-width);
+  z-index: 1000;
+}
+
+.active {
+  background-color: $active-bg;
+  border: 3px double $active-border;
+  color: white;
 }
 
 .min-handle {
   border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+  border-bottom-left-radius: 10px;  
+  z-index: 50;
+}
+
+.min-handle.active {
+  border-right: 3px double $active-bar;
 }
 
 .max-handle {
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
+  z-index: 10;
 }
 
+.max-handle.active {
+  border-left: 3px double $active-bar;
+}
 
-.grabbed {}
+.active-bar {
+  background-color: $active-bar;
+}
 
 .popup {
   display: flex;
@@ -252,7 +289,7 @@ $handle-active-color: var(--p-primary-600);
   width: 35px;
   height: 35px;
   z-index: 50;
-  background-color: var(--p-primary-700);
+  background-color: $active-bg;
   top: -60px;
   color: white;
   border-radius: 50%;

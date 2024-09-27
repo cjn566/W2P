@@ -133,59 +133,31 @@
           <!-- <Paginator :totalRecords="filteredGames.length" :rows="50"  v-model:first="firstGame"/> -->
           <ScrollTop />
 
-          <!-- Show games as high density tables -->
+          <!-- Show games as high density table -->
           <GamesTable v-if="showTable" />
 
           <!-- Show games as cards -->
           <TransitionGroup v-else name="fade">
             <div v-for="(g, idx) in filteredGames" :key="g.userGameId" @click="showDetails(idx)"
-              class="bg-surface-800 text-white rounded-md flex p-2 h-40 my-1 pointer">
+              class="bg-surface-800 text-white rounded-md flex p-2 h-40 m-1 pointer">
               <div class="w-2/5">
                 <img class="m-auto h-full object-contain object-center" :src="g.thumbnail" alt="Game Thumbnail" />
               </div>
-              <GamesCard :game="g" :sort="sorting.active" />
+              <GamesCard :game="g" :sort="sorting.active" class="w-3/5" />
             </div>
           </TransitionGroup>
 
           <!-- Pick random game button -->
-          <div class="flex justify-center">
-            <Button v-if="filteredGames.length > 1" @click="randomGame" label="Pick a random game for me"
-              icon="pi pi-question" class="" />
+          <div class="flex justify-center mt-2">
+            <Button v-if="filteredGames.length > 1" @click="randomGame" class="">
+              <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
+              <span class="mx-2">Choose a random game</span>
+              <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
+            </Button>
           </div>
 
           <!-- Game Details Dialog -->
-          <Dialog v-model:visible="showingDetails" modal dismissableMask class="m-4">
-            <template #container="{ closeCallback }">
-              <div class="bg-surface-100 text-black rounded-md p-2 relative">
-                <span @click="closeCallback" class="float-btn top-3 right-3 ">
-                  <i class="pi pi-times text-xl text-slate-400" />
-                </span>
-                <span @click="nextGame(true)" class="float-btn top-1/3 right-3 ">
-                  <i class="pi pi-angle-right text-xl text-slate-400" />
-                </span>
-                <span @click="nextGame(false)" class="float-btn top-1/3 left-3 ">
-                  <i class="pi pi-angle-left text-xl text-slate-400" />
-                  </span>
-                <div class="flex flex-col h-[80vh] overflow-y-scroll ">
-                  <img class="w-full h-auto object-contain object-center mb-2" :src="_game.image"
-                    alt="Game Thumbnail" />
-                  <GamesCard :game="_game" />
-                  <div class="text-sm p-3">
-                    {{ _game.description }}
-                  </div>
-                  <data value="">
-                    <FilterTagList :tagList="_gameTags" />
-                  </data>
-                </div>
-              </div>
-              <div class="sticky bottom-0">
-                <a class="text-blue-900 underline mt-2" :href="getGameURL(_game.bgg_game_id)" target="_blank"
-                  rel="noopener noreferrer">
-                  View this game on BoardGameGeek.com ->
-                </a>
-              </div>
-            </template>
-          </Dialog>
+          <GamesDetails ref="details" />
 
         </div>
       </div>
@@ -219,35 +191,6 @@ const sortProperties = [
 ]
 
 
-const _game = computed(() => {
-  return filteredGames.value[curDetailGameIdx.value]
-})
-const _gameTags = computed(() => {
-  return tags.value.filter(t => _game.value.tags.hasOwnProperty(t.id))
-})
-const showingDetails = ref(false)
-
-const showDetails = (idx) => {
-  curDetailGameIdx.value = idx
-  showingDetails.value = true
-}
-
-const curDetailGameIdx = ref(0)
-const randomGame = () => {
-  showDetails(Math.floor(Math.random() * filteredGames.value.length))
-}
-
-const nextGame = (forward) => {
-  let idx = curDetailGameIdx.value
-  if (forward) {
-    idx = idx + 1 >= filteredGames.value.length ? 0 : idx + 1
-  } else {
-    idx = idx - 1 < 0 ? filteredGames.value.length - 1 : idx - 1
-  }
-  showDetails(idx)
-}
-
-
 const scrollTarget = ref(null)
 const scrollToTop = (ccb) => {
   scrollTarget.value.scrollIntoView({ behavior: 'smooth' })
@@ -260,11 +203,20 @@ function goToAdd() {
   navigateTo(route.path.endsWith('/') ? `${route.path}add` : `${route.path}/add`)
 }
 
+const details = ref(null)
+function showDetails(idx) {
+  details.value.showDetails(idx)
+}
+function randomGame() {
+  details.value.randomGame()
+}
+
+
 const filterStyleOptions = ref([
   { label: 'Quick Find', value: 'simple', icon: PrimeIcons.SEARCH },
   { label: 'Advanced Search', value: 'advanced', icon: PrimeIcons.FILTER }
 ])
-const filterStyle = ref(filterStyleOptions.value[0])
+const filterStyle = ref(filterStyleOptions.value[1])
 
 const listStyleOptions = ref([
   { label: 'Cards', value: false, icon: PrimeIcons.TH_LARGE },
@@ -318,6 +270,9 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   window.addEventListener("touchstart", touchStart, false);
   window.addEventListener("touchend", touchEnd, false);
+
+  //DEBUG
+  showDetails(0)
 })
 
 onBeforeUnmount(() => {
@@ -326,6 +281,8 @@ onBeforeUnmount(() => {
   window.removeEventListener("touchend", touchEnd);
 })
 
+
+// Detect swipe left / right
 let touchStartX
 const swipeDistance = 120
 const touchStart = (e) => {
@@ -334,16 +291,24 @@ const touchStart = (e) => {
 const touchEnd = (e) => {
   if (e.changedTouches[0].clientX - touchStartX > swipeDistance) {
     // Swiped Right
-    if (!showFilter.value) {
-      showSort.value = true
+    if (details.value.showingDetails) {
+      details.value.nextGame(false)
+    } else {
+      if (!showFilter.value) {
+        showSort.value = true
+      }
+      showFilter.value = false
     }
-    showFilter.value = false
   } else if (touchStartX - e.changedTouches[0].clientX > swipeDistance) {
     // Swiped Left
-    if (!showSort.value) {
-      showFilter.value = true
+    if (details.value.showingDetails) {
+      details.value.nextGame(true)
+    } else {
+      if (!showSort.value) {
+        showFilter.value = true
+      }
+      showSort.value = false
     }
-    showSort.value = false
   }
 }
 
@@ -388,15 +353,5 @@ const touchEnd = (e) => {
   /* Make disabled button fully opaque */
   pointer-events: none;
   /* Ensure it still cannot be clicked */
-}
-
-.float-btn {
-  position: absolute;
-  border-radius: 50%;
-  padding: 0.75rem;
-  background-color: black;
-  opacity: 60%;
-  cursor: pointer;
-  box-shadow: white 0 0 5px;
 }
 </style>

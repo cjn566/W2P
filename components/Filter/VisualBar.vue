@@ -8,8 +8,8 @@
         </div>
 
         <div v-else class="h-10 p-2 rounded-sm flex items-center">
-            <div class="flex justify-center items-center w-full h-4 bg-slate-500 rounded">
-                <div class="h-8 rounded transition-all border-surface-500 border-2 box-content" :style="center" />
+            <div class="flex justify-center items-center w-full h-4 bg-slate-300 rounded">
+                <div class="h-3 rounded transition-all border-surface-500 border-2 box-content" :style="center" />
             </div>
         </div>        
 
@@ -24,7 +24,8 @@ const center = computed(() => {
     let width = (((filteredGames.value.length) / games.value.length)) * 100
     return {
         width: width + '%',
-        backgroundColor: activeColor.value
+        backgroundColor: 'gold',
+        opacity: 1 - ((filteredGames.value.length - 1) / games.value.length)/1.5
     }
 })
 

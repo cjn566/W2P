@@ -1,7 +1,7 @@
 <template>
-        <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash" />
+        <!-- <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash" /> -->
 
-        <div class="flex-grow flex flex-col ml-2">
+        <div class="flex flex-col ml-2">
             <div class="flex">
                 <span class="flex items-center justify-center w-10 relative">
                     <span class="absolute text-green-600 text-6xl">&#x2B22;</span>
@@ -10,6 +10,7 @@
                     </span>
                 </span>
                 <div class="ml-2">
+                    <!-- TODO: fix line clamp positioning error -->
                     <div class="line-clamp-1" :class="{ 'active-sort': sort == 'name' }">{{ game.name }}</div>
                     <div class="text-sm" :class="{ 'active-sort': sort == 'year' }"> {{ game.display.year }}</div>
                 </div>

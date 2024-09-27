@@ -1,26 +1,28 @@
 <template>
     <div>
-        <GamesDoubleSlider :inValues="filters.complexity" _label="Complexity:" prop="complexity"
+        <GamesDoubleSlider :inValues="filters.complexity" _label="Game Complexity:" prop="complexity"
             :min="limits.complexity[0]" :minLabel="limits.complexity[0]" :max="limits.complexity[1]"
-            :maxLabel="limits.complexity[1]" :step="0.1" :suffix="' / 5'" />
+            :maxLabel="limits.complexity[1]" :step="0.1" :suffix="'out of 5'" />
 
 
-        <GamesDoubleSlider :inValues="filters.players" _label="Player count:" prop="players" :min="limits.players[0]"
-            :minLabel="limits.players[0]" :max="maxPlayers.val" :maxLabel="maxPlayers.label" :step="1"
-            :suffix="' players'" />
+        <GamesDoubleSlider :inValues="filters.players" _label="Number of Players:" prop="players"
+            :min="limits.players[0]" :minLabel="limits.players[0]" :max="maxPlayers.val" :maxLabel="maxPlayers.label"
+            :step="1" :suffix="' players'" />
 
 
-        <GamesDoubleSlider :inValues="filters.playtime" _label="Duration:" prop="playtime" :min="limits.playtime[0]"
-            :minLabel="limits.playtime[0]" :max="limits.playtime[1]" :maxLabel="limits.playtime[1]" :step="10"
-            :suffix="' minutes'" />
+        <GamesDoubleSlider :inValues="filters.playtime" _label="Game Duration:" prop="playtime"
+            :min="limits.playtime[0]" :minLabel="limits.playtime[0]" :max="limits.playtime[1]"
+            :maxLabel="limits.playtime[1]" :step="5" :suffix="'minutes'" />
 
 
-        <GamesDoubleSlider :inValues="filters.age" _label="Maturity:" prop="age" :min="limits.age[0]"
-            :minLabel="limits.age[0]" :max="limits.age[1]" :maxLabel="limits.age[1]" :step="1" :suffix="'y.o.'" />
+        <GamesDoubleSlider :inValues="filters.age" _label="Minimum Suggested Age:" prop="age" :min="limits.age[0]"
+            :minLabel="limits.age[0]" :max="maxAge" :maxLabel="maxAge" :step="1" :suffix="'years old'"
+            />
 
 
         <GamesDoubleSlider :inValues="filters.year" _label="Publish Date:" prop="year" :min="minYear.val"
-            :max="limits.year[1]" :maxLabel="limits.year[1]" :minLabel="minYear.label" :step="1" />
+            :max="limits.year[1]" :maxLabel="limits.year[1]" :minLabel="minYear.label" :step="1" :suffix="'a.d.'"
+            />
 
 
     </div>
@@ -35,7 +37,7 @@ const minYear = computed(() => {
     if (foo > limits.year[0]) {
         return {
             val: foo,
-            label: '<' + foo
+            label: limits.year[0]
         }
     } else {
         return {
@@ -59,7 +61,17 @@ const maxPlayers = computed(() => {
     }
 })
 
-// TODO: Same but for maturity, if a game's maturity is ridiculous, we'll just cap it at 21
+const maxAge = computed(() => Math.min(21, limits.age[1]) )
+
+const formatter = ref({
+    year: {
+        min: (val) => ("'" + ('' + val).slice(-2)),
+        max: (val) => ("'" + ('' + val).slice(-2)),
+    }
+})
+
+
+
 
 
 </script>
