@@ -1,65 +1,52 @@
 import query from '../../db'
-import { getServerSession } from '#auth'
 import { getGameInfo } from '../../utils/boardgamegeek'
-export default defineEventHandler(async (event) => {    
-
-
+export default defineEventHandler(async (event) => {
+    let ret = {}
     const q_result_user = (await query('SELECT name, email, sett_private, image FROM app.users WHERE name_slug = $1', [event.context.params.user]))
-    if(q_result_user.rowCount == 0) {
+    if (q_result_user.rowCount == 0) {
         // Could not find user
-        return { err_code: 'no_user' }
-    } 
-    const user = q_result_user.rows[0]
-    const session = await getServerSession(event)
-    let isSelf = false
-    let friend_status = 'none'
-    if(session){
-        if(session.user.email == user.email) {
-            // Is self
-            isSelf = true
-            friend_status = "self"
-        } else {
-            // Is logged in looking at other profile
-            // Show if public or if friends
-            
-            // Check if friends
-            const friends_q = [session.user.email, user.email].sort()
-            const q_result_friends = (await query('SELECT status FROM app.friends where user_1 = $1 and user_2 = $2', friends_q))
-            if(q_result_friends.rowCount == 1) {
-                friend_status =  q_result_friends.rows[0].status
-            }
-
-            switch (user.set_private) {
-                case 'set_priv_friends': 
-                    if(friend_status != 'fr_accept')
-                        return { err_code: 'not_friends' }
-                    break
-                case 'set_priv_private': return { err_code: 'private_not_self' }
-                default: break
-            }
-        }
+        ret.err_code = 'no_user'
+        // TODO: redirect to 404
     } else {
-        // Is not logged in, only show profile if public
-        switch (user.set_private) {
-            case 'set_priv_friends': return { err_code: 'friends_only_logged_out' }
-            case 'set_priv_private': return { err_code: 'private_logged_out' }
-            default: break
+        const user = q_result_user.rows[0]
+        ret = await checkUserViewerRelation(user, event)
+        if (!ret.err_code) {
+            // If we made it here, they are allowed to see games
+            // Get all collection IDs for this user
+            let collections = (await query('SELECT id, collection_name FROM app.collections WHERE user_email = $1', [user.email])).rows
+                .reduce((obj, collection) => {
+                    obj[collection.id] = collection
+                    return obj
+                }, {})
+
+            // Get all game IDs in each collection
+            for (let c in collections) {
+                collections[c].gameIDs = (await query('SELECT id, bgg_game_id FROM app.games WHERE collection_id = $1', [c])).rows
+            }
+
+            // If a collection ID param was sent and is valid and matches one of the users collections, use that, otherwise use the first collection
+            let cId = parseInt(getQuery(event)?.cId)
+            if (collections[cId] === undefined) {
+                cId = Object.keys(collections)[0]
+            }
+
+            // Get all game info for the games in the collection
+            let games = await getGameInfo(collections[cId].gameIDs.map(x => x.bgg_game_id))
+            
+            collections[cId].gameIDs.forEach((g) => {
+                games[g.bgg_game_id].userGameId = g.id
+            })
+
+            ret = {
+                ...ret,
+                ...user,
+                collections,
+                cId,
+                games,
+                slug: event.context.params.user
+            }
         }
     }
 
-    // If we made it here, they are allowed to see games
-    let gameIds = (await query('SELECT id, bgg_game_id FROM app.games WHERE user_email = $1', [user.email])).rows
-    let games = (await getGameInfo(gameIds.map(x => x.bgg_game_id))).map((game) => {
-        game.userGameId = gameIds.find((x) => x.bgg_game_id == game.bgg_game_id).id
-        return game
-    })
-
-    return {
-        ...user,
-        games,
-        isSelf,
-        friend_status,
-        slug: event.context.params.user
-    }
-
-  })
+    return ret
+})

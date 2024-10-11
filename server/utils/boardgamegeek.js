@@ -18,7 +18,7 @@ async function bggQuery(url, errTitle = "Error", errMsg = "Oops. Something went 
 export const validTagTypes = ['boardgamecategory', 'boardgamemechanic']
 
 function mapGameObjects(gamesXML) {
-  return gamesXML.map((game) => {
+  return gamesXML.reduce((obj, game) => {
 
     // Only take the primary name
     let name
@@ -49,7 +49,7 @@ function mapGameObjects(gamesXML) {
       type: game.type,
       complexity: cv > 30 ? Number(parseFloat(game.statistics.ratings.averageweight.value).toFixed(1)) : 0,
       // complexityVotes: parseInt(game.statistics.ratings.numweights.value),
-      rating: rv > 30 ? Number(parseFloat(game.statistics.ratings.bayesaverage.value).toFixed(1)) : 0,
+      rating: rv > 30 ? Number(parseFloat(game.statistics.ratings.average.value).toFixed(1)) : 0,
       ratingVotes: rv,
       rank,
       playersMin: parseInt(game.minplayers.value),
@@ -84,8 +84,9 @@ function mapGameObjects(gamesXML) {
       ret.canExpandGameId = game.link.filter(t => t.type === "boardgameexpansion" && t.inbound).map(t => t.id)
     }
 
-    return ret
-  })
+    obj[ret.bgg_game_id] = ret
+    return obj
+  }, {})
 }
 
 
@@ -95,14 +96,17 @@ export async function getGameInfo(gameIds) {
   let DBGames = [], APIGames = []
   try {
     let age = process.env.CACHE_GAME_AGE_DAYS || 7
-    let redis = await query(`SELECT data FROM app.bgg_game_data WHERE bgg_game_id =ANY($1) AND modified > now() - interval '${age} day'`, [gameIds])
+    let redis = await query(`SELECT bgg_game_id, data FROM app.bgg_game_data WHERE bgg_game_id =ANY($1) AND modified > now() - interval '${age} day'`, [gameIds])
 
     if (redis.rowCount > 0) {
-      DBGames = redis.rows.map((g) => JSON.parse(g.data))
+      DBGames = redis.rows.reduce((obj, g) => {
+        obj[g.bgg_game_id] = JSON.parse(g.data)
+        return obj
+      }, {})
     }
 
     // Get IDs of games that need to be fetched from the API
-    gameIds = gameIds.filter((gameId) => !DBGames.some((g) => g.bgg_game_id == gameId))
+    gameIds = gameIds.filter((gameId) => DBGames[gameId] === undefined)
   } catch (error) {
     console.warn('Redis Error: ', error)
   }
@@ -132,11 +136,11 @@ export async function getGameInfo(gameIds) {
 
     // For any games that were fetched from the API, save them to the DB
     let saveGames = []
-    APIGames.forEach((game) => {
+    for(let id in APIGames){
       saveGames.push(
-        query("INSERT INTO app.bgg_game_data (bgg_game_id, data) VALUES ($1, $2) ON CONFLICT (bgg_game_id) DO UPDATE SET data = $2", [game.bgg_game_id, JSON.stringify(game)])
+        query("INSERT INTO app.bgg_game_data (bgg_game_id, data) VALUES ($1, $2) ON CONFLICT (bgg_game_id) DO UPDATE SET data = $2", [id, JSON.stringify(APIGames[id])])
       )
-    })
+    }
 
     try {
       Promise.all(saveGames)
@@ -146,18 +150,18 @@ export async function getGameInfo(gameIds) {
     }
   }
 
-  logger.info(`loaded ${DBGames.length} games from DB and ${APIGames.length} games from API`, { DBGames: DBGames.length, APIGames: APIGames.length })
+  logger.info(`loaded ${Object.keys(DBGames).length} games from DB and ${Object.keys(APIGames).length} games from API`, { DBGames: Object.keys(DBGames).length, APIGames: Object.keys(APIGames).length })
 
   // Combine the DB and API games and return them
-  return [...APIGames, ...DBGames]
+  return {...APIGames, ...DBGames}
 }
 
 
 export async function gameSearch(query, type = 'boardgame', exact = false, limit = 10) {
   logger.info('gameSearch', { query, type, exact, limit })
   let results = await bggQuery(`search?query=${query}&type=${type}&exact=${exact ? '1' : '0'}`)
-  logger.info('gameSearch initial results', results.map(x => x.name))
   if (!('item' in results.items)) return []
+  logger.info('gameSearch initial results', results.items.item.map(x => x.name))
   let results2 = await getGameInfo(
     makeArray(results.items.item)
       .filter(game => game.name.type == "primary")

@@ -1,52 +1,39 @@
 <template>
-        <!-- <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash" /> -->
+    <!-- <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash" /> -->
 
-        <div class="flex flex-col ml-2">
-            <div class="flex">
-                <span class="flex items-center justify-center w-10 relative">
-                    <span class="absolute text-green-600 text-6xl">&#x2B22;</span>
-                    <span class="text-lg font-bold z-10 font-bold " :class="{ 'active-sort': sort == 'rating' }">
-                        {{ game.display.rating }}
-                    </span>
-                </span>
-                <div class="ml-2">
-                    <!-- TODO: fix line clamp positioning error -->
-                    <div class="line-clamp-1" :class="{ 'active-sort': sort == 'name' }">{{ game.name }}</div>
-                    <div class="text-sm" :class="{ 'active-sort': sort == 'year' }"> {{ game.display.year }}</div>
-                </div>
+    <div class="flex flex-col ml-4">
+
+        <GamesTitleCluster :game="game" />
+
+
+        <div v-if="isMobile" class="flex flex-grow *:w-1/2 *:flex *:flex-col text-[1.125em]">
+            <div class="border-right *:h-1/2">
+                <GamesStat class="sm-cell border-bottom" stat="players" :val="game.display.players" :verbose="false"
+                    :stacked="false" />
+                <GamesStat class="sm-cell" stat="age" :val="game.display.age" :verbose="false" :stacked="false" />
             </div>
-
-
-            <div class="flex flex-grow *:w-1/2 *:flex *:flex-col text-lg">
-                <div class="border-right">
-                    <div class="cell border-bottom"  :class="sort == 'complexity' ? 'active-sort' : ''">
-                        <font-awesome-icon class="" size="sm" :icon="['fas', 'brain']" />
-                        <div>
-                            <span>{{ game.display.complexity }}</span>
-                            <span class="text-xs"> / 5</span>
-                        </div>
-                    </div>
-                    <div class=" cell" :class="sort == 'playtime' ? 'active-sort' : ''">
-                        <font-awesome-icon class="" size="sm" :icon="['fas', 'hourglass-half']" />
-                        {{ game.display.playtime }}{{ isMobile ? 'm' : ' Minutes' }}
-                    </div>
-                </div>
-                <div>
-                    <div class="cell  border-bottom" :class="sort == 'players' ? 'active-sort' : ''">
-                        <font-awesome-icon class="" size="sm" :icon="['fas', 'people-group']" />
-                        {{ game.display.players }}{{ isMobile ? 'p' : ' Players' }}
-                    </div>
-                    <div class="cell" :class="sort == 'age' ? 'active-sort' : ''">
-                        <font-awesome-icon class="" size="sm" :icon="['fas', 'person-cane']" />
-                        {{ isMobile ? `${game.display.age}y+` : `Age ${game.display.age} and up` }}
-                    </div>
-                </div>
+            <div class="*:h-1/2">
+                <GamesStat class="sm-cell border-bottom" stat="playtime" :val="game.display.playtime" :verbose="false"
+                    :stacked="false" />
+                <GamesStat class="sm-cell" stat="complexity" :val="game.display.complexity" :verbose="false"
+                    :stacked="false" />
             </div>
         </div>
+
+        <div v-else class="flex flex-grow text-lg *:w-1/4 py-2">
+            <GamesStat class="lg-cell border-right" stat="players" :val="game.display.players" :verbose="true"
+                :stacked="true" />
+            <GamesStat class="lg-cell border-right" stat="age" :val="game.display.age" :verbose="true"
+                :stacked="true" />
+            <GamesStat class="lg-cell border-right" stat="playtime" :val="game.display.playtime" :verbose="true"
+                :stacked="true" />
+            <GamesStat class="lg-cell" stat="complexity" :val="game.display.complexity" :verbose="true"
+                :stacked="true" />
+        </div>
+    </div>
 </template>
 
 <script setup>
-import { editingGames, getGameURL, sorting } from '~/composables/useGames';
 import { isMobile } from '~/composables/useMedia'
 const props = defineProps(['game', 'sort'])
 
@@ -55,29 +42,24 @@ const props = defineProps(['game', 'sort'])
 
 <style lang="scss" scoped>
 .border-right {
-    border-right: 1px solid var(--p-primary-500);
+    border-right: 1px solid var(--p-surface-500);
 }
 
 .border-bottom {
-    border-bottom: 1px solid var(--p-primary-500);
+    border-bottom: 1px solid var(--p-surface-500);
 }
 
-
-.cell {
-    display: flex;
+.sm-cell {
+    width: 100%;
     justify-content: space-between;
-    align-items: center;
-    height: 50%;
-    padding: .75rem;
+    padding: 1rem;
+    font-size: small;
 }
 
-.shadow {
-    text-shadow: 0 0 5px black;
+.lg-cell {
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 1rem;
 }
 
-.active-sort {
-    color: gold;
-    text-decoration: underline;
-    font-weight: bold;
-}
 </style>

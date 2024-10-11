@@ -2,11 +2,12 @@
 
   <div v-if="status.userReady">
     <!-- Whose games are we seeing? -->
-    <div class="flex bg-surface-700  rounded-tr-xl  rounded-tl-xl mt-1 p-2">
+    <div class="flex bg-surface-700  rounded-tr-xl  rounded-tl-xl pl-4 py-8">
       <img :src="user.image" class="h-16 w-16 rounded-full mr-4" alt="avatar">
       <div>
-        <span class="text-3xl">{{ user.name }}'s</span>
-        <div>board games</div>
+        <div class="text-3xl">{{ user.name }}</div>
+        <Select v-model="collectionChoice" :options="collectionOptions" optionLabel="collection_name" optionValue="id"
+          dataKey="id" checkmark class="block" />
       </div>
       <div v-if="user.isSelf" class="absolute right-4">
         <div class="mr-4">
@@ -20,10 +21,9 @@
 
 
     <div v-if="status.gamesReady">
-      <span v-if="!hasGames">
-        {{ user.isSelf ? "You have no games in your library yet" :
-    user.name + " has no games in their library yet." }}
-      </span>
+      <div v-if="!hasGames" class="flex justify-center my-8">
+        There are no games in this collection yet.
+      </div>
       <div v-else>
 
         <!-- Sticky Stuff - Sort, Search, Filter -->
@@ -33,7 +33,7 @@
           <div class="flex">
             <IconField class="flex grow">
               <InputIcon class="pi pi-search" />
-              <InputText class="grow rounded-none" v-model="searchTerm" placeholder="Find by name" />
+              <InputText class="grow rounded-none" v-model="searchTerm" placeholder="Find game by name" />
             </IconField>
             <Button class="rounded-none bg-primary-600 btn-clear-txt" icon="pi pi-times"
               :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
@@ -138,18 +138,48 @@
 
           <!-- Show games as cards -->
           <TransitionGroup v-else name="fade">
-            <div v-for="(g, idx) in filteredGames" :key="g.userGameId" @click="showDetails(idx)"
-              class="bg-surface-800 text-white rounded-md flex p-2 h-40 m-1 pointer">
-              <div class="w-2/5">
-                <img class="m-auto h-full object-contain object-center" :src="g.thumbnail" alt="Game Thumbnail" />
+            <div v-for="g in filteredGames" v-show="g.isExpansionFor.length == 0" :key="g.bgg_game_id"
+              @click="details.showDetails(g.userGameId)"
+              class="bg-slate-900 text-slate-300 rounded-md p-2 cursor-pointer hover:ring-1 m-2 relative box-content" 
+              :class="{'border-green-600 border-2': g.selected}">
+
+              <div v-if="editingGames" class="absolute top-2 right-2 p-2 z-1000 w-6 h-6 bg-white rounded flex justify-center items-center" @click.stop="selectGame(g)">
+                <i v-if="g.selected" class="pi pi-check-circle text-green-600 text-lg"/>
               </div>
-              <GamesCard :game="g" :sort="sorting.active" class="w-3/5" />
+
+              <div class="flex h-40">
+                <div class="w-40 ">
+                  <img class="m-auto h-full object-contain object-center shadow-slate-700" :src="g.thumbnail"
+                    alt="Game Thumbnail" />
+                </div>
+                <GamesCard :game="g" :sort="sorting.active" class="w-3/5" />
+              </div>
+
+              <div v-for="expansion in g.ownedExpansions" class="flex h-24 ml-1 mt-2">
+                <div class="flex items-center text-3xl text-surface-300">+</div>
+                <div class="w-20 mx-2">
+                  <img class="m-auto h-full object-contain object-center shadow-slate-700" :src="expansion.thumbnail"
+                    alt="Game Thumbnail" />
+                </div>
+                <div class="flex flex-col justify-center">
+                  <GamesTitleCluster :game="expansion" />
+                  <GamesStat class="pt-1" v-if="expansion.display.players !== g.display.players" stat="players"
+                    :val="expansion.display.players" :verbose="false" :stacked="false" />
+                  <GamesStat class="pt-1" v-if="expansion.age !== g.age" stat="age" :val="expansion.age"
+                    :verbose="false" :stacked="false" />
+                  <GamesStat class="pt-1" v-if="expansion.display.playtime !== g.display.playtime && expansion.pl"
+                    stat="playtime" :val="expansion.playtime" :verbose="false" :stacked="false" />
+                  <GamesStat class="pt-1" v-if="expansion.complexity !== g.complexity && expansion.complexity > 0"
+                    stat="complexity" :val="expansion.complexity" :verbose="false" :stacked="false" />
+                </div>
+              </div>
+
             </div>
           </TransitionGroup>
 
           <!-- Pick random game button -->
           <div class="flex justify-center mt-2">
-            <Button v-if="filteredGames.length > 1" @click="randomGame" class="">
+            <Button v-if="filteredGames.length > 1" @click="details.randomGame()" class="">
               <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
               <span class="mx-2">Choose a random game</span>
               <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
@@ -168,26 +198,30 @@
 </template>
 
 <script setup>
-import { user, status, searchTerm, editingGames, clearAllSliders, sorting } from '~/composables/useGames'
+import { user, status, searchTerm, editingGames, clearAllSliders, sorting, currentCollection, filteredGames } from '~/composables/useGames'
+import { showingDetails } from '~/composables/useUI';
 import { isMobile } from '~/composables/useMedia'
 import { PrimeIcons } from '@primevue/core/api'
 definePageMeta({
   path: ''
 })
 
-const firstGame = ref(0)
+
+function selectGame(game) {
+  game.selected = !game.selected
+}
 
 const showSort = ref(false)
 const showFilter = ref(false)
 
 const sortProperties = [
-  { value: 'name', name: 'Name', icon: 'arrow-down-a-z', descLabel: 'A', ascLabel: 'Z' },
+  { value: 'name', name: 'Name', icon: 'arrow-down-a-z', descLabel: 'A..', ascLabel: 'Z..' },
   { value: 'rating', name: 'Rating', icon: 'star', descLabel: 'highest', ascLabel: 'lowest' },
   { value: 'complexity', name: 'Complexity', icon: 'brain', descLabel: 'heaviest', ascLabel: 'easiest' },
   { value: 'players', name: 'Players', icon: 'people-group', descLabel: 'most', ascLabel: 'fewest' },
   { value: 'playtime', name: 'Play time', icon: 'hourglass-half', descLabel: 'longest', ascLabel: 'shortest' },
-  { value: 'age', name: 'Age', icon: 'person-cane', descLabel: 'mature', ascLabel: 'young' },
-  { value: 'year', name: 'Year', icon: 'calendar', descLabel: 'newest', ascLabel: 'oldest' }
+  { value: 'age', name: 'Maturity', icon: 'person-cane', descLabel: 'NSFW', ascLabel: 'for kids' },
+  { value: 'year', name: 'Publish Date', icon: 'calendar', descLabel: 'newest', ascLabel: 'oldest' }
 ]
 
 
@@ -204,12 +238,6 @@ function goToAdd() {
 }
 
 const details = ref(null)
-function showDetails(idx) {
-  details.value.showDetails(idx)
-}
-function randomGame() {
-  details.value.randomGame()
-}
 
 
 const filterStyleOptions = ref([
@@ -226,7 +254,7 @@ const listStyleOptions = ref([
 const showTable = ref(false)
 
 const hasGames = computed(() => {
-  return user.value.games?.length > 0
+  return games.value.length > 0
 })
 
 const someSelected = computed(() => {
@@ -235,6 +263,19 @@ const someSelected = computed(() => {
 
 watch(filterStyle, () => {
   clearAllSliders()
+})
+
+const collectionChoice = ref(currentCollection.value)
+const collectionOptions = ref([...Object.values(user.value.collections), { id: -1, collection_name: '+ New Collection' }])
+watch(() => collectionChoice.value, async (choice) => {
+  if (choice === -1) {
+    // make new collection
+    console.log('make new collection')
+    return
+  } else {
+    // TODO: give feedback that collection is loading
+    setCurrentCollection(choice)
+  }
 })
 
 
@@ -272,7 +313,7 @@ onMounted(() => {
   window.addEventListener("touchend", touchEnd, false);
 
   //DEBUG
-  showDetails(0)
+  // showDetails(0)
 })
 
 onBeforeUnmount(() => {
@@ -291,7 +332,7 @@ const touchStart = (e) => {
 const touchEnd = (e) => {
   if (e.changedTouches[0].clientX - touchStartX > swipeDistance) {
     // Swiped Right
-    if (details.value.showingDetails) {
+    if (showingDetails.value) {
       details.value.nextGame(false)
     } else {
       if (!showFilter.value) {
@@ -301,7 +342,7 @@ const touchEnd = (e) => {
     }
   } else if (touchStartX - e.changedTouches[0].clientX > swipeDistance) {
     // Swiped Left
-    if (details.value.showingDetails) {
+    if (showingDetails.value) {
       details.value.nextGame(true)
     } else {
       if (!showSort.value) {

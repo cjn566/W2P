@@ -5,7 +5,7 @@
         </a>
         bgsift.net
         <div v-if="isAuthenticated">
-            <img v-if="profileImageURL" @click="toggle" class="w-8 rounded-full mx-4 border-2 border-orange-600" :src="profileImageURL" />
+            <img v-if="profileImageURL" @click="toggle" class="w-10 rounded-full mx-4 hover:ring-4" :src="profileImageURL" />
             <Menu ref="menu" :model="items" :popup="true" />
         </div>
         <Button v-else class="mx-2" @click="navigateTo('/login')">

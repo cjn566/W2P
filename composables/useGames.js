@@ -1,60 +1,53 @@
+// import { useToast } from 'primevue/usetoast'
+// const toast = useToast()
 
-// import { validTagTypes, getGameInfo } from '~/utils/boardgamegeek'
 import { makeArray } from '~/utils/makearray'
 // import { useToast } from 'primevue/usetoast'
 // const toast = useToast()
 
-export function getGameURL(id) {
-  return `https://boardgamegeek.com/boardgame/${id}`
-}
+export async function setUser(slug, cId = null) {
+  if (user.value.slug == slug) return // Don't fetch the same user twice
 
-export const user = ref({})
+  const res = (await useFetch(`/api/user/${slug}`, {
+    query: { cId }
+  })).data.value
 
-export const status = ref({
-  userReady: false,
-  gamesReady: false
-})
-
-export const games = ref([])
-
-export async function setUser(slug) {
-  if (user.value.slug == slug) return
-
-  // DEBUG (if server caching not set up)
-  // let ls = localStorage.getItem('user')
-  // if (ls !== null) {
-  //   user.value = JSON.parse(ls)
-  // }
-  // else {
-    const res = (await useFetch(`/api/user/${slug}`)).data.value
-    // TODO: handle errors, set status on user
-    if (res.err_code) {
-      // toast.add({ severity: 'error', summary: 'Error', detail: 'Could not find that user', life: 3000 })
-      return
-    }
-    user.value = res
-    localStorage.setItem('user', JSON.stringify(res))
-  //}
-  status.value.userReady = true
-  // Fetch the user's games
-  if (user.value.games.length == 0) {
-    status.value.gamesReady = true
+  // TODO: handle errors
+  if (res.err_code) {
+    // toast.add({ severity: 'error', summary: 'Error', detail: 'Could not find that user', life: 3000 })
     return
   }
-  status.value.gamesReady = false
-  // const gameData = await getGameInfo(res.games.map((game) => game.bgg_game_id))
-  games.value = user.value.games
-  extendGames()
+
+  user.value = res
+  status.value.userReady = true
+
+  addToAllGames(res.games)
+  setCurrentCollection(parseInt(res.cId))
 }
 
-export async function addGames(newGames) {
-  status.value.gamesReady = false
-  newGames = makeArray(newGames)
-  const gameIDs = newGames.map(x => x.bgg_game_id)
-  const res = (await useFetch('/api/collection/add',
+var allGames = {}
+export async function getGames(gameIDs) {
+  
+  localStorage.setItem('gameIDs', JSON.stringify(gameIDs))
+
+  gameIDs = makeArray(gameIDs)
+  const res = (await useFetch('/api/collection/game/get',
     {
       method: 'post',
       body: gameIDs
+    })).data.value
+
+  allGames = { ...allGames, ...res }
+}
+
+export async function addGames(collection, newGames) {
+  status.value.gamesReady = false
+  newGames = makeArray(newGames)
+  const gameIDs = newGames.map(x => x.bgg_game_id)
+  const res = (await useFetch('/api/collection/game/add',
+    {
+      method: 'post',
+      body: { gameIDs, collection }
     })).data.value
   res.forEach((r) => {
     if (r.err && r.msg == "duplicate") {
@@ -67,10 +60,39 @@ export async function addGames(newGames) {
       // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
     }
   })
-  extendGames()
+  buildCollection()
 }
 
-export async function removeGames(deadGames) {
+export async function removeGames(collection, deadGames) {
+  status.value.gamesReady = false
+  deadGames = makeArray(deadGames)
+  const gameIDs = deadGames.map(x => x.userGameId)
+  const res = (await useFetch('/api/collection/game/remove',
+    {
+      method: 'post',
+      body: { gameIDs, collection }
+    })).data.value
+  res.forEach((r) => {
+    games.value = games.value.filter(game => game.userGameId !== r.userGameId)
+    // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
+  })
+  buildCollection()
+}
+
+
+// TODO: needs fixed
+export async function upsertCollection(name, cId = null) {
+  const res = (await useFetch('/api/collection/add',
+    {
+      method: 'post',
+      body: { name, cId }
+    })).data.value
+  buildCollection()
+}
+
+
+// TODO: needs fixed
+export async function removeCollection(deadGames) {
   status.value.gamesReady = false
   deadGames = makeArray(deadGames)
   const gameIDs = deadGames.map(x => x.userGameId)
@@ -83,9 +105,25 @@ export async function removeGames(deadGames) {
     games.value = games.value.filter(game => game.userGameId !== r.userGameId)
     // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
   })
-  extendGames()
+  buildCollection()
 }
 
+// ^^^^^^^^^^^^^^ API Calls ^^^^^^^^^^^^^^ 
+// vvvvvvvvvvvvvv Everything else vvvvvvvvvvvvvv
+
+export function getGameURL(id) {
+  return `https://boardgamegeek.com/boardgame/${id}`
+}
+
+export const user = ref({})
+
+export const status = ref({
+  userReady: false,
+  gamesReady: false
+})
+
+
+export const games = ref([])
 
 export var limits = {}
 
@@ -93,7 +131,27 @@ const indices = ref({})
 
 // removeGames,
 
-function extendGames() {
+export const currentCollection = ref(null)
+export async function setCurrentCollection(id) {
+  if (id === currentCollection.value) return
+  currentCollection.value = id
+  status.value.gamesReady = false
+  // First get game info for any games not already in the allGames object
+  let needGameIds = user.value.collections[id].gameIDs.filter(g => !allGames.hasOwnProperty(g.bgg_game_id)).map(x => x.bgg_game_id)
+  if (needGameIds.length) await getGames(needGameIds)
+  games.value = user.value.collections[id].gameIDs.map((g) => ({ ...allGames[g.bgg_game_id], userGameId: g.id }))
+  currentCollection.value = id
+  buildCollection()
+}
+
+export async function buildCollection() {
+  status.value.gamesReady = false
+
+  if (games.value.length == 0) {
+    status.value.gamesReady = true
+    return
+  }
+
   let dp = new DOMParser()
   games.value = games.value.map((g) => {
     g.description = dp.parseFromString(g.description, 'text/html').documentElement.textContent
@@ -208,13 +266,12 @@ export const filters = computed(() => {
   ]));
 })
 
-export const numActiveFilters = computed(()=>{
+export const numActiveFilters = computed(() => {
   return filteredTags.value.length + Object.entries(filters.value).filter(f => f[1].active).length + (searchTerm.value.trim().length > 1 ? 1 : 0)
 })
 
 
 // array the size of steps in the range, element is [value, game count]
-
 // Makes an ascending sorted array 
 function makeIndex(minKey, maxKey = null) {
   const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
@@ -351,6 +408,8 @@ export const editingGames = ref(false)
 export const filteredGames = computed(() => {
   let ret = games.value
 
+  // TODO: make sure filtered games always include selected games
+  // TODO: searching text breaks the detial component
   if (searchTerm.value.trim().length > 1) {
     ret = ret.filter(g => g.searchName.includes(searchTerm.value.trim().toLowerCase()))
   }
@@ -377,7 +436,7 @@ export const sorting = ref({
 
 export function sortBy(prop, descending) {
 
-  if(prop === sorting.value.prop && descending === sorting.value.descending) return
+  if (prop === sorting.value.prop && descending === sorting.value.descending) return
 
   sorting.value.active = prop
   sorting.value.descending = descending
@@ -385,26 +444,27 @@ export function sortBy(prop, descending) {
   switch (prop) {
     case 'players':
       if (!descending) {
-        games.value = games.value.sort((a, b) => { 
-          if(!a.playersMax && !a.playersMin) return 1
-          if(!b.playersMax && !b.playersMin) return -1
-          return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000) })
+        games.value = games.value.sort((a, b) => {
+          if (!a.playersMax && !a.playersMin) return 1
+          if (!b.playersMax && !b.playersMin) return -1
+          return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000)
+        })
       } else {
-        games.value = games.value.sort((a, b) => { 
-          return  b.playersMax - a.playersMax + ((b.playersMin - a.playersMin) / 1000)
+        games.value = games.value.sort((a, b) => {
+          return b.playersMax - a.playersMax + ((b.playersMin - a.playersMin) / 1000)
         })
       }
       break
     case 'playtime':
       if (!descending) {
-        games.value = games.value.sort((a, b) => { 
-          if(!a.playtimeMax && !a.playtimeMin) return 1
-          if(!b.playtimeMax && !b.playtimeMin) return -1
-          return ( a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000) )
+        games.value = games.value.sort((a, b) => {
+          if (!a.playtimeMax && !a.playtimeMin) return 1
+          if (!b.playtimeMax && !b.playtimeMin) return -1
+          return (a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000))
         })
       } else {
-        games.value = games.value.sort((a, b) => { 
-          return b.playtimeMax - a.playtimeMax + ((b.playtimeMin - a.playtimeMin) / 1000) 
+        games.value = games.value.sort((a, b) => {
+          return b.playtimeMax - a.playtimeMax + ((b.playtimeMin - a.playtimeMin) / 1000)
         })
       }
       break
@@ -415,9 +475,9 @@ export function sortBy(prop, descending) {
       break
     default:
       games.value = games.value.sort((a, b) => {
-        if(!a[sorting.value.active]) return 1
-        if(!b[sorting.value.active]) return -1
-        return ( a[sorting.value.active] - b[sorting.value.active] ) * (sorting.value.descending ? -1 : 1)
+        if (!a[sorting.value.active]) return 1
+        if (!b[sorting.value.active]) return -1
+        return (a[sorting.value.active] - b[sorting.value.active]) * (sorting.value.descending ? -1 : 1)
       })
       break
   }

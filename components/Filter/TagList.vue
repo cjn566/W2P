@@ -6,7 +6,7 @@
         </template>
     </SelectButton>
     <div v-for="tag in tagList" :key="tag.id"
-        class="inline-block pointer m-1 rounded-full pl-2 text-sm whitespace-nowrap text-slate-900  bg-surface-200"
+        class="inline-block cursor-pointer hover:ring-1 m-1 rounded-full pl-2 text-sm whitespace-nowrap text-slate-900  bg-surface-200"
         :class="{ 
             '!bg-surface-700 !text-white ': tag.filterActive,
             '!bg-slate-300' : !tag.showCount

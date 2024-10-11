@@ -1,27 +1,28 @@
 import query from '../../db'
 export default defineAuthenticatedEventHandler(async (event, session) => {
   const body = await readBody(event)
-  const ress = await Promise.all(body.map(async (bgg_game_id) => {
+  const ress = await Promise.all(body.map(async (new_collection_name) => {
     try {
-      const qRes = await query('INSERT INTO app.games(user_email, bgg_game_id, created_by) VALUES ($1, $2, $3) returning id',
+      const qRes = await query(
+        `INSERT INTO app.collections(user_email, collection_name, created_by) 
+        VALUES ($1, $2, $3)
+         on CONFLICT (id) DO UPDATE 
+         SET collection_name = $2,
+         modified_by = $3 returning id`,
         [
           session.user.email,
-          bgg_game_id,
+          new_collection_name,
           session.user.email
         ])
       return {
         err: false,
         newID: qRes.rows[0].id,
-        bgg_game_id
+        new_collection_name
       }
     } catch (e) {
       const res = {
         err: true,
         msg: "?"
-      }
-      if (e.code == 23505) {
-        console.error("Duplicate game, unable to add.")
-        res.msg = "duplicate"
       }
       return res
     }

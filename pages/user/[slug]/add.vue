@@ -91,23 +91,22 @@ async function searchGames(event) {
     searched.value = false
     results.value = []
     nextTick(() => {
-        useFetch('/api/bgg/search',
-            {
-                method: 'get',
-                query: {
-                    text: queryText.value.trim(),
-                    type: boardgameVsExpansion.value,
-                    exact: exact.value,
-                    limit: limit.value
-                }
-            }).then(res => {
-                results.value = res.data.value.map(game => {
-                    game.owns = user.value.games.some(x => x.bgg_game_id == game.bgg_game_id)
-                    return game
-                }).sort((a, b) => 10 * (b.owns - a.owns) + (b.rating - a.rating))
-                searched.value = true
-                loading.value = false
-            })
+        $fetch('/api/bgg/search', {
+            method: 'get',
+            params: {
+                text: queryText.value.trim(),
+                type: boardgameVsExpansion.value,
+                exact: exact.value,
+                limit: limit.value
+            }
+        }).then(res => {
+            results.value = res.map(game => {
+                game.owns = user.value.games.some(x => x.bgg_game_id == game.bgg_game_id)
+                return game
+            }).sort((a, b) => 10 * (b.owns - a.owns) + (b.rating - a.rating))
+            searched.value = true
+            loading.value = false
+        })
     })
 }
 

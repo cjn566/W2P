@@ -15,8 +15,9 @@
 </template>
 
 <script setup>
-// import {addGames, games} from '~/composables/useGames'
-import { games, addGames } from '~/composables/useGames'
+import { games, addGames} from '~/composables/useGames'
+
+// TODO: this is deprecated
 import { getCollection } from '../../utils/boardgamegeek'
 import {useToast} from 'primevue/usetoast'
 const toast = useToast()

@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { addGames, getGameURL } from '~/composables/useGames'
+import { addGames } from '~/composables/useGames'
 import { useToast } from 'primevue/usetoast'
 const toast = useToast()
 const props = defineProps(['game'])

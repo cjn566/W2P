@@ -1,10 +1,10 @@
-import query from '../../db'
+import query from '../../../db'
 export default defineAuthenticatedEventHandler(async (event, session) => {
 
   const body = await readBody(event)
-  const ress = await Promise.all(body.map(async (collection_id) => {
+  const ress = await Promise.all(body.map(async (userGameId) => {
     try {
-      const qRes = await query('DELETE FROM app.collections WHERE id = $1', [collection_id])
+      const qRes = await query('DELETE FROM app.games WHERE id = $1', [userGameId])
       return {
         err: false,
         userGameId

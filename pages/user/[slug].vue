@@ -1,14 +1,19 @@
 <template>
-  <div v-if="contentUnavailable" class="unavailable">
-    {{ contentUnavailable.message }}
+  <div v-if="status.userReady">
+    <div v-if="contentUnavailable" class="unavailable">
+      {{ contentUnavailable.message }}
+    </div>
+    <div v-else>
+      <NuxtPage />
+    </div>
   </div>
   <div v-else>
-    <NuxtPage />
+    <p>Loading...</p>
   </div>
 </template>
 
 <script setup>
-import { user, setUser } from '~/composables/useGames'
+import { user, status, setUser } from '~/composables/useGames'
 import { useToast } from 'primevue/usetoast'
 // import QrcodeVue from 'qrcode.vue'
 
@@ -21,6 +26,7 @@ const toast = useToast()
 const route = useRoute()
 
 const contentUnavailable = computed(() => {
+  // TODO: error codes from different places?
   if (user?.err_code) {
     switch (userData.err_code) {
       case "no_user":
@@ -52,7 +58,7 @@ const contentUnavailable = computed(() => {
   return false
 })
 
-await setUser(route.params.slug)
+await setUser(route.params.slug, route.query.c)
 
 </script>
 
@@ -63,5 +69,4 @@ await setUser(route.params.slug)
   border-radius: 1rem;
   background-color: rgb(216, 215, 214);
 }
-
 </style>
