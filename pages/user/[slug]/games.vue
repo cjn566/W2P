@@ -54,7 +54,7 @@
               Filter
               <div class="text-sm absolute bottom-0">
                 {{ numActiveFilters || 'no' }} filter{{ pl(numActiveFilters) }},
-                {{ filteredGames.length }}/{{ games.length }} games
+                {{ filteredGames.length }}/{{ gamesArray.length }} games
               </div>
             </Button>
           </div>
@@ -108,7 +108,7 @@
               </div>
 
               <Dialog v-model:visible="showTags" modal dismissableMask header="Filter by Tags" class="h-3/4 mx-8">
-                <FilterTagList :tagList="tags" />
+                <FilterTagList :tagList="tagsArray" />
               </Dialog>
 
 
@@ -117,19 +117,19 @@
         </Drawer>
 
         <!-- <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
-      :pt="{ root: 'absolute right-[8%] -top-[20px]' }">
-      <template #option="slotProps">
-        <i :class="slotProps.option.icon"></i>
-      </template>
-    </SelectButton> -->
+            :pt="{ root: 'absolute right-[8%] -top-[20px]' }">
+            <template #option="slotProps">
+              <i :class="slotProps.option.icon"></i>
+            </template>
+          </SelectButton> -->
 
 
 
         <!-- The Games List -->
-        <div v-show="!filteredGames.length" class="flex mt-10 justify-center">
+        <div v-show="!filteredNoExpansions.length" class="flex mt-10 justify-center">
           <span>There are no games that fit the search criteria.</span>
         </div>
-        <div v-show="filteredGames.length > 0" ref="gamesList">
+        <div v-show="filteredNoExpansions.length > 0" ref="gamesList">
           <!-- <Paginator :totalRecords="filteredGames.length" :rows="50"  v-model:first="firstGame"/> -->
           <ScrollTop />
 
@@ -138,13 +138,15 @@
 
           <!-- Show games as cards -->
           <TransitionGroup v-else name="fade">
-            <div v-for="g in filteredGames" v-show="g.isExpansionFor.length == 0" :key="g.bgg_game_id"
-              @click="details.showDetails(g.userGameId)"
-              class="bg-slate-900 text-slate-300 rounded-md p-2 cursor-pointer hover:ring-1 m-2 relative box-content" 
-              :class="{'border-green-600 border-2': g.selected}">
+            <div v-for="g in filteredNoExpansions" :key="g.bgg_game_id"
+              @click="details.showDetails(g.bgg_game_id)"
+              class="bg-slate-900 text-slate-300 rounded-md p-2 cursor-pointer hover:ring-1 m-2 relative box-content"
+              :class="{ 'border-green-600 border-2': g.selected }">
 
-              <div v-if="editingGames" class="absolute top-2 right-2 p-2 z-1000 w-6 h-6 bg-white rounded flex justify-center items-center" @click.stop="selectGame(g)">
-                <i v-if="g.selected" class="pi pi-check-circle text-green-600 text-lg"/>
+              <div v-if="editingGames"
+                class="absolute top-2 right-2 p-2 z-1000 w-6 h-6 bg-white rounded flex justify-center items-center"
+                @click.stop="selectGame(g)">
+                <i v-if="g.selected" class="pi pi-check-circle text-green-600 text-lg" />
               </div>
 
               <div class="flex h-40">
@@ -179,7 +181,7 @@
 
           <!-- Pick random game button -->
           <div class="flex justify-center mt-2">
-            <Button v-if="filteredGames.length > 1" @click="details.randomGame()" class="">
+            <Button v-if="filteredNoExpansions.length > 1" @click="details.randomGame()" class="">
               <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
               <span class="mx-2">Choose a random game</span>
               <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
@@ -187,7 +189,7 @@
           </div>
 
           <!-- Game Details Dialog -->
-          <GamesDetails ref="details" />
+          <GamesDetails v-if="hasGames" ref="details" />
 
         </div>
       </div>
@@ -198,7 +200,7 @@
 </template>
 
 <script setup>
-import { user, status, searchTerm, editingGames, clearAllSliders, sorting, currentCollection, filteredGames } from '~/composables/useGames'
+import { user, status, searchTerm, editingGames, clearAllSliders, sorting, currentCollection, filteredGames, filteredNoExpansions, tagsArray } from '~/composables/useGames'
 import { showingDetails } from '~/composables/useUI';
 import { isMobile } from '~/composables/useMedia'
 import { PrimeIcons } from '@primevue/core/api'
@@ -254,7 +256,7 @@ const listStyleOptions = ref([
 const showTable = ref(false)
 
 const hasGames = computed(() => {
-  return games.value.length > 0
+  return gamesArray.value.length > 0
 })
 
 const someSelected = computed(() => {
@@ -266,7 +268,10 @@ watch(filterStyle, () => {
 })
 
 const collectionChoice = ref(currentCollection.value)
-const collectionOptions = ref([...Object.values(user.value.collections), { id: -1, collection_name: '+ New Collection' }])
+const collectionOptions = ref([...Object.values(user.value.collections)])
+if(user.value.isSelf){
+  collectionOptions.value.push({ id: -1, collection_name: '+ New Collection' })
+}
 watch(() => collectionChoice.value, async (choice) => {
   if (choice === -1) {
     // make new collection

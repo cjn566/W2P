@@ -16,15 +16,14 @@
           <font-awesome-icon :icon="['fas', 'dice']" />
         </span>
         <div ref="scroller" class="scroller m-8 pb-14 overflow-y-scroll lg:flex" @scroll="onScroll">
-          <div class="w-full lg:h-full lg:items-center lg:w-1/3">
+          <div v-if="_game" class="w-full lg:h-full lg:items-center lg:w-1/3">
             <img v-show="!showFullImage" class="object-contain object-center" :src="_game.thumbnail"
               alt="Game Thumbnail" />
+              <!-- TODO: fix spacing displacement when they swap -->
             <img v-show="showFullImage" @load="showFullImage = true" class="object-contain object-center"
               :src="_game.image" alt="Game Thumbnail" />
           </div>
-          <div class="p-4 lg:basis-2/3">
-            
-        
+          <div v-if="_game" class="p-4 lg:basis-2/3">
             <GamesCard :game="_game" />
             <div class="text-sm p-3">
               {{ _game.description }}
@@ -37,7 +36,7 @@
             :style="{ 'visibility': canScrollDown ? 'visible' : 'hidden' }">
             <i class="pi pi-angle-down text-xl" />
           </div>
-          <a :href="getGameURL(_game.bgg_game_id)" target="_blank" rel="noopener noreferrer"
+          <a v-if="_game" :href="getGameURL(_game.bgg_game_id)" target="_blank" rel="noopener noreferrer"
             class="bgg-footer flex justify-center items-center bg-[--bgg-bg-color] text-[--bgg-font-color] text-sm underline rounded-b-md">
             <img src="~/assets/icons/bgg-logo.svg" alt="bgg logo" class=" mx-2" @load="detailImgLoaded">
             View this game on BoardGameGeek.com
@@ -49,18 +48,14 @@
 </template>
 
 <script setup>
-import { filteredGames, tags } from '~/composables/useGames'
+import { filteredNoExpansions, tagsArray } from '~/composables/useGames'
 import { showingDetails } from '~/composables/useUI'
 
 const showFullImage = ref(false)
 
-const _game = computed(() => {
-  let game = filteredGames.value.find(g => g.userGameId  == gameId.value)
-  return game
-})
 
 const _gameTags = computed(() => {
-  return tags.value.filter(t => _game.value.tags.hasOwnProperty(t.id))
+  return tagsArray.value.filter(t => _game.value.tags.hasOwnProperty(t.id))
 })
 
 const canScrollDown = ref(true)
@@ -78,40 +73,40 @@ function scrollToBottom() {
   })
 }
 
-const gameId = ref(filteredGames.value[0].userGameId)
 
-watch(() => gameId.value, (val) => {
+
+const _game = ref(null)
+watch(() => _game.value, (val) => {
   scroller.value.scrollTo({
     top: 0,
     behavior: 'smooth'
   })
 })
 
-
 const showDetails = (id) => {
-  gameId.value = id
+  _game.value = gamesMap.value.get(id)
   showFullImage.value = false
   showingDetails.value = true
 }
 
 
 const randomGame = () => {
-  let newId
+  let newGame
   do {
-    newId = filteredGames.value[Math.floor(Math.random() * filteredGames.value.length)].userGameId
-  } while (newId == gameId.value)
-  showDetails(newId)
+    newGame = filteredNoExpansions.value[Math.floor(Math.random() * filteredNoExpansions.value.length)]
+  } while (newGame == _game.value)
+  showDetails(newGame.bgg_game_id)
 }
 
 const nextGame = (forward) => {
-  let gameIndex = filteredGames.value.findIndex(g => g.userGameId  == gameId.value)
+  let gameIndex = filteredNoExpansions.value.findIndex(g => g == _game.value)
   if (forward) {
-    if (gameIndex + 1 < filteredGames.value.length) {
-      showDetails(filteredGames.value[gameIndex + 1].userGameId)
+    if (gameIndex + 1 < filteredNoExpansions.value.length) {
+      showDetails(filteredNoExpansions.value[gameIndex + 1].bgg_game_id)
     }
   } else {
     if (gameIndex - 1 >= 0) {
-      showDetails(filteredGames.value[gameIndex - 1].userGameId)
+      showDetails(filteredNoExpansions.value[gameIndex - 1].bgg_game_id)
     }
   }
 }

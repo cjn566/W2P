@@ -11,7 +11,7 @@
         <GamesFilteringChip v-for="(item, name) in filters" :index="item" :field="name"
             class="chip !bg-purple-700 text-white" />
 
-        <Chip v-for="tag in filteredTags" :key="tag.id" :label="tag.name" removable
+        <Chip v-for="[id, tag] in filteredTags" :key="id" :label="tag.name" removable
             class="chip bg-surface-700 text-white" @click="clickedTag(tag)" />
 
         <Chip v-if="searchTerm.trim().length > 1" class="chip bg-green-800" removable :label="searchLabel"

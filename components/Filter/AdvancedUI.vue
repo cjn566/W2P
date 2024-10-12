@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { filters, limits, tags } from '~/composables/useGames'
+import { filters, limits } from '~/composables/useGames'
 import Divider from 'primevue/divider'
 
 const minYear = computed(() => {

@@ -113,7 +113,10 @@ export const status = ref({
 })
 
 
-export const games = ref([])
+export const gamesMap = ref(null)
+export const gamesArray = ref([])
+export const tagsMap = ref(null)
+export const tagsArray = ref([])
 
 export var limits = {}
 
@@ -136,43 +139,70 @@ export async function setCurrentCollection(id) {
         localStorage.removeItem(g.bgg_game_id)
         snowball.needGameIDs.push(g.bgg_game_id)
       } else {
-        snowball.foundGames.push(q.game)
+        snowball.foundGames.set(g.bgg_game_id, q.game)
       }
     } else {
       snowball.needGameIDs.push(g.bgg_game_id)
     }
     return snowball
-  }, { foundGames: [], needGameIDs: [] })
+  }, { foundGames: new Map(), needGameIDs: [] })
 
-  let restOfTheGames = []
+  let restOfTheGames = new Map()
   if (preGames.needGameIDs.length) {
-
-    restOfTheGames = (await useFetch('/api/collection/game/get',
-      {
-        method: 'post',
-        body: preGames.needGameIDs
-      })).data.value
+    restOfTheGames = new Map(Object.entries((await useFetch('/api/collection/game/get', {
+      method: 'post',
+      body: preGames.needGameIDs
+    })).data.value).map(g => ([parseInt(g[0]), g[1]])))
 
     let exp = Date.now() + 1000 * 60 * 60 * 24 * 7
-    Object.entries(restOfTheGames).forEach(g => {
-      localStorage.setItem(g[0], JSON.stringify({exp, game: g[1]}))
+    restOfTheGames.forEach((game, id) => {
+      localStorage.setItem(id, JSON.stringify({ exp, game }))
     })
   }
 
-  games.value = [...preGames.foundGames, ...Object.values(restOfTheGames)]
+  gamesMap.value = new Map([...preGames.foundGames, ...restOfTheGames])
   buildCollection()
 }
 
 export async function buildCollection() {
   status.value.gamesReady = false
 
-  if (games.value.length == 0) {
+  if (gamesMap.value.size == 0) {
+    gamesArray.value = []
     status.value.gamesReady = true
     return
   }
 
+  limits = {
+    complexity: [
+      50,
+      -1
+    ],
+    players: [
+      12,
+      -1
+    ],
+    playtime: [
+      1000,
+      -1
+    ],
+    age: [
+      100,
+      -1
+    ],
+
+    year: [
+      5000,
+      -1
+    ]
+  }
+
+  tagsMap.value = new Map()
+
   let dp = new DOMParser()
-  games.value = games.value.map((g) => {
+  gamesMap.value.forEach((g, id, map) => {
+    g.bgg_game_id = parseInt(g.bgg_game_id)
+    g.canExpandGameId = g.canExpandGameId?.map(x => parseInt(x))
     g.description = dp.parseFromString(g.description, 'text/html').documentElement.textContent
     g.selected = false
     g.ownedExpansions = []
@@ -205,68 +235,65 @@ export async function buildCollection() {
       },
       passesAllSliders: true
     }
-    return g
-  })
-  games.value.filter(g => g.type === "boardgameexpansion").forEach((expansion) => {
-    expansion.canExpandGameId.forEach((gid) => {
-      const baseGame = games.value.find(game => game.bgg_game_id === gid)
-      if (baseGame) {
-        baseGame.ownedExpansions.push(expansion)
-        expansion.isExpansionFor.push(baseGame)
+
+    if (g.type === "boardgameexpansion") {
+      g.canExpandGameId.forEach(gid => {
+        const baseGame = map.get(gid)
+        if (baseGame) {
+          (baseGame.ownedExpansions ??= []).push(g)
+          g.isExpansionFor.push(baseGame)
+        }
+      })
+    }
+
+    for (const id in g.tags) {
+      if (tagsMap.value.has(id)) {
+        let tag = tagsMap.value.get(id)
+        tag.members.push(g)
+        tag.showCount++
+      } else {
+        tagsMap.value.set(id, {
+          id,
+          name: g.tags[id],
+          members: [g]
+        })
       }
-    })
+    }
+
+
+    if (g.complexity > 0.1) {
+      limits.complexity[0] = Math.min(limits.complexity[0], g.complexity)
+      limits.complexity[1] = Math.max(limits.complexity[1], g.complexity)
+    }
+    if (g.playersMin > 0) {
+      limits.players[0] = Math.min(limits.players[0], g.playersMin)
+    }
+    limits.players[1] = Math.max(limits.players[1], g.playersMax)
+    if (g.playtimeMin > 0) {
+      limits.playtime[0] = Math.min(limits.playtime[0], g.playtimeMin)
+    }
+    limits.playtime[1] = Math.max(limits.playtime[1], g.playtimeMax)
+    if (g.age > 0) {
+      limits.age[0] = Math.min(limits.age[0], g.age)
+      limits.age[1] = Math.max(limits.age[1], g.age)
+    }
+    if (g.year > 0) {
+      limits.year[0] = Math.min(limits.year[0], g.year)
+      limits.year[1] = Math.max(limits.year[1], g.year)
+    }
+
   })
 
-  limits = games.value.reduce((limits, game) => {
-    if (game.complexity > 0.1) {
-      limits.complexity[0] = Math.min(limits.complexity[0], game.complexity)
-      limits.complexity[1] = Math.max(limits.complexity[1], game.complexity)
-    }
-    if (game.playersMin > 0) {
-      limits.players[0] = Math.min(limits.players[0], game.playersMin)
-    }
-    limits.players[1] = Math.max(limits.players[1], game.playersMax)
-    if (game.playtimeMin > 0) {
-      limits.playtime[0] = Math.min(limits.playtime[0], game.playtimeMin)
-    }
-    limits.playtime[1] = Math.max(limits.playtime[1], game.playtimeMax)
-    if (game.age > 0) {
-      limits.age[0] = Math.min(limits.age[0], game.age)
-      limits.age[1] = Math.max(limits.age[1], game.age)
-    }
-    if (game.year > 0) {
-      limits.year[0] = Math.min(limits.year[0], game.year)
-      limits.year[1] = Math.max(limits.year[1], game.year)
-    }
-    return limits
-  },
-    {
-      complexity: [
-        50,
-        -1
-      ],
-      players: [
-        12,
-        -1
-      ],
-      playtime: [
-        1000,
-        -1
-      ],
-      age: [
-        100,
-        -1
-      ],
 
-      year: [
-        5000,
-        -1
-      ]
-    })
+  gamesArray.value = Array.from(gamesMap.value.values())
+
+  tagsArray.value = Array.from(tagsMap.value.values()).map(tag => ({
+    ...tag,
+    filterActive: false,
+    showCount: tag.members.length
+  })).filter(tag => tag.showCount > 1)
 
   indices.value = makeIndices()
-
-  buildTagList()
 
   sortBy('name', true)
 
@@ -286,19 +313,18 @@ export const filters = computed(() => {
 })
 
 export const numActiveFilters = computed(() => {
-  return filteredTags.value.length + Object.entries(filters.value).filter(f => f[1].active).length + (searchTerm.value.trim().length > 1 ? 1 : 0)
+  return filteredTags.value.size + Object.values(filters.value).filter(f => f.active).length + (searchTerm.value.trim().length > 1 ? 1 : 0)
 })
 
 
-// array the size of steps in the range, element is [value, game count]
 // Makes an ascending sorted array 
 function makeIndex(minKey, maxKey = null) {
-  const minSorted = games.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
+  const minSorted = gamesArray.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
   return {
     sorted: [
       minSorted,
       maxKey ?
-        games.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
+        gamesArray.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
         : minSorted
     ],
     current: [
@@ -355,7 +381,7 @@ export function clearSlider(prop) {
   indices.value[prop].current[1].index = null
   indices.value[prop].current[1].value = limits[prop][1]
 
-  games.value.forEach(game => {
+  gamesArray.value.forEach(game => {
     game.filters.sliders[prop][0] = true
     game.filters.sliders[prop][1] = true
     game.filters.passesAllSliders = !Object.entries(game.filters.sliders).some(x => !x[1][0] || !x[1][1])
@@ -418,14 +444,13 @@ export function setSlider(prop, LT, newVal) {
   })
 }
 
-export const filteredTags = ref([])
 
 export const searchTerm = ref('')
 
 export const editingGames = ref(false)
 
 export const filteredGames = computed(() => {
-  let ret = games.value
+  let ret = gamesArray.value
 
   // TODO: make sure filtered games always include selected games
   // TODO: searching text breaks the detial component
@@ -433,12 +458,16 @@ export const filteredGames = computed(() => {
     ret = ret.filter(g => g.searchName.includes(searchTerm.value.trim().toLowerCase()))
   }
 
-  let checkingTags = filteredTags.value.length > 0
+  let checkingTags = filteredTags.value.size
   ret = ret.filter(g =>
     g.filters.passesAllSliders &&
     (checkingTags ? g.filters.passesAllTags : true)
   )
   return ret
+})
+
+export const filteredNoExpansions = computed(() => {
+  return filteredGames.value.filter(g => !g.isExpansionFor.length)
 })
 
 export const sorting = ref({
@@ -463,37 +492,37 @@ export function sortBy(prop, descending) {
   switch (prop) {
     case 'players':
       if (!descending) {
-        games.value = games.value.sort((a, b) => {
+        gamesArray.value = gamesArray.value.sort((a, b) => {
           if (!a.playersMax && !a.playersMin) return 1
           if (!b.playersMax && !b.playersMin) return -1
           return a.playersMin - b.playersMin + ((a.playersMax - b.playersMax) / 1000)
         })
       } else {
-        games.value = games.value.sort((a, b) => {
+        gamesArray.value = gamesArray.value.sort((a, b) => {
           return b.playersMax - a.playersMax + ((b.playersMin - a.playersMin) / 1000)
         })
       }
       break
     case 'playtime':
       if (!descending) {
-        games.value = games.value.sort((a, b) => {
+        gamesArray.value = gamesArray.value.sort((a, b) => {
           if (!a.playtimeMax && !a.playtimeMin) return 1
           if (!b.playtimeMax && !b.playtimeMin) return -1
           return (a.playtimeMin - b.playtimeMin + ((a.playtimeMax - b.playtimeMax) / 1000))
         })
       } else {
-        games.value = games.value.sort((a, b) => {
+        gamesArray.value = gamesArray.value.sort((a, b) => {
           return b.playtimeMax - a.playtimeMax + ((b.playtimeMin - a.playtimeMin) / 1000)
         })
       }
       break
     case 'name':
-      games.value = games.value.sort((a, b) => {
+      gamesArray.value = gamesArray.value.sort((a, b) => {
         return b.name.localeCompare(a.name) * (sorting.value.descending ? -1 : 1)
       })
       break
     default:
-      games.value = games.value.sort((a, b) => {
+      gamesArray.value = gamesArray.value.sort((a, b) => {
         if (!a[sorting.value.active]) return 1
         if (!b[sorting.value.active]) return -1
         return (a[sorting.value.active] - b[sorting.value.active]) * (sorting.value.descending ? -1 : 1)
@@ -501,6 +530,9 @@ export function sortBy(prop, descending) {
       break
   }
 }
+
+
+export const filteredTags = ref(new Map())
 
 export function clearAllTags() {
   filteredTags.value.forEach(tag => {
@@ -511,30 +543,29 @@ export function clearAllTags() {
       game.filters.passesAllTags = true
     }
   })
-  filteredTags.value = []
+  filteredTags.value.clear()
 }
 
 export function clickedTag(tag) {
-  let tagIdx = filteredTags.value.indexOf(tag)
-  let added = tagIdx === -1
-  if (added) {
-    tag.filterActive = true
-    filteredTags.value.push(tag)
-  } else {
+  let added = !tag.filterActive
+  if (!added) {
     tag.filterActive = false
-    filteredTags.value.splice(tagIdx, 1)
+    filteredTags.value.delete(tag.id)
+  } else {
+    tag.filterActive = true
+    filteredTags.value.set(tag.id, tag)
   }
 
-  let numCurrentTags = filteredTags.value.length
+  let numCurrentTags = filteredTags.value.size
   let checkAllGames = numCurrentTags > 1 || (numCurrentTags === 1 && !added)
 
-  for (const game of tag.members) {
+  for (let game of tag.members) {
     game.filters.tags[tag.id] = added
-    game.filters.passesAnyTag = Object.entries(game.filters.tags).some(x => x[1])
+    game.filters.passesAnyTag = Object.values(game.filters.tags).some(x => x)
     if (!checkAllGames) {
       game.filters.passesAllTags = added
     } else {
-      game.filters.passesAllTags = !filteredTags.value.some(tag => !game.filters.tags[tag.id])
+      game.filters.passesAllTags = ![...filteredTags.value.keys()].some(tid => !game.filters.tags[tid])
     }
   }
 
@@ -542,68 +573,35 @@ export function clickedTag(tag) {
   if (checkAllGames) {
     filteredTags.value.forEach(tag => {
       tag.members.forEach(game => {
-        game.filters.passesAllTags = !filteredTags.value.some(tag => !game.filters.tags[tag.id])
-
+        game.filters.passesAllTags = ![...filteredTags.value.keys()].some(tid => !game.filters.tags[tid])
       })
     })
   }
 }
 
-// const checkingAllTags = ref(false)
-
-export const tags = ref([])
-
-function buildTagList() {
-  let foo = {}
-  games.value.forEach((game) => {
-    for (const linkId in game.tags) {
-      if (foo.hasOwnProperty(linkId)) {
-        foo[linkId].members.push(game)
-      } else {
-        foo[linkId] = {
-          name: game.tags[linkId],
-          members: [game]
-        }
-      }
-      game.filters.tags[linkId] = false
-    }
-  })
-
-  const arr = []
-  for (const [tagId, tag] of Object.entries(foo)) {
-    if (tag.members.length > 1)
-      arr.push({
-        id: tagId,
-        name: tag.name,
-        members: tag.members,
-        showCount: tag.members.length,
-        filterActive: false
-      })
-  }
-  tags.value = arr
-}
 
 export function sortTags(byName) {
   if (byName) {
-    tags.value = tags.value.sort((a, b) => a.name.localeCompare(b.name))
+    tagsArray.value = tagsArray.value.sort((a, b) => a.name.localeCompare(b.name))
   } else {
-    tags.value = tags.value.sort((a, b) => b.showCount - a.showCount)
+    tagsArray.value = tagsArray.value.sort((a, b) => b.showCount - a.showCount)
   }
 }
 
 watch(filteredGames, (newGames, oldGames) => {
-  let temp = {}
-  newGames.forEach((game) => {
-    for (const linkId in game.tags) {
-      if (temp.hasOwnProperty(linkId)) {
-        temp[linkId]++
-      } else {
-        temp[linkId] = 1
+  if (newGames.length === gamesArray.length) {
+    tagsArray.value.forEach(t => {
+      t.showCount = t.members.length
+    })
+  } else {
+    let temp = {}
+    newGames.forEach((game) => {
+      for (const linkId in game.tags) {
+        temp[linkId] = (temp[linkId] ?? 0) + 1;
       }
-    }
-  })
-
-  tags.value.forEach(t => {
-    t.showCount = temp[t.id] ?? 0
-  })
+    })
+    tagsArray.value.forEach(t => {
+      t.showCount = temp[t.id] ?? 0
+    })
+  }
 })

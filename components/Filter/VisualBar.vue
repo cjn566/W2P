@@ -1,5 +1,5 @@
 <template>
-    <div class="text-center">Displaying {{ true ? filteredGames.length + " of " : 'all ' }} {{ games.length }} games
+    <div class="text-center">Displaying {{ true ? filteredGames.length + " of " : 'all ' }} {{ gamesArray.length }} games
     </div>
 
     <div ref="graph" class="">
@@ -18,21 +18,21 @@
 
 <script setup>
 
-import { games, filteredGames } from '~/composables/useGames'
+import { gamesArray, filteredGames } from '~/composables/useGames'
 
 const center = computed(() => {
-    let width = (((filteredGames.value.length) / games.value.length)) * 100
+    let width = (((filteredGames.value.length) / gamesArray.value.length)) * 100
     return {
         width: width + '%',
         backgroundColor: 'gold',
-        opacity: 1 - ((filteredGames.value.length - 1) / games.value.length)/1.5
+        opacity: 1 - ((filteredGames.value.length - 1) / gamesArray.value.length)/1.5
     }
 })
 
 const set = computed(() => {
     let numShown = filteredGames.value.length
-    let startId = Math.round((games.value.length - 1) / 2) - Math.round((numShown - 1) / 2)
-    return games.value.map((game, index) => {
+    let startId = Math.round((gamesArray.value.length - 1) / 2) - Math.round((numShown - 1) / 2)
+    return gamesArray.value.map((game, index) => {
         return index >= startId && index < startId + numShown
     })
 })
@@ -46,7 +46,7 @@ const boxStyle = (active) => {
 
 const activeColor = computed(() => {
     // 0 is most filtered, 1 is least filtered
-    let r = ((filteredGames.value.length - 1) / games.value.length)
+    let r = ((filteredGames.value.length - 1) / gamesArray.value.length)
     let hue = 60 + (r * 60)
     let lightness = 50 + (r * 50)
     return `hsl(${hue}, 100%, ${lightness}%)`
@@ -54,7 +54,7 @@ const activeColor = computed(() => {
 
 const graph = ref(null)
 const useGap = computed(() => {
-    return (graph.value?.clientWidth / games.value.length) > 4
+    return (graph.value?.clientWidth / gamesArray.value.length) > 4
 })
 
 </script>
