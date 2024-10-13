@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Header />
+        <!-- <Header /> -->
         <div class="px-1 h-[150%]">
             <slot />
         </div>

@@ -8,9 +8,7 @@ import { makeArray } from '~/utils/makearray'
 export async function setUser(slug, cId = null) {
   if (user.value.slug == slug) return // Don't fetch the same user twice
 
-  const res = (await useFetch(`/api/user/${slug}`, {
-    query: { cId }
-  })).data.value
+  const res = (await useFetch(`/api/user/${slug}`)).data.value
 
   // TODO: handle errors
   if (res.err_code) {
@@ -20,13 +18,7 @@ export async function setUser(slug, cId = null) {
 
   user.value = res
   status.value.userReady = true
-  if (res.collections.hasOwnProperty(cId)) {
-    setCurrentCollection(cId)
-  } else if (res.collections.hasOwnProperty(res.default_collection_id)) {
-    setCurrentCollection(res.default_collection_id)
-  } else if (Object.keys(res.collections).length) {
-    setCurrentCollection(Object.keys(res.collections)[0])
-  }
+  setCurrentCollection(cId)
 }
 
 
@@ -70,32 +62,38 @@ export async function removeGames(collection, deadGames) {
 }
 
 
-// TODO: needs fixed
-export async function upsertCollection(name, cId = null) {
+export async function addCollection(name) {
   const res = (await useFetch('/api/collection/add',
     {
-      method: 'post',
-      body: { name, cId }
+      method: 'get',
+      params: { name }
     })).data.value
-  buildCollection()
+  user.value.collections[res.id] = res
+  setCurrentCollection(res.id)
+}
+
+export async function editCollection(name, cId) {
+  const res = await $fetch('/api/collection/edit', {
+    method: 'post',
+    body: { name, cId }
+  })
+  user.value.collections[cId].collection_name = res.name
+  // TODO: Toasts
 }
 
 
 // TODO: needs fixed
-export async function removeCollection(deadGames) {
+export async function removeCollection(cId) {
   status.value.gamesReady = false
-  deadGames = makeArray(deadGames)
-  const gameIDs = deadGames.map(x => x.userGameId)
-  const res = (await useFetch('/api/collection/remove',
-    {
-      method: 'post',
-      body: gameIDs
-    })).data.value
-  res.forEach((r) => {
-    games.value = games.value.filter(game => game.userGameId !== r.userGameId)
-    // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
+  const res = await $fetch('/api/collection/remove', {
+    method: 'get',
+    params: { cId }
   })
-  buildCollection()
+
+  if (!res.err) {
+    delete user.value.collections[cId]
+    setCurrentCollection(null)
+  }
 }
 
 // ^^^^^^^^^^^^^^ API Calls ^^^^^^^^^^^^^^ 
@@ -126,41 +124,55 @@ const indices = ref({})
 
 export const currentCollection = ref(null)
 export async function setCurrentCollection(id) {
+
+  if (id && id === currentCollection.value) return
+  if (!id || !user.value.collections.hasOwnProperty(id)) {
+    if (user.value.collections.hasOwnProperty(user.value.default_collection_id)) {
+      id = user.value.default_collection_id
+    } else if (Object.keys(user.value.collections).length) {
+      id = Object.keys(user.value.collections)[0]
+    } else {
+      id = null
+    }
+  }
   id = parseInt(id)
-  if (id === currentCollection.value) return
+
   currentCollection.value = id
   status.value.gamesReady = false
   // First get game info for any games not already in the allGames object
 
-  let preGames = user.value.collections[id].gameIDs.reduce((snowball, g) => {
-    let q = JSON.parse(localStorage.getItem(g.bgg_game_id))
-    if (q) {
-      if (q.exp < Date.now()) {
-        localStorage.removeItem(g.bgg_game_id)
-        snowball.needGameIDs.push(g.bgg_game_id)
+  if (id) {
+    let preGames = user.value.collections[id].gameIDs.reduce((snowball, g) => {
+      let q = JSON.parse(localStorage.getItem(g.bgg_game_id))
+      if (q) {
+        if (q.exp < Date.now()) {
+          localStorage.removeItem(g.bgg_game_id)
+          snowball.needGameIDs.push(g.bgg_game_id)
+        } else {
+          snowball.foundGames.set(g.bgg_game_id, q.game)
+        }
       } else {
-        snowball.foundGames.set(g.bgg_game_id, q.game)
+        snowball.needGameIDs.push(g.bgg_game_id)
       }
-    } else {
-      snowball.needGameIDs.push(g.bgg_game_id)
+      return snowball
+    }, { foundGames: new Map(), needGameIDs: [] })
+
+    let restOfTheGames = new Map()
+    if (preGames.needGameIDs.length) {
+      restOfTheGames = new Map(Object.entries((await useFetch('/api/collection/game/get', {
+        method: 'post',
+        body: preGames.needGameIDs
+      })).data.value).map(g => ([parseInt(g[0]), g[1]])))
+
+      let exp = Date.now() + 1000 * 60 * 60 * 24 * 7
+      restOfTheGames.forEach((game, id) => {
+        localStorage.setItem(id, JSON.stringify({ exp, game }))
+      })
     }
-    return snowball
-  }, { foundGames: new Map(), needGameIDs: [] })
-
-  let restOfTheGames = new Map()
-  if (preGames.needGameIDs.length) {
-    restOfTheGames = new Map(Object.entries((await useFetch('/api/collection/game/get', {
-      method: 'post',
-      body: preGames.needGameIDs
-    })).data.value).map(g => ([parseInt(g[0]), g[1]])))
-
-    let exp = Date.now() + 1000 * 60 * 60 * 24 * 7
-    restOfTheGames.forEach((game, id) => {
-      localStorage.setItem(id, JSON.stringify({ exp, game }))
-    })
+    gamesMap.value = new Map([...preGames.foundGames, ...restOfTheGames])
+  } else {
+    gamesMap.value = new Map()
   }
-
-  gamesMap.value = new Map([...preGames.foundGames, ...restOfTheGames])
   buildCollection()
 }
 

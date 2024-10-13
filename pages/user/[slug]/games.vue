@@ -8,6 +8,11 @@
         <div class="text-3xl">{{ user.name }}</div>
         <Select v-model="collectionChoice" :options="collectionOptions" optionLabel="collection_name" optionValue="id"
           dataKey="id" checkmark class="block" />
+        <div v-if="editingGames" class="flex">
+          <Button label="Rename" @click="showCollectionNameDialog(false)" />
+          <Button label="Add Games" @click="goToAdd()" />
+          <Button label="Delete" @click="confirmDelete" />
+        </div>
       </div>
       <div v-if="user.isSelf" class="absolute right-4">
         <div class="mr-4">
@@ -138,8 +143,7 @@
 
           <!-- Show games as cards -->
           <TransitionGroup v-else name="fade">
-            <div v-for="g in filteredNoExpansions" :key="g.bgg_game_id"
-              @click="details.showDetails(g.bgg_game_id)"
+            <div v-for="g in filteredNoExpansions" :key="g.bgg_game_id" @click="details.showDetails(g.bgg_game_id)"
               class="bg-slate-900 text-slate-300 rounded-md p-2 cursor-pointer hover:ring-1 m-2 relative box-content"
               :class="{ 'border-green-600 border-2': g.selected }">
 
@@ -197,6 +201,18 @@
     <ProgressSpinner name="GamesNotReadyYet" v-else class="w-full" />
   </div>
   <ProgressSpinner name="UserNotReadyYet" v-else class="w-full" />
+
+  <Dialog v-model:visible="collectionNameDialog" modal
+    :header="makingNewCollection ? 'New Collection' : 'Rename Collection'" :style="{ width: '25rem' }">
+    <div class="flex items-center gap-4 mb-4">
+      <label for="username" class="font-semibold w-24">Name</label>
+      <InputText v-model="collectionName" class="flex-auto" autocomplete="off" />
+    </div>
+    <div class="flex justify-end gap-2">
+      <Button type="button" label="Cancel" severity="secondary" @click="collectionNameDialog = false"></Button>
+      <Button type="button" label="Save" @click="saveCollection"></Button>
+    </div>
+  </Dialog>
 </template>
 
 <script setup>
@@ -208,6 +224,23 @@ definePageMeta({
   path: ''
 })
 
+const collectionNameDialog = ref(false)
+const collectionName = ref('')
+const makingNewCollection = ref(false)
+function showCollectionNameDialog(isNew = false) {
+  makingNewCollection.value = isNew
+  collectionName.value = isNew ? '' : user.value.collections[currentCollection.value].collection_name
+  collectionNameDialog.value = true
+}
+function saveCollection() {
+  //TODO: validate name
+  if (makingNewCollection.value) {
+    addCollection(collectionName.value)
+  } else {
+    editCollection(collectionName.value, currentCollection.value)
+  }
+  collectionNameDialog.value = false
+}
 
 function selectGame(game) {
   game.selected = !game.selected
@@ -268,14 +301,23 @@ watch(filterStyle, () => {
 })
 
 const collectionChoice = ref(currentCollection.value)
-const collectionOptions = ref([...Object.values(user.value.collections)])
-if(user.value.isSelf){
-  collectionOptions.value.push({ id: -1, collection_name: '+ New Collection' })
-}
-watch(() => collectionChoice.value, async (choice) => {
+const collectionOptions = computed(() => {
+  let ret = [...Object.values(user.value.collections)]
+  if (user.value.isSelf) {
+    ret.unshift({ id: -1, collection_name: '+ New Collection' })
+  }
+  return ret
+})
+watch(() => currentCollection.value, (cId) => {
+  if (cId !== collectionChoice.value) {
+    collectionChoice.value = cId
+  }
+})
+watch(() => collectionChoice.value, (choice) => {
   if (choice === -1) {
     // make new collection
-    console.log('make new collection')
+    collectionChoice.value = currentCollection.value
+    showCollectionNameDialog(true)
     return
   } else {
     // TODO: give feedback that collection is loading
@@ -283,13 +325,19 @@ watch(() => collectionChoice.value, async (choice) => {
   }
 })
 
+async function confirmDelete() {
+  if (confirm(`Are you sure you want to delete collection "${user.value.collections[currentCollection.value].collection_name}"?`)) {
+    removeCollection(currentCollection.value)
+  }
+}
+
 
 const showTags = ref(false)
 
 const itMe = ref(true)
 
 // STICKY SCROLL
-const hideDistance = 50, showDistance = 50
+const hideDistance = 50, showDistance = 10
 let lastScrollTop, lastScrollBottom, lastScrollY
 const hideSticky = ref(false)
 const handleScroll = () => {
@@ -363,7 +411,7 @@ const touchEnd = (e) => {
 <style lang="scss" scoped>
 .sticky-btns {
   position: sticky;
-  top: 0;
+  top: -1px;
   z-index: 50;
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -371,7 +419,7 @@ const touchEnd = (e) => {
 }
 
 .hide {
-  top: -7rem;
+  top: -5.5rem;
 }
 
 /* 1. declare transition */
