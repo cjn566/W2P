@@ -24,7 +24,7 @@
               :src="_game.image" alt="Game Thumbnail" />
           </div>
           <div v-if="_game" class="p-4 lg:basis-2/3">
-            <GamesCard :game="_game" />
+            <GamesStats :game="_game" />
             <div class="text-sm p-3">
               {{ _game.description }}
             </div>

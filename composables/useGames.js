@@ -8,7 +8,7 @@ import { makeArray } from '~/utils/makearray'
 export async function setUser(slug, cId = null) {
   if (user.value.slug == slug) return // Don't fetch the same user twice
 
-  const res = (await useFetch(`/api/user/${slug}`)).data.value
+  const res = (await $fetch(`/api/user/${slug}`))
 
   // TODO: handle errors
   if (res.err_code) {
@@ -22,52 +22,61 @@ export async function setUser(slug, cId = null) {
 }
 
 
-export async function addGames(collection, newGames) {
-  status.value.gamesReady = false
+export async function addGames(cId, newGames) {
+  // status.value.gamesReady = false
   newGames = makeArray(newGames)
   const gameIDs = newGames.map(x => x.bgg_game_id)
-  const res = (await useFetch('/api/collection/game/add',
+  const res = (await $fetch('/api/collection/game/add',
     {
       method: 'post',
-      body: { gameIDs, collection }
-    })).data.value
-  res.forEach((r) => {
-    if (r.err && r.msg == "duplicate") {
-      // toast.add({ severity: 'error', summary: 'Cannot add that game', detail: 'That game was already in your library', life: 3000 })
-    } else {
-      let g = newGames.find(x => x.bgg_game_id == r.bgg_game_id)
-      g.owns = true
-      g.id = r.newID
-      games.value.unshift(g)
-      // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
-    }
-  })
-  buildCollection()
+      body: { gameIDs, cId }
+    }))
+
+  if (res.err) {
+    toast.add({ severity: 'error', summary: 'Something went wrong', detail: 'it broke.', life: 3000 })
+  } else {
+    res.forEach((r) => {
+      if (r.err && r.msg == "duplicate") {
+        toast.add({ severity: 'error', summary: 'Cannot add that game', detail: 'That game was already in your library', life: 3000 })
+      } else {
+        user.value.collections[cId].gameIDs.push(r.bgg_game_id)
+        // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
+      }
+    })
+  }
+  // TODO: see where callers need to rebuildCollection()
 }
 
-export async function removeGames(collection, deadGames) {
+export async function addSelectedToCollection(cId) {
+  await addGames(cId, gamesArray.value.filter(g => g.selected))
+}
+
+
+export async function removeSelectedGames() {
   status.value.gamesReady = false
-  deadGames = makeArray(deadGames)
-  const gameIDs = deadGames.map(x => x.userGameId)
-  const res = (await useFetch('/api/collection/game/remove',
+  const gameIDs = gamesArray.value.filter(g => g.selected).map(g => g.bgg_game_id)
+  const res = (await $fetch('/api/collection/game/remove',
     {
       method: 'post',
-      body: { gameIDs, collection }
-    })).data.value
-  res.forEach((r) => {
-    games.value = games.value.filter(game => game.userGameId !== r.userGameId)
-    // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
-  })
-  buildCollection()
+      body: { gameIDs, cId: currentCollection.value }
+    }))
+  if (res.err) {
+    toast.add({ severity: 'error', summary: 'Something went wrong', detail: 'it broke.', life: 3000 })
+  } else {
+    res.forEach((r) => {
+      gamesMap.value.delete(r.bgg_game_id)
+    })
+    buildCollection()
+  }
 }
 
 
 export async function addCollection(name) {
-  const res = (await useFetch('/api/collection/add',
+  const res = (await $fetch('/api/collection/add',
     {
       method: 'get',
       params: { name }
-    })).data.value
+    }))
   user.value.collections[res.id] = res
   setCurrentCollection(res.id)
 }
@@ -159,10 +168,10 @@ export async function setCurrentCollection(id) {
 
     let restOfTheGames = new Map()
     if (preGames.needGameIDs.length) {
-      restOfTheGames = new Map(Object.entries((await useFetch('/api/collection/game/get', {
+      restOfTheGames = new Map(Object.entries((await $fetch('/api/collection/game/get', {
         method: 'post',
         body: preGames.needGameIDs
-      })).data.value).map(g => ([parseInt(g[0]), g[1]])))
+      }))).map(g => ([parseInt(g[0]), g[1]])))
 
       let exp = Date.now() + 1000 * 60 * 60 * 24 * 7
       restOfTheGames.forEach((game, id) => {
@@ -331,12 +340,12 @@ export const numActiveFilters = computed(() => {
 
 // Makes an ascending sorted array 
 function makeIndex(minKey, maxKey = null) {
-  const minSorted = gamesArray.value.map((game) => [game.filters, game[minKey]]).sort((a, b) => (a[1] - b[1]))
+  const minSorted = gamesArray.value.map((game) => ({ filters: game.filters, propValue: game[minKey] })).sort((a, b) => (a.propValue - b.propValue))
   return {
     sorted: [
       minSorted,
       maxKey ?
-        gamesArray.value.map((game) => [game.filters, game[maxKey]]).sort((a, b) => (a[1] - b[1]))
+        gamesArray.value.map((game) => ({ filters: game.filters, propValue: game[maxKey] })).sort((a, b) => (a.propValue - b.propValue))
         : minSorted
     ],
     current: [
@@ -396,7 +405,7 @@ export function clearSlider(prop) {
   gamesArray.value.forEach(game => {
     game.filters.sliders[prop][0] = true
     game.filters.sliders[prop][1] = true
-    game.filters.passesAllSliders = !Object.entries(game.filters.sliders).some(x => !x[1][0] || !x[1][1])
+    game.filters.passesAllSliders = Object.values(game.filters.sliders).every(x => x[0] && x[1])
   })
 }
 
@@ -421,9 +430,9 @@ export function setSlider(prop, LT, newVal) {
     propSet.current[LT].index = null
   } else {
     if (LT) {
-      newIdx = propSet.sorted[LT].findLastIndex(g => newVal >= g[1])
+      newIdx = propSet.sorted[LT].findLastIndex(g => newVal >= g.propValue)
     } else {
-      newIdx = propSet.sorted[LT].findIndex(g => newVal <= g[1])
+      newIdx = propSet.sorted[LT].findIndex(g => newVal <= g.propValue)
     }
     propSet.current[LT].index = newIdx
   }
@@ -450,16 +459,16 @@ export function setSlider(prop, LT, newVal) {
 
   // Process through the games and set the pass state for the filter,
   // then check if the game passes all filters
-  propSet.sorted[LT].slice(begin, end).forEach(bar => {
-    bar[0].sliders[prop][LT] = toggle
-    bar[0].passesAllSliders = !Object.entries(bar[0].sliders).some(x => !x[1][0] || !x[1][1])
+  propSet.sorted[LT].slice(begin, end).forEach(indexEntry => {
+    indexEntry.filters.sliders[prop][LT] = toggle
+    indexEntry.filters.passesAllSliders = Object.values(indexEntry.filters.sliders).every(p => p[0] && p[1])
   })
 }
 
 
 export const searchTerm = ref('')
 
-export const editingGames = ref(false)
+export const editingGames = ref(true)
 
 export const filteredGames = computed(() => {
   let ret = gamesArray.value
@@ -480,6 +489,10 @@ export const filteredGames = computed(() => {
 
 export const filteredNoExpansions = computed(() => {
   return filteredGames.value.filter(g => !g.isExpansionFor.length)
+})
+
+export const selectedButFilteredOut = computed(() => {
+  return editingGames.value ? gamesArray.value.filter(g => g.selected && !filteredGames.value.includes(g)) : []
 })
 
 export const sorting = ref({
@@ -577,7 +590,7 @@ export function clickedTag(tag) {
     if (!checkAllGames) {
       game.filters.passesAllTags = added
     } else {
-      game.filters.passesAllTags = ![...filteredTags.value.keys()].some(tid => !game.filters.tags[tid])
+      game.filters.passesAllTags = [...filteredTags.value.keys()].every(tid => game.filters.tags[tid])
     }
   }
 
@@ -585,7 +598,7 @@ export function clickedTag(tag) {
   if (checkAllGames) {
     filteredTags.value.forEach(tag => {
       tag.members.forEach(game => {
-        game.filters.passesAllTags = ![...filteredTags.value.keys()].some(tid => !game.filters.tags[tid])
+        game.filters.passesAllTags = [...filteredTags.value.keys()].every(tid => game.filters.tags[tid])
       })
     })
   }

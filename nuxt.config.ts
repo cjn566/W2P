@@ -8,7 +8,8 @@ export default defineNuxtConfig({
     '@/assets/styles/main.scss',      
     '@fortawesome/fontawesome-svg-core/styles.css',      
     //'primevue/resources/themes/lara-dark-blue/theme.css',
-    'primeicons/primeicons.css'
+    'primeicons/primeicons.css',
+    'shepherd.js/dist/css/shepherd.css'
   ],
 
   build: {

@@ -1,65 +1,56 @@
 <template>
-    <!-- <Button v-if="editingGames" @click="removeGames(game)" icon="pi pi-trash" /> -->
+    <div :class="{ 'border-green-300 border-4': g.selected }"
+    class="bg-slate-900 text-slate-300 rounded-md p-2 cursor-pointer hover:ring-1 m-2 relative box-content">
 
-    <div class="flex flex-col ml-4">
+        <div v-if="editingGames"
+            class="absolute top-2 right-2 p-2 z-1000 w-6 h-6 bg-white rounded-full flex justify-center items-center"
+            :class="{ 'bg-green-200': g.selected }">
+            <i v-if="g.selected" class="pi pi-check-circle text-green-700 text-xl" />
+        </div>
 
-        <GamesTitleCluster :game="game" />
-
-
-        <div v-if="isMobile" class="flex flex-grow *:w-1/2 *:flex *:flex-col text-[1.125em]">
-            <div class="border-right *:h-1/2">
-                <GamesStat class="sm-cell border-bottom" stat="players" :val="game.display.players" :verbose="false"
-                    :stacked="false" />
-                <GamesStat class="sm-cell" stat="age" :val="game.display.age" :verbose="false" :stacked="false" />
+        <div class="flex h-40">
+            <div class="w-40 ">
+                <img class="m-auto h-full object-contain object-center shadow-slate-700" :src="g.thumbnail"
+                    alt="Game Thumbnail" />
             </div>
-            <div class="*:h-1/2">
-                <GamesStat class="sm-cell border-bottom" stat="playtime" :val="game.display.playtime" :verbose="false"
+            <GamesStats :game="g" :sort="sorting.active" class="w-3/5" />
+        </div>
+
+        <div v-for="expansion in g.ownedExpansions" class="flex h-24 ml-1 mt-2">
+            <div class="flex items-center text-3xl text-surface-300">+</div>
+            <div class="w-20 mx-2">
+                <img class="m-auto h-full object-contain object-center shadow-slate-700" :src="expansion.thumbnail"
+                    alt="Game Thumbnail" />
+            </div>
+            <div class="flex flex-col justify-center">
+                <GamesTitleCluster :game="expansion" />
+                <GamesStat class="pt-1" v-if="expansion.display.players !== g.display.players" stat="players"
+                    :val="expansion.display.players" :verbose="false" :stacked="false" />
+                <GamesStat class="pt-1" v-if="expansion.age !== g.age" stat="age" :val="expansion.age" :verbose="false"
                     :stacked="false" />
-                <GamesStat class="sm-cell" stat="complexity" :val="game.display.complexity" :verbose="false"
-                    :stacked="false" />
+                <GamesStat class="pt-1" v-if="expansion.display.playtime !== g.display.playtime && expansion.pl"
+                    stat="playtime" :val="expansion.playtime" :verbose="false" :stacked="false" />
+                <GamesStat class="pt-1" v-if="expansion.complexity !== g.complexity && expansion.complexity > 0"
+                    stat="complexity" :val="expansion.complexity" :verbose="false" :stacked="false" />
             </div>
         </div>
 
-        <div v-else class="flex flex-grow text-lg *:w-1/4 py-2">
-            <GamesStat class="lg-cell border-right" stat="players" :val="game.display.players" :verbose="true"
-                :stacked="true" />
-            <GamesStat class="lg-cell border-right" stat="age" :val="game.display.age" :verbose="true"
-                :stacked="true" />
-            <GamesStat class="lg-cell border-right" stat="playtime" :val="game.display.playtime" :verbose="true"
-                :stacked="true" />
-            <GamesStat class="lg-cell" stat="complexity" :val="game.display.complexity" :verbose="true"
-                :stacked="true" />
-        </div>
     </div>
 </template>
 
 <script setup>
-import { isMobile } from '~/composables/useMedia'
-const props = defineProps(['game', 'sort'])
 
+import { sorting } from '~/composables/useGames'
+const props = defineProps(['g'])
 
 </script>
 
+
 <style lang="scss" scoped>
-.border-right {
-    border-right: 1px solid var(--p-surface-500);
-}
 
-.border-bottom {
-    border-bottom: 1px solid var(--p-surface-500);
-}
 
-.sm-cell {
-    width: 100%;
-    justify-content: space-between;
-    padding: 1rem;
-    font-size: small;
-}
-
-.lg-cell {
-    flex-direction: column;
-    justify-content: space-around;
-    padding: 1rem;
+.warn-border {
+    border: 2px solid rgb(255, 255, 153);
 }
 
 </style>

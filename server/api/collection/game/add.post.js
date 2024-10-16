@@ -1,30 +1,39 @@
 import query from '../../../db'
 export default defineAuthenticatedEventHandler(async (event, session) => {
-  const body = await readBody(event)
-  const ress = await Promise.all(body.map(async (bgg_game_id) => {
+  const { gameIDs, cId } = await readBody(event)
+
+  if (session.user.email !== (await query('SELECT user_email FROM app.collections WHERE id = $1', [cId])).rows[0].user_email) {
+    return {
+      err: true,
+      msg: "Unauthorized"
+    }
+  }
+  return (await Promise.all(gameIDs.map((gId) => {
     try {
-      const qRes = await query('INSERT INTO app.games(user_email, bgg_game_id, created_by) VALUES ($1, $2, $3) returning id',
+      return query(
+        `INSERT INTO app.games(collection_id, bgg_game_id, created_by)
+          VALUES ($1, $2, $3)
+          RETURNING id, bgg_game_id`,
         [
-          session.user.email,
-          bgg_game_id,
+          cId,
+          gId,
           session.user.email
         ])
-      return {
-        err: false,
-        newID: qRes.rows[0].id,
-        bgg_game_id
-      }
     } catch (e) {
-      const res = {
-        err: true,
-        msg: "?"
+      if (e.code === '23505') {
+        return { err: true, msg: "duplicate" }
       }
-      if (e.code == 23505) {
-        console.error("Duplicate game, unable to add.")
-        res.msg = "duplicate"
-      }
-      return res
     }
-  }))
-  return ress
+  }
+
+  ))).map(qRes => {
+    if (qRes.err) {
+      return qRes
+    } else {
+      return {
+        id: qRes.rows[0].id,
+        bgg_game_id: qRes.rows[0].bgg_game_id
+      }
+    }
+  })
 })

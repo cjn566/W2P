@@ -7,7 +7,7 @@ const pool = new pg.Pool({
     rejectUnauthorized: false
   }
 })
- 
-export default async function query(text, params) {
-    return await pool.query(text, params)
-  }
+
+export default async function query(text: string, params?: any[]): Promise<pg.QueryResult> {
+  return await pool.query(text, params)
+}

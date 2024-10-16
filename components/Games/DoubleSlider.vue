@@ -179,6 +179,14 @@ onMounted(() => {
   }
   maxInc = increments.value.length - 1
   curIncs.value[1] = maxInc
+
+  // Set initial values
+  if (props.inValues.values[0] !== null) {
+    curIncs.value[0] = increments.value.findIndex((inc) => inc.value == props.inValues.values[0])
+  }
+  if (props.inValues.values[1] !== null) {
+    curIncs.value[1] = increments.value.findIndex((inc) => inc.value == props.inValues.values[1])
+  }
 })
 
 const dbMin = debounce((nv) => setSlider(props.prop, 0, nv), 200)

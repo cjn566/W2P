@@ -2,27 +2,37 @@
 
   <div v-if="status.userReady">
     <!-- Whose games are we seeing? -->
-    <div class="flex bg-surface-700  rounded-tr-xl  rounded-tl-xl pl-4 py-8">
-      <img :src="user.image" class="h-16 w-16 rounded-full mr-4" alt="avatar">
-      <div>
-        <div class="text-3xl">{{ user.name }}</div>
-        <Select v-model="collectionChoice" :options="collectionOptions" optionLabel="collection_name" optionValue="id"
-          dataKey="id" checkmark class="block" />
-        <div v-if="editingGames" class="flex">
-          <Button label="Rename" @click="showCollectionNameDialog(false)" />
-          <Button label="Add Games" @click="goToAdd()" />
-          <Button label="Delete" @click="confirmDelete" />
+    <div class="bg-surface-700 rounded-tr-xl  rounded-tl-xl  py-8">
+      <div class="flex ml-4">
+        <img :src="user.image" class="h-16 w-16 rounded-full mr-4" alt="avatar">
+        <div>
+          <div class="text-3xl">{{ user.name }}</div>
+          <Select v-model="collectionChoice" :options="collectionOptions" optionLabel="collection_name" optionValue="id"
+            dataKey="id" checkmark class="block">
+            <template #option="slopProps">
+              <i v-if="slopProps.option.isDefault" class="pi pi-star text-yellow-500 mr-2" />
+              {{ slopProps.option.collection_name }}
+            </template>
+          </Select>
+          <Button v-model="editingGames" v-if="user.isSelf" icon="pi pi-cog" label="Manage" class="ml-2"
+            @click="toggleEditGames" />
         </div>
       </div>
-      <div v-if="user.isSelf" class="absolute right-4">
-        <div class="mr-4">
-          <Button size="small" icon="pi pi-pencil" @click="editingGames = !editingGames" />
-        </div>
-        <div class="" :style="editingGames ? '' : 'visibility: hidden'">
-          <Button size="small" icon="pi pi-plus" @click="goToAdd()" />
+
+      <div v-if="editingGames" class="pt-1 flex justify-center bg-surface-600 ">
+        <Button class="m-1 text-lg" icon="pi pi-plus" label="Add Games" @click="goToAdd()" />
+        <div class="flex flex-col">
+          <Button v-if="currentCollection !== user.default_collection_id" class="m-1" icon="pi pi-star"
+            severity="secondary" label="Make Default" size="small" @click="makeDefaultCollection" />
+          <Button class="m-1" icon="pi pi-pencil" severity="secondary" label="Rename" size="small"
+            @click="showCollectionNameDialog(false)" />
+          <Button class="m-1" icon="pi pi-trash" severity="secondary" size="small" label="Delete"
+            @click="confirmDelete" />
         </div>
       </div>
     </div>
+
+
 
 
     <div v-if="status.gamesReady">
@@ -138,50 +148,51 @@
           <!-- <Paginator :totalRecords="filteredGames.length" :rows="50"  v-model:first="firstGame"/> -->
           <ScrollTop />
 
+          <div v-if="editingGames" class="m-2 p-2 bg-surface-800 flex justify-between items-baseline sticky top-0">
+            <Button @click="selectAll(true)" :disabled="filteredGames.every(g => g.selected)" class="text-xs"
+              :label="`Select All${numActiveFilters ? ' (filtered)' : ''}`" />
+            <Button @click="showSelectionMenu" :disabled="!selectedCount" severity="secondary" class="text-sm">
+              {{ selectedCount }} game{{ pl(selectedCount) }} selected
+              <span v-if="selectedButFilteredOut.length"
+                class="font-bold bg-slate-600 px-1 ml-1 rounded-sm text-white">(<span class="text-green-300">{{
+                  selectedCount - selectedButFilteredOut.length }}</span>/<span class="text-yellow-400">{{
+                    selectedButFilteredOut.length }}</span>)</span>
+            </Button>
+            <TieredMenu ref="selectedMenu" :model="selectedOptions" :popup="true" />
+            <Button @click="selectAll(false)" :disabled="gamesArray.every(g => !g.selected)" class="text-xs">Unselect
+              All</Button>
+          </div>
+
           <!-- Show games as high density table -->
           <GamesTable v-if="showTable" />
 
           <!-- Show games as cards -->
           <TransitionGroup v-else name="fade">
-            <div v-for="g in filteredNoExpansions" :key="g.bgg_game_id" @click="details.showDetails(g.bgg_game_id)"
-              class="bg-slate-900 text-slate-300 rounded-md p-2 cursor-pointer hover:ring-1 m-2 relative box-content"
-              :class="{ 'border-green-600 border-2': g.selected }">
-
-              <div v-if="editingGames"
-                class="absolute top-2 right-2 p-2 z-1000 w-6 h-6 bg-white rounded flex justify-center items-center"
-                @click.stop="selectGame(g)">
-                <i v-if="g.selected" class="pi pi-check-circle text-green-600 text-lg" />
-              </div>
-
-              <div class="flex h-40">
-                <div class="w-40 ">
-                  <img class="m-auto h-full object-contain object-center shadow-slate-700" :src="g.thumbnail"
-                    alt="Game Thumbnail" />
-                </div>
-                <GamesCard :game="g" :sort="sorting.active" class="w-3/5" />
-              </div>
-
-              <div v-for="expansion in g.ownedExpansions" class="flex h-24 ml-1 mt-2">
-                <div class="flex items-center text-3xl text-surface-300">+</div>
-                <div class="w-20 mx-2">
-                  <img class="m-auto h-full object-contain object-center shadow-slate-700" :src="expansion.thumbnail"
-                    alt="Game Thumbnail" />
-                </div>
-                <div class="flex flex-col justify-center">
-                  <GamesTitleCluster :game="expansion" />
-                  <GamesStat class="pt-1" v-if="expansion.display.players !== g.display.players" stat="players"
-                    :val="expansion.display.players" :verbose="false" :stacked="false" />
-                  <GamesStat class="pt-1" v-if="expansion.age !== g.age" stat="age" :val="expansion.age"
-                    :verbose="false" :stacked="false" />
-                  <GamesStat class="pt-1" v-if="expansion.display.playtime !== g.display.playtime && expansion.pl"
-                    stat="playtime" :val="expansion.playtime" :verbose="false" :stacked="false" />
-                  <GamesStat class="pt-1" v-if="expansion.complexity !== g.complexity && expansion.complexity > 0"
-                    stat="complexity" :val="expansion.complexity" :verbose="false" :stacked="false" />
-                </div>
-              </div>
-
-            </div>
+            <GamesCard v-for="g in filteredNoExpansions" :key="g.bgg_game_id" :g="g"
+              @click="editingGames ? selectGame(g) : details.showDetails(g.bgg_game_id)" />
           </TransitionGroup>
+
+          <!-- Show games that are selected but no longer pass the filter -->
+          <div v-if="editingGames && selectedButFilteredOut.length" class="bg-slate-800 pt-2">
+            <div class="flex relative justify-center align-center">
+              <div class="absolute border-b-4 w-full top-1/2 z-0" />
+              <div class="bg-red-950 w-1/2 border-2 z-10 p-2 flex flex-col justify-center items-center">
+                <div class="text-center">
+                  The following {{ selectedButFilteredOut.length }} games are still selected but no longer pass the
+                  current
+                  filter criteria:
+                </div>
+                <Button size="small" label="unselect" severity="secondary"
+                  @click="selectedButFilteredOut.forEach(g => { g.selected = false })" />
+              </div>
+            </div>
+
+            <TransitionGroup name="fade">
+              <GamesCard v-for="g in selectedButFilteredOut" :key="g.bgg_game_id" :g="g" class="warn-border"
+                @click="selectGame(g)" />
+                <!-- TODO: expansions need to be selectable -->
+            </TransitionGroup>
+          </div>
 
           <!-- Pick random game button -->
           <div class="flex justify-center mt-2">
@@ -206,74 +217,48 @@
     :header="makingNewCollection ? 'New Collection' : 'Rename Collection'" :style="{ width: '25rem' }">
     <div class="flex items-center gap-4 mb-4">
       <label for="username" class="font-semibold w-24">Name</label>
-      <InputText v-model="collectionName" class="flex-auto" autocomplete="off" />
+      <InputText v-model="collectionName" class="flex-auto" autocomplete="off" ref="cNameInput"/>
     </div>
     <div class="flex justify-end gap-2">
       <Button type="button" label="Cancel" severity="secondary" @click="collectionNameDialog = false"></Button>
-      <Button type="button" label="Save" @click="saveCollection"></Button>
+      <Button type="button" label="Save" @click="saveCollection" @keydown.enter="saveCollection" ></Button>
     </div>
   </Dialog>
 </template>
 
-<script setup>
-import { user, status, searchTerm, editingGames, clearAllSliders, sorting, currentCollection, filteredGames, filteredNoExpansions, tagsArray } from '~/composables/useGames'
+<script setup lang="ts">
+// Imports
+import { user, status, searchTerm, editingGames, clearAllSliders, sorting, currentCollection, filteredGames, filteredNoExpansions, tagsArray, selectedButFilteredOut, numActiveFilters } from '~/composables/useGames'
 import { showingDetails } from '~/composables/useUI';
 import { isMobile } from '~/composables/useMedia'
 import { PrimeIcons } from '@primevue/core/api'
+import { useShepherd } from 'vue-shepherd'
+
+// Page Meta
 definePageMeta({
   path: ''
 })
 
+// Constants and Reactive References
+const toast = useToast()
+const el = ref(null)
+const tour = useShepherd({ useModalOverlay: true })
+
 const collectionNameDialog = ref(false)
 const collectionName = ref('')
 const makingNewCollection = ref(false)
-function showCollectionNameDialog(isNew = false) {
-  makingNewCollection.value = isNew
-  collectionName.value = isNew ? '' : user.value.collections[currentCollection.value].collection_name
-  collectionNameDialog.value = true
-}
-function saveCollection() {
-  //TODO: validate name
-  if (makingNewCollection.value) {
-    addCollection(collectionName.value)
-  } else {
-    editCollection(collectionName.value, currentCollection.value)
-  }
-  collectionNameDialog.value = false
-}
-
-function selectGame(game) {
-  game.selected = !game.selected
-}
+const cNameInput = ref(null)
 
 const showSort = ref(false)
 const showFilter = ref(false)
-
-const sortProperties = [
-  { value: 'name', name: 'Name', icon: 'arrow-down-a-z', descLabel: 'A..', ascLabel: 'Z..' },
-  { value: 'rating', name: 'Rating', icon: 'star', descLabel: 'highest', ascLabel: 'lowest' },
-  { value: 'complexity', name: 'Complexity', icon: 'brain', descLabel: 'heaviest', ascLabel: 'easiest' },
-  { value: 'players', name: 'Players', icon: 'people-group', descLabel: 'most', ascLabel: 'fewest' },
-  { value: 'playtime', name: 'Play time', icon: 'hourglass-half', descLabel: 'longest', ascLabel: 'shortest' },
-  { value: 'age', name: 'Maturity', icon: 'person-cane', descLabel: 'NSFW', ascLabel: 'for kids' },
-  { value: 'year', name: 'Publish Date', icon: 'calendar', descLabel: 'newest', ascLabel: 'oldest' }
-]
-
-
 const scrollTarget = ref(null)
-const scrollToTop = (ccb) => {
-  scrollTarget.value.scrollIntoView({ behavior: 'smooth' })
-  hideSticky.value = true
-  ccb()
-}
-
-const route = useRoute()
-function goToAdd() {
-  navigateTo(route.path.endsWith('/') ? `${route.path}add` : `${route.path}/add`)
-}
-
 const details = ref(null)
+const showTable = ref(false)
+const showTags = ref(false)
+const selectedMenu = ref(null)
 
+const hideSticky = ref(false)
+const gamesList = ref(null)
 
 const filterStyleOptions = ref([
   { label: 'Quick Find', value: 'simple', icon: PrimeIcons.SEARCH },
@@ -286,44 +271,87 @@ const listStyleOptions = ref([
   { label: 'Table', value: true, icon: PrimeIcons.ALIGN_JUSTIFY }
 ])
 
-const showTable = ref(false)
+// Computed Properties
+const hasGames = computed(() => gamesArray.value.length > 0)
 
-const hasGames = computed(() => {
-  return gamesArray.value.length > 0
-})
+const selectedCount = computed(() => gamesArray.value.filter(g => g.selected).length)
 
-const someSelected = computed(() => {
-  return user.value.games?.some(g => g.selected)
-})
-
-watch(filterStyle, () => {
-  clearAllSliders()
+const selectedOptions = computed(() => {
+  let items = Object.values(user.value.collections).filter(c => c.id !== currentCollection.value).map(c => ({
+    label: c.collection_name, 
+    icon: PrimeIcons.FOLDER, 
+    command: () =>  { 
+      addSelectedToCollection(c.id)
+      selectAll(false)
+    }
+  }))
+  return [
+    { label: 'Add to New Collection', icon: PrimeIcons.PLUS, command: () => { /* TODO: Make new collection with selected games */ }},
+    { label: 'Add to Existing Collection', icon: PrimeIcons.COPY, items },
+    {
+      label: 'Remove from this Collection', icon: PrimeIcons.TRASH, command: () => {
+        if (confirm(`Are you sure you want to remove these ${selectedCount.value} games from "${user.value.collections[currentCollection.value].collection_name}"?`)) {
+          removeSelectedGames()
+          selectAll(false)
+        }
+      }
+    },
+  ]
 })
 
 const collectionChoice = ref(currentCollection.value)
 const collectionOptions = computed(() => {
-  let ret = [...Object.values(user.value.collections)]
+  let ret = [...Object.values(user.value.collections)].map(c => {
+    c.isDefault = c.id === user.value.default_collection_id
+    return c
+  })
   if (user.value.isSelf) {
     ret.unshift({ id: -1, collection_name: '+ New Collection' })
   }
   return ret
 })
+
+// Watchers
+watch(filterStyle, () => {
+  clearAllSliders()
+})
+
 watch(() => currentCollection.value, (cId) => {
   if (cId !== collectionChoice.value) {
     collectionChoice.value = cId
   }
 })
+
 watch(() => collectionChoice.value, (choice) => {
   if (choice === -1) {
-    // make new collection
-    collectionChoice.value = currentCollection.value
     showCollectionNameDialog(true)
-    return
   } else {
-    // TODO: give feedback that collection is loading
     setCurrentCollection(choice)
   }
 })
+
+// Collection Management Functions
+function showCollectionNameDialog(isNew = false) {
+  makingNewCollection.value = isNew
+  collectionName.value = isNew ? '' : user.value.collections[currentCollection.value].collection_name
+  collectionNameDialog.value = true
+  nextTick(() => cNameInput.value.focus())
+}
+
+function saveCollection() {
+  if (makingNewCollection.value) {
+    addCollection(collectionName.value)
+  } else {
+    editCollection(collectionName.value, currentCollection.value)
+  }
+  collectionNameDialog.value = false
+}
+
+async function makeDefaultCollection() {
+  const res = (await $fetch('/api/collection/set-default', { method: 'get', params: { cId: currentCollection.value }}))
+  user.value.default_collection_id = currentCollection.value
+  toast.add({ severity: 'success', summary: `'${user.value.collections[currentCollection.value].collection_name}' is now your default collection`, life: 3000 })
+}
 
 async function confirmDelete() {
   if (confirm(`Are you sure you want to delete collection "${user.value.collections[currentCollection.value].collection_name}"?`)) {
@@ -331,79 +359,104 @@ async function confirmDelete() {
   }
 }
 
+// Game Selection Functions
+function selectGame(game) {
+  game.selected = !game.selected
+}
 
-const showTags = ref(false)
+function selectAll(select) {
+  if (select) {
+    filteredGames.value.forEach(g => g.selected = true)
+  } else {
+    gamesArray.value.forEach(g => g.selected = false)
+  }
+}
 
-const itMe = ref(true)
+function showSelectionMenu(event) {
+  selectedMenu.value.toggle(event)
+}
 
-// STICKY SCROLL
-const hideDistance = 50, showDistance = 10
+function toggleEditGames() {
+  if (editingGames.value) {
+    gamesArray.value.forEach(g => g.selected = false)
+    editingGames.value = false
+  } else {
+    editingGames.value = true
+  }
+}
+
+// Navigation and Scroll Functions
+function goToAdd() {
+  navigateTo(route.path.endsWith('/') ? `${route.path}add` : `${route.path}/add`)
+}
+
+const scrollToTop = (ccb) => {
+  scrollTarget.value.scrollIntoView({ behavior: 'smooth' })
+  hideSticky.value = true
+  ccb()
+}
+
+// Swipe Detection Functions
+let touchStartX
+const swipeDistance = 120
+
+const touchStart = (e) => {
+  touchStartX = e.changedTouches[0].clientX
+}
+
+const touchEnd = (e) => {
+  if (e.changedTouches[0].clientX - touchStartX > swipeDistance) {
+    if (showingDetails.value) {
+      details.value.nextGame(false)
+    } else {
+      showSort.value = true
+      showFilter.value = false
+    }
+  } else if (touchStartX - e.changedTouches[0].clientX > swipeDistance) {
+    if (showingDetails.value) {
+      details.value.nextGame(true)
+    } else {
+      showFilter.value = true
+      showSort.value = false
+    }
+  }
+}
+
+// Lifecycle Hooks
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  window.addEventListener('touchstart', touchStart, false)
+  window.addEventListener('touchend', touchEnd, false)
+
+  tour.addStep({
+    attachTo: { element: gamesList.value, on: 'bottom' },
+    text: 'This is the games list. You can sort and filter the games here.',
+  })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('touchstart', touchStart)
+  window.removeEventListener('touchend', touchEnd)
+})
+
+// Sticky Scroll Handling
 let lastScrollTop, lastScrollBottom, lastScrollY
-const hideSticky = ref(false)
+const hideDistance = 50, showDistance = 10
 const handleScroll = () => {
   const st = window.scrollY || document.documentElement.scrollTop
   if (st - lastScrollY > 0) {
-    // Scrolling Down
     lastScrollBottom = st
     if (st - lastScrollTop > hideDistance) {
       hideSticky.value = true
     }
   } else {
-    // Scrolling Up
     lastScrollTop = st
     if (lastScrollBottom - st > showDistance) {
       hideSticky.value = false
     }
   }
   lastScrollY = st <= 0 ? 0 : st
-}
-
-const gamesList = ref(null)
-
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-  window.addEventListener("touchstart", touchStart, false);
-  window.addEventListener("touchend", touchEnd, false);
-
-  //DEBUG
-  // showDetails(0)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener("touchstart", touchStart);
-  window.removeEventListener("touchend", touchEnd);
-})
-
-
-// Detect swipe left / right
-let touchStartX
-const swipeDistance = 120
-const touchStart = (e) => {
-  touchStartX = e.changedTouches[0].clientX
-}
-const touchEnd = (e) => {
-  if (e.changedTouches[0].clientX - touchStartX > swipeDistance) {
-    // Swiped Right
-    if (showingDetails.value) {
-      details.value.nextGame(false)
-    } else {
-      if (!showFilter.value) {
-        showSort.value = true
-      }
-      showFilter.value = false
-    }
-  } else if (touchStartX - e.changedTouches[0].clientX > swipeDistance) {
-    // Swiped Left
-    if (showingDetails.value) {
-      details.value.nextGame(true)
-    } else {
-      if (!showSort.value) {
-        showFilter.value = true
-      }
-      showSort.value = false
-    }
-  }
 }
 
 </script>

@@ -29,6 +29,14 @@ window.addEventListener('unhandledrejection', function (event) {
   reportErrorToServer({ message: event.reason })
 })
 
+window.addEventListener('popstate', function (event) {
+    // Show a confirmation dialog or custom message
+    if (!confirm('Are you sure you want to leave this page?')) {
+        // Push the current state back onto the history to prevent navigation
+        history.pushState(null, '', window.location.href);
+    }
+});
+
 function reportErrorToServer(errorData) {
   fetch('/api/log-error', {
     method: 'POST',

@@ -1,6 +1,6 @@
 import query from '../../db'
 export default defineAuthenticatedEventHandler(async (event, session) => {
-  const { name } = getQuery(event)
+  const { name } = readBody(event)
   let qRes
   try {
     qRes = await query(
