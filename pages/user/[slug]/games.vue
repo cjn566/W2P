@@ -190,7 +190,7 @@
             <TransitionGroup name="fade">
               <GamesCard v-for="g in selectedButFilteredOut" :key="g.bgg_game_id" :g="g" class="warn-border"
                 @click="selectGame(g)" />
-                <!-- TODO: expansions need to be selectable -->
+              <!-- TODO: expansions need to be selectable -->
             </TransitionGroup>
           </div>
 
@@ -217,16 +217,16 @@
     :header="makingNewCollection ? 'New Collection' : 'Rename Collection'" :style="{ width: '25rem' }">
     <div class="flex items-center gap-4 mb-4">
       <label for="username" class="font-semibold w-24">Name</label>
-      <InputText v-model="collectionName" class="flex-auto" autocomplete="off" ref="cNameInput"/>
+      <InputText v-model="collectionName" class="flex-auto" autocomplete="off" ref="cNameInput" />
     </div>
     <div class="flex justify-end gap-2">
       <Button type="button" label="Cancel" severity="secondary" @click="collectionNameDialog = false"></Button>
-      <Button type="button" label="Save" @click="saveCollection" @keydown.enter="saveCollection" ></Button>
+      <Button type="button" label="Save" @click="saveCollection" @keydown.enter="saveCollection"></Button>
     </div>
   </Dialog>
 </template>
 
-<script setup lang="ts">
+<script setup>
 // Imports
 import { user, status, searchTerm, editingGames, clearAllSliders, sorting, currentCollection, filteredGames, filteredNoExpansions, tagsArray, selectedButFilteredOut, numActiveFilters } from '~/composables/useGames'
 import { showingDetails } from '~/composables/useUI';
@@ -244,21 +244,22 @@ const toast = useToast()
 const el = ref(null)
 const tour = useShepherd({ useModalOverlay: true })
 
+// Component Refs
+const cNameInput = ref(null)
+const scrollTarget = ref(null)
+const details = ref(null)
+const selectedMenu = ref(null)
+const gamesList = ref(null)
+
+// Stuff
 const collectionNameDialog = ref(false)
 const collectionName = ref('')
 const makingNewCollection = ref(false)
-const cNameInput = ref(null)
-
 const showSort = ref(false)
 const showFilter = ref(false)
-const scrollTarget = ref(null)
-const details = ref(null)
 const showTable = ref(false)
 const showTags = ref(false)
-const selectedMenu = ref(null)
-
 const hideSticky = ref(false)
-const gamesList = ref(null)
 
 const filterStyleOptions = ref([
   { label: 'Quick Find', value: 'simple', icon: PrimeIcons.SEARCH },
@@ -278,16 +279,18 @@ const selectedCount = computed(() => gamesArray.value.filter(g => g.selected).le
 
 const selectedOptions = computed(() => {
   let items = Object.values(user.value.collections).filter(c => c.id !== currentCollection.value).map(c => ({
-    label: c.collection_name, 
-    icon: PrimeIcons.FOLDER, 
-    command: () =>  { 
+    label: c.collection_name,
+    icon: PrimeIcons.FOLDER,
+    command: () => {
       addSelectedToCollection(c.id)
       selectAll(false)
     }
   }))
   return [
-    { label: 'Add to New Collection', icon: PrimeIcons.PLUS, command: () => { /* TODO: Make new collection with selected games */ }},
-    { label: 'Add to Existing Collection', icon: PrimeIcons.COPY, items },
+    { label: 'Copy to', icon: PrimeIcons.COPY, items: [
+      { label: 'New Collection', icon: PrimeIcons.PLUS, command: copyToNewCollection },
+      ...items
+    ] },
     {
       label: 'Remove from this Collection', icon: PrimeIcons.TRASH, command: () => {
         if (confirm(`Are you sure you want to remove these ${selectedCount.value} games from "${user.value.collections[currentCollection.value].collection_name}"?`)) {
@@ -298,6 +301,11 @@ const selectedOptions = computed(() => {
     },
   ]
 })
+
+function copyToNewCollection() {
+  showCollectionNameDialog(true)
+  selectAll(false)
+}
 
 const collectionChoice = ref(currentCollection.value)
 const collectionOptions = computed(() => {
@@ -348,7 +356,7 @@ function saveCollection() {
 }
 
 async function makeDefaultCollection() {
-  const res = (await $fetch('/api/collection/set-default', { method: 'get', params: { cId: currentCollection.value }}))
+  const res = (await $fetch('/api/collection/set-default', { method: 'get', params: { cId: currentCollection.value } }))
   user.value.default_collection_id = currentCollection.value
   toast.add({ severity: 'success', summary: `'${user.value.collections[currentCollection.value].collection_name}' is now your default collection`, life: 3000 })
 }

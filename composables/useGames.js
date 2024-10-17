@@ -1,6 +1,5 @@
 // import { useToast } from 'primevue/usetoast'
-// const toast = useToast()
-
+const toast = useToast()
 import { makeArray } from '~/utils/makearray'
 // import { useToast } from 'primevue/usetoast'
 // const toast = useToast()
@@ -94,14 +93,16 @@ export async function editCollection(name, cId) {
 // TODO: needs fixed
 export async function removeCollection(cId) {
   status.value.gamesReady = false
-  const res = await $fetch('/api/collection/remove', {
-    method: 'get',
-    params: { cId }
-  })
-
-  if (!res.err) {
+  try {
+    await $fetch('/api/collection/remove', {
+      method: 'get',
+      params: { cId }
+    })    
+    toast.add({ severity: 'success', summary: `Deleted '${user.value.collections[cId].collection_name}'`, life: 3000 })
     delete user.value.collections[cId]
     setCurrentCollection(null)
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Failed to delete', detail: 'Server says: ' + e.msg, life: 3000 })
   }
 }
 
