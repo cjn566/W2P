@@ -1,8 +1,4 @@
-import query from '../db'
 export default defineEventHandler(async (event) => {
-
-    const body = await readBody(event)
-    console.error("Reported: ", body)
-    // const qRes = await query('DELETE FROM app.games WHERE id = $1', [userGameId])
-
+    const context = await readBody(event)
+    log({ level: 'error', source: 'client', message: context.message, context })
 })

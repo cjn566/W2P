@@ -1,7 +1,7 @@
 import query from '../db'
 type LogLevel = 'debug' | 'error' | 'fatal' | 'info' | 'warn';
 
-interface LogEntry {
+export interface LogEntry {
     level: LogLevel;
     source: string;
     message: string;

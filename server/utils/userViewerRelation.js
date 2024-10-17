@@ -2,12 +2,11 @@ import query from '../db'
 import { getServerSession } from '#auth'
 
 export async function checkUserViewerRelation(user, event) {
-  
-    
+
+
     const session = await getServerSession(event)
     let isSelf = false
     let friend_status = 'none'
-    let err_code = null
     if (session) {
         if (session.user.email == user.email) {
             // Is self
@@ -27,22 +26,36 @@ export async function checkUserViewerRelation(user, event) {
 
             switch (user.set_private) {
                 case 'set_priv_friends':
-                    if (friend_status != 'fr_accept')
-                        err_code = 'not_friends'
+                    if (friend_status != 'fr_accept') {
+                        throw new createError({
+                            status: 'not_friends',
+                            message: "That user is only sharing their info with friends. Try sending them a friend request."
+                        })
+                    }
                     break
-                case 'set_priv_private': err_code = 'private_not_self'
+                case 'set_priv_private':
+                    throw new createError({
+                        status: 'private_not_self',
+                        message: "That user's info is not available at this time."
+                    })
                 default: break
             }
         }
     } else {
         // Is not logged in, only show profile if public
         switch (user.set_private) {
-            case 'set_priv_friends': 
-                err_code = 'friends_only_logged_out'
-                break
-            case 'set_priv_private': err_code = 'private_logged_out'
+            case 'set_priv_friends':
+                throw new createError({
+                    status: 'friends_only_logged_out',
+                    message: "That user is only sharing their info with friends. If you are their friend, please log in first."
+                })
+            case 'set_priv_private':
+                throw new createError({
+                    status: 'private_logged_out',
+                    message: "That user's info is not available. If you are this user, please log in to see your content."
+                })
             default: break
         }
     }
-    return { isSelf, friend_status, err_code }
+    return { isSelf, friend_status }
 }

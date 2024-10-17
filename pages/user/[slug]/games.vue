@@ -1,137 +1,145 @@
 <template>
 
+
   <div v-if="status.userReady">
-    <!-- Whose games are we seeing? -->
-    <div class="bg-surface-700 rounded-tr-xl  rounded-tl-xl  py-8">
-      <div class="flex ml-4">
-        <img :src="user.image" class="h-16 w-16 rounded-full mr-4" alt="avatar">
-        <div>
-          <div class="text-3xl">{{ user.name }}</div>
-          <Select v-model="collectionChoice" :options="collectionOptions" optionLabel="collection_name" optionValue="id"
-            dataKey="id" checkmark class="block">
-            <template #option="slopProps">
-              <i v-if="slopProps.option.isDefault" class="pi pi-star text-yellow-500 mr-2" />
-              {{ slopProps.option.collection_name }}
-            </template>
-          </Select>
-          <Button v-model="editingGames" v-if="user.isSelf" icon="pi pi-cog" label="Manage" class="ml-2"
-            @click="toggleEditGames" />
-        </div>
-      </div>
-
-      <div v-if="editingGames" class="pt-1 flex justify-center bg-surface-600 ">
-        <Button class="m-1 text-lg" icon="pi pi-plus" label="Add Games" @click="goToAdd()" />
-        <div class="flex flex-col">
-          <Button v-if="currentCollection !== user.default_collection_id" class="m-1" icon="pi pi-star"
-            severity="secondary" label="Make Default" size="small" @click="makeDefaultCollection" />
-          <Button class="m-1" icon="pi pi-pencil" severity="secondary" label="Rename" size="small"
-            @click="showCollectionNameDialog(false)" />
-          <Button class="m-1" icon="pi pi-trash" severity="secondary" size="small" label="Delete"
-            @click="confirmDelete" />
-        </div>
-      </div>
+    <div v-if="contentUnavailable" class="unavailable">
+      {{ contentUnavailable.message }}
     </div>
+    <div v-else>
 
-
-
-
-    <div v-if="status.gamesReady">
-      <div v-if="!hasGames" class="flex justify-center my-8">
-        There are no games in this collection yet.
-      </div>
-      <div v-else>
-
-        <!-- Sticky Stuff - Sort, Search, Filter -->
-        <div ref="scrollTarget" />
-        <div class="sticky-btns flex flex-col" :class="{ hide: hideSticky }">
-          <!-- Search Bar -->
-          <div class="flex">
-            <IconField class="flex grow">
-              <InputIcon class="pi pi-search" />
-              <InputText class="grow rounded-none" v-model="searchTerm" placeholder="Find game by name" />
-            </IconField>
-            <Button class="rounded-none bg-primary-600 btn-clear-txt" icon="pi pi-times"
-              :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
+      <div v-if="status.userReady">
+        <!-- Whose games are we seeing? -->
+        <div class="bg-surface-700 rounded-tr-xl  rounded-tl-xl  py-8">
+          <div class="flex ml-4">
+            <img :src="user.image" class="h-16 w-16 rounded-full mr-4" alt="avatar">
+            <div>
+              <div class="text-3xl">{{ user.name }}</div>
+              <Select v-model="collectionChoice" :options="collectionOptions" optionLabel="collection_name"
+                optionValue="id" dataKey="id" checkmark class="block">
+                <template #option="slopProps">
+                  <i v-if="slopProps.option.isDefault" class="pi pi-star text-yellow-500 mr-2" />
+                  {{ slopProps.option.collection_name }}
+                </template>
+              </Select>
+              <Button v-model="editingGames" v-if="user.isSelf" icon="pi pi-cog" label="Manage" class="ml-2"
+                @click="toggleEditGames" />
+            </div>
           </div>
 
-          <div class="flex *:text-3xl *:w-1/2 h-[4.5rem]">
-            <!-- Sort Button -->
-            <Button @click="showSort = true" class="rounded-none rounded-bl-xl border-0 border-r-2 border-white">
-              Sort
-              <div class="text-sm absolute bottom-0">
-                {{ sorting.active }}
-                <i v-if="sorting.descending" class="pi pi-chevron-down" />
-                <i v-else class="pi pi-chevron-up" />
-              </div>
-            </Button>
-            <!-- Filter Button -->
-            <Button @click="showFilter = true" class="rounded-none rounded-br-xl border-0">
-              Filter
-              <div class="text-sm absolute bottom-0">
-                {{ numActiveFilters || 'no' }} filter{{ pl(numActiveFilters) }},
-                {{ filteredGames.length }}/{{ gamesArray.length }} games
-              </div>
-            </Button>
+          <div v-if="editingGames" class="pt-1 flex justify-center bg-surface-600 ">
+            <Button class="m-1 text-lg" icon="pi pi-plus" label="Add Games" @click="goToAdd()" />
+            <div class="flex flex-col">
+              <Button v-if="currentCollection !== user.default_collection_id" class="m-1" icon="pi pi-star"
+                severity="secondary" label="Make Default" size="small" @click="makeDefaultCollection" />
+              <Button class="m-1" icon="pi pi-pencil" severity="secondary" label="Rename" size="small"
+                @click="showCollectionNameDialog(false)" />
+              <Button class="m-1" icon="pi pi-trash" severity="secondary" size="small" label="Delete"
+                @click="confirmDelete" />
+            </div>
           </div>
         </div>
 
-        <!-- Sort Drawer -->
-        <Drawer v-model:visible="showSort">
-          <template #container="{ closeCallback }">
-            <div class="flex flex-col h-full w-max ">
-              <div class="flex items-center justify-between px-6 pt-4 shrink-0 text-2xl">
-                Sort By
-                <span class="">
-                  <Button type="button" @click="closeCallback" icon="pi pi-times" rounded outlined></Button>
-                </span>
+
+
+
+        <div v-if="status.gamesReady">
+          <div v-if="!hasGames" class="flex justify-center my-8">
+            There are no games in this collection yet.
+          </div>
+          <div v-else>
+
+            <!-- Sticky Stuff - Sort, Search, Filter -->
+            <div ref="scrollTarget" />
+            <div class="sticky-btns flex flex-col" :class="{ hide: hideSticky }">
+              <!-- Search Bar -->
+              <div class="flex">
+                <IconField class="flex grow">
+                  <InputIcon class="pi pi-search" />
+                  <InputText class="grow rounded-none" v-model="searchTerm" placeholder="Find game by name" />
+                </IconField>
+                <Button class="rounded-none bg-primary-600 btn-clear-txt" icon="pi pi-times"
+                  :disabled="searchTerm.length == 0" @click="searchTerm = ''" />
               </div>
-              <div v-for="property in sortProperties">
-                <Divider />
-                <GamesSort :sort="property" @clicked="scrollToTop(closeCallback)" />
+
+              <div class="flex *:text-3xl *:w-1/2 h-[4.5rem]">
+                <!-- Sort Button -->
+                <Button @click="showSort = true" class="rounded-none rounded-bl-xl border-0 border-r-2 border-white">
+                  Sort
+                  <div class="text-sm absolute bottom-0">
+                    {{ sorting.active }}
+                    <i v-if="sorting.descending" class="pi pi-chevron-down" />
+                    <i v-else class="pi pi-chevron-up" />
+                  </div>
+                </Button>
+                <!-- Filter Button -->
+                <Button @click="showFilter = true" class="rounded-none rounded-br-xl border-0">
+                  Filter
+                  <div class="text-sm absolute bottom-0">
+                    {{ numActiveFilters || 'no' }} filter{{ pl(numActiveFilters) }},
+                    {{ filteredGames.length }}/{{ gamesArray.length }} games
+                  </div>
+                </Button>
               </div>
-              <Divider />
             </div>
-          </template>
-        </Drawer>
 
-        <!-- Filter Drawer -->
-        <Drawer v-model:visible="showFilter" position="right" class="!w-3/4">
-          <template #container="{ closeCallback }">
-            <div class="flex flex-col h-full px-2">
-              <div class="flex items-center justify-between px-6 pt-4 shrink-0 text-2xl mb-4">
-                Filter
-                <span class="">
-                  <Button type="button" @click="closeCallback" icon="pi pi-times" rounded outlined></Button>
-                </span>
-              </div>
+            <!-- Sort Drawer -->
+            <Drawer v-model:visible="showSort">
+              <template #container="{ closeCallback }">
+                <div class="flex flex-col h-full w-max ">
+                  <div class="flex items-center justify-between px-6 pt-4 shrink-0 text-2xl">
+                    Sort By
+                    <span class="">
+                      <Button type="button" @click="closeCallback" icon="pi pi-times" rounded outlined></Button>
+                    </span>
+                  </div>
+                  <div v-for="property in sortProperties">
+                    <Divider />
+                    <GamesSort :sort="property" @clicked="scrollToTop(closeCallback)" />
+                  </div>
+                  <Divider />
+                </div>
+              </template>
+            </Drawer>
 
-
-              <FilterVisualBar />
-              <GamesActiveFilters />
-              <Divider />
-              <div class="flex justify-center w-full items-center">
-                <SelectButton v-model="filterStyle" :options="filterStyleOptions" optionLabel="label" dataKey="value" />
-              </div>
-
-              <Divider />
-              <FilterSimpleUI v-if="filterStyle.value == 'simple'" class="grow" />
-              <FilterAdvancedUI v-else class="grow" />
-              <Divider />
-
-              <div class="flex justify-center mb-12">
-                <Button id="btn-show-tags" label="Filter by Tags" severity="info" @click="showTags = true" />
-              </div>
-
-              <Dialog v-model:visible="showTags" modal dismissableMask header="Filter by Tags" class="h-3/4 mx-8">
-                <FilterTagList :tagList="tagsArray" />
-              </Dialog>
+            <!-- Filter Drawer -->
+            <Drawer v-model:visible="showFilter" position="right" class="!w-3/4">
+              <template #container="{ closeCallback }">
+                <div class="flex flex-col h-full px-2">
+                  <div class="flex items-center justify-between px-6 pt-4 shrink-0 text-2xl mb-4">
+                    Filter
+                    <span class="">
+                      <Button type="button" @click="closeCallback" icon="pi pi-times" rounded outlined></Button>
+                    </span>
+                  </div>
 
 
-            </div>
-          </template>
-        </Drawer>
+                  <FilterVisualBar />
+                  <GamesActiveFilters />
+                  <Divider />
+                  <div class="flex justify-center w-full items-center">
+                    <SelectButton v-model="filterStyle" :options="filterStyleOptions" optionLabel="label"
+                      dataKey="value" />
+                  </div>
 
-        <!-- <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
+                  <Divider />
+                  <FilterSimpleUI v-if="filterStyle.value == 'simple'" class="grow" />
+                  <FilterAdvancedUI v-else class="grow" />
+                  <Divider />
+
+                  <div class="flex justify-center mb-12">
+                    <Button id="btn-show-tags" label="Filter by Tags" severity="info" @click="showTags = true" />
+                  </div>
+
+                  <Dialog v-model:visible="showTags" modal dismissableMask header="Filter by Tags" class="h-3/4 mx-8">
+                    <FilterTagList :tagList="tagsArray" />
+                  </Dialog>
+
+
+                </div>
+              </template>
+            </Drawer>
+
+            <!-- <SelectButton v-model="showTable" :options="listStyleOptions" optionLabel="label" dataKey="value"
             :pt="{ root: 'absolute right-[8%] -top-[20px]' }">
             <template #option="slotProps">
               <i :class="slotProps.option.icon"></i>
@@ -140,90 +148,98 @@
 
 
 
-        <!-- The Games List -->
-        <div v-show="!filteredNoExpansions.length" class="flex mt-10 justify-center">
-          <span>There are no games that fit the search criteria.</span>
-        </div>
-        <div v-show="filteredNoExpansions.length > 0" ref="gamesList">
-          <!-- <Paginator :totalRecords="filteredGames.length" :rows="50"  v-model:first="firstGame"/> -->
-          <ScrollTop />
-
-          <div v-if="editingGames" class="m-2 p-2 bg-surface-800 flex justify-between items-baseline sticky top-0">
-            <Button @click="selectAll(true)" :disabled="filteredGames.every(g => g.selected)" class="text-xs"
-              :label="`Select All${numActiveFilters ? ' (filtered)' : ''}`" />
-            <Button @click="showSelectionMenu" :disabled="!selectedCount" severity="secondary" class="text-sm">
-              {{ selectedCount }} game{{ pl(selectedCount) }} selected
-              <span v-if="selectedButFilteredOut.length"
-                class="font-bold bg-slate-600 px-1 ml-1 rounded-sm text-white">(<span class="text-green-300">{{
-                  selectedCount - selectedButFilteredOut.length }}</span>/<span class="text-yellow-400">{{
-                    selectedButFilteredOut.length }}</span>)</span>
-            </Button>
-            <TieredMenu ref="selectedMenu" :model="selectedOptions" :popup="true" />
-            <Button @click="selectAll(false)" :disabled="gamesArray.every(g => !g.selected)" class="text-xs">Unselect
-              All</Button>
-          </div>
-
-          <!-- Show games as high density table -->
-          <GamesTable v-if="showTable" />
-
-          <!-- Show games as cards -->
-          <TransitionGroup v-else name="fade">
-            <GamesCard v-for="g in filteredNoExpansions" :key="g.bgg_game_id" :g="g"
-              @click="editingGames ? selectGame(g) : details.showDetails(g.bgg_game_id)" />
-          </TransitionGroup>
-
-          <!-- Show games that are selected but no longer pass the filter -->
-          <div v-if="editingGames && selectedButFilteredOut.length" class="bg-slate-800 pt-2">
-            <div class="flex relative justify-center align-center">
-              <div class="absolute border-b-4 w-full top-1/2 z-0" />
-              <div class="bg-red-950 w-1/2 border-2 z-10 p-2 flex flex-col justify-center items-center">
-                <div class="text-center">
-                  The following {{ selectedButFilteredOut.length }} games are still selected but no longer pass the
-                  current
-                  filter criteria:
-                </div>
-                <Button size="small" label="unselect" severity="secondary"
-                  @click="selectedButFilteredOut.forEach(g => { g.selected = false })" />
-              </div>
+            <!-- The Games List -->
+            <div v-show="!filteredNoExpansions.length" class="flex mt-10 justify-center">
+              <span>There are no games that fit the search criteria.</span>
             </div>
+            <div v-show="filteredNoExpansions.length > 0" ref="gamesList">
+              <!-- <Paginator :totalRecords="filteredGames.length" :rows="50"  v-model:first="firstGame"/> -->
+              <ScrollTop />
 
-            <TransitionGroup name="fade">
-              <GamesCard v-for="g in selectedButFilteredOut" :key="g.bgg_game_id" :g="g" class="warn-border"
-                @click="selectGame(g)" />
-              <!-- TODO: expansions need to be selectable -->
-            </TransitionGroup>
+              <div v-if="editingGames" class="m-2 p-2 bg-surface-800 flex justify-between items-baseline sticky top-0">
+                <Button @click="selectAll(true)" :disabled="filteredGames.every(g => g.selected)" class="text-xs"
+                  :label="`Select All${numActiveFilters ? ' (filtered)' : ''}`" />
+                <Button @click="showSelectionMenu" :disabled="!selectedCount" severity="secondary" class="text-sm">
+                  {{ selectedCount }} game{{ pl(selectedCount) }} selected
+                  <span v-if="selectedButFilteredOut.length"
+                    class="font-bold bg-slate-600 px-1 ml-1 rounded-sm text-white">(<span class="text-green-300">{{
+                      selectedCount - selectedButFilteredOut.length }}</span>/<span class="text-yellow-400">{{
+                        selectedButFilteredOut.length }}</span>)</span>
+                </Button>
+                <TieredMenu ref="selectedMenu" :model="selectedOptions" :popup="true" />
+                <Button @click="selectAll(false)" :disabled="gamesArray.every(g => !g.selected)"
+                  class="text-xs">Unselect
+                  All</Button>
+              </div>
+
+              <!-- Show games as high density table -->
+              <GamesTable v-if="showTable" />
+
+              <!-- Show games as cards -->
+              <TransitionGroup v-else name="fade">
+                <GamesCard v-for="g in filteredNoExpansions" :key="g.bgg_game_id" :g="g"
+                  @click="editingGames ? selectGame(g) : details.showDetails(g.bgg_game_id)" />
+              </TransitionGroup>
+
+              <!-- Show games that are selected but no longer pass the filter -->
+              <div v-if="editingGames && selectedButFilteredOut.length" class="bg-slate-800 pt-2">
+                <div class="flex relative justify-center align-center">
+                  <div class="absolute border-b-4 w-full top-1/2 z-0" />
+                  <div class="bg-red-950 w-1/2 border-2 z-10 p-2 flex flex-col justify-center items-center">
+                    <div class="text-center">
+                      The following {{ selectedButFilteredOut.length }} games are still selected but no longer pass the
+                      current
+                      filter criteria:
+                    </div>
+                    <Button size="small" label="unselect" severity="secondary"
+                      @click="selectedButFilteredOut.forEach(g => { g.selected = false })" />
+                  </div>
+                </div>
+
+                <TransitionGroup name="fade">
+                  <GamesCard v-for="g in selectedButFilteredOut" :key="g.bgg_game_id" :g="g" class="warn-border"
+                    @click="selectGame(g)" />
+                  <!-- TODO: expansions need to be selectable -->
+                </TransitionGroup>
+              </div>
+
+              <!-- Pick random game button -->
+              <div class="flex justify-center mt-2">
+                <Button v-if="filteredNoExpansions.length > 1" @click="details.randomGame()" class="">
+                  <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
+                  <span class="mx-2">Choose a random game</span>
+                  <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
+                </Button>
+              </div>
+
+              <!-- Game Details Dialog -->
+              <GamesDetails v-if="hasGames" ref="details" />
+
+            </div>
           </div>
-
-          <!-- Pick random game button -->
-          <div class="flex justify-center mt-2">
-            <Button v-if="filteredNoExpansions.length > 1" @click="details.randomGame()" class="">
-              <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
-              <span class="mx-2">Choose a random game</span>
-              <font-awesome-icon :icon="['fas', 'dice']" size="2xl" />
-            </Button>
-          </div>
-
-          <!-- Game Details Dialog -->
-          <GamesDetails v-if="hasGames" ref="details" />
-
         </div>
+        <ProgressSpinner name="GamesNotReadyYet" v-else class="w-full" />
       </div>
-    </div>
-    <ProgressSpinner name="GamesNotReadyYet" v-else class="w-full" />
-  </div>
-  <ProgressSpinner name="UserNotReadyYet" v-else class="w-full" />
+      <ProgressSpinner name="UserNotReadyYet" v-else class="w-full" />
 
-  <Dialog v-model:visible="collectionNameDialog" modal
-    :header="makingNewCollection ? 'New Collection' : 'Rename Collection'" :style="{ width: '25rem' }">
-    <div class="flex items-center gap-4 mb-4">
-      <label for="username" class="font-semibold w-24">Name</label>
-      <InputText v-model="collectionName" class="flex-auto" autocomplete="off" ref="cNameInput" />
+      <Dialog v-model:visible="collectionNameDialog" modal
+        :header="makingNewCollection ? 'New Collection' : 'Rename Collection'" :style="{ width: '25rem' }">
+        <div class="flex items-center gap-4 mb-4">
+          <label for="username" class="font-semibold w-24">Name</label>
+          <InputText v-model="collectionName" class="flex-auto" autocomplete="off" ref="cNameInput" />
+        </div>
+        <div class="flex justify-end gap-2">
+          <Button type="button" label="Cancel" severity="secondary" @click="collectionNameDialog = false"></Button>
+          <Button type="button" label="Save" @click="saveCollection" @keydown.enter="saveCollection"></Button>
+        </div>
+      </Dialog>
+
+
     </div>
-    <div class="flex justify-end gap-2">
-      <Button type="button" label="Cancel" severity="secondary" @click="collectionNameDialog = false"></Button>
-      <Button type="button" label="Save" @click="saveCollection" @keydown.enter="saveCollection"></Button>
-    </div>
-  </Dialog>
+  </div>
+  <div v-else>
+    <p>Loading...</p>
+  </div>
 </template>
 
 <script setup>
@@ -233,6 +249,11 @@ import { showingDetails } from '~/composables/useUI';
 import { isMobile } from '~/composables/useMedia'
 import { PrimeIcons } from '@primevue/core/api'
 import { useShepherd } from 'vue-shepherd'
+// import QrcodeVue from 'qrcode.vue'
+
+// const value = ref('http://localhost:3000/user/colten-nye')
+//   const level = ref('Q')
+//   const renderAs = ref('svg')
 
 // Page Meta
 definePageMeta({
@@ -241,8 +262,8 @@ definePageMeta({
 
 // Constants and Reactive References
 const toast = useToast()
-const el = ref(null)
 const tour = useShepherd({ useModalOverlay: true })
+const route = useRoute()
 
 // Component Refs
 const cNameInput = ref(null)
@@ -287,10 +308,12 @@ const selectedOptions = computed(() => {
     }
   }))
   return [
-    { label: 'Copy to', icon: PrimeIcons.COPY, items: [
-      { label: 'New Collection', icon: PrimeIcons.PLUS, command: copyToNewCollection },
-      ...items
-    ] },
+    {
+      label: 'Copy to', icon: PrimeIcons.COPY, items: [
+        { label: 'New Collection', icon: PrimeIcons.PLUS, command: copyToNewCollection },
+        ...items
+      ]
+    },
     {
       label: 'Remove from this Collection', icon: PrimeIcons.TRASH, command: () => {
         if (confirm(`Are you sure you want to remove these ${selectedCount.value} games from "${user.value.collections[currentCollection.value].collection_name}"?`)) {
@@ -466,6 +489,21 @@ const handleScroll = () => {
   }
   lastScrollY = st <= 0 ? 0 : st
 }
+
+
+  if (user.value.slug == route.params.slug) return // Don't fetch the same user twice
+
+  const res = (await $fetch(`/api/user/${slug}`))
+
+  // TODO: handle errors
+  if (res.err_code) {
+    // toast.add({ severity: 'error', summary: 'Error', detail: 'Could not find that user', life: 3000 })
+    return
+  }
+
+  user.value = res
+  status.value.userReady = true
+  setCurrentCollection(route.query.c)
 
 </script>
 

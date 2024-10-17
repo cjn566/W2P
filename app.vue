@@ -17,6 +17,14 @@ useHead({
   },
 })
 
+window.addEventListener('popstate', function (event) {
+    // Show a confirmation dialog or custom message
+    if (!confirm('Are you sure you want to leave this page?')) {
+        // Push the current state back onto the history to prevent navigation
+        history.pushState(null, '', window.location.href);
+    }
+});
+
 window.onerror = function (message, source, lineno, colno, error) {
   console.error('Error caught:', { message, source, lineno, colno, error })
   // Send the error details to the server
@@ -29,21 +37,13 @@ window.addEventListener('unhandledrejection', function (event) {
   reportErrorToServer({ message: event.reason })
 })
 
-window.addEventListener('popstate', function (event) {
-    // Show a confirmation dialog or custom message
-    if (!confirm('Are you sure you want to leave this page?')) {
-        // Push the current state back onto the history to prevent navigation
-        history.pushState(null, '', window.location.href);
-    }
-});
-
 function reportErrorToServer(errorData) {
   fetch('/api/log-error', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(errorData),
+    body: errorData,
   });
 }
 

@@ -1,24 +1,4 @@
-// import { useToast } from 'primevue/usetoast'
-const toast = useToast()
 import { makeArray } from '~/utils/makearray'
-// import { useToast } from 'primevue/usetoast'
-// const toast = useToast()
-
-export async function setUser(slug, cId = null) {
-  if (user.value.slug == slug) return // Don't fetch the same user twice
-
-  const res = (await $fetch(`/api/user/${slug}`))
-
-  // TODO: handle errors
-  if (res.err_code) {
-    // toast.add({ severity: 'error', summary: 'Error', detail: 'Could not find that user', life: 3000 })
-    return
-  }
-
-  user.value = res
-  status.value.userReady = true
-  setCurrentCollection(cId)
-}
 
 
 export async function addGames(cId, newGames) {
