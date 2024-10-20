@@ -2,7 +2,6 @@ import query from '../../db'
 import { StatusCodes } from 'http-status-codes';
 
 export default defineAuthenticatedEventHandler(async (event: any, session: any) => {
-  // TODO: Auth check
   const { cId } = await readBody(event)
   try {
     let result = await query('DELETE FROM app.collections WHERE id = $1 and user_email = $2', [cId, session.user.email])

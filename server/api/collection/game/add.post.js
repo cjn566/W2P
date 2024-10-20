@@ -1,16 +1,13 @@
+import { checkIfOwnerOfCollection } from '~/server/utils/checkIfOwnerOfCollection'
 import query from '../../../db'
 export default defineAuthenticatedEventHandler(async (event, session) => {
   const { gameIDs, cId } = await readBody(event)
 
-  if (session.user.email !== (await query('SELECT user_email FROM app.collections WHERE id = $1', [cId])).rows[0].user_email) {
-    return {
-      err: true,
-      msg: "Unauthorized"
-    }
-  }
-  return (await Promise.all(gameIDs.map((gId) => {
+  checkIfOwnerOfCollection(session.user.email, cId)
+
+  return (await Promise.all(gameIDs.map(async (gId) => {4
     try {
-      return query(
+      return await query(
         `INSERT INTO app.games(collection_id, bgg_game_id, created_by)
           VALUES ($1, $2, $3)
           RETURNING id, bgg_game_id`,
@@ -21,12 +18,12 @@ export default defineAuthenticatedEventHandler(async (event, session) => {
         ])
     } catch (e) {
       if (e.code === '23505') {
-        return { err: true, msg: "duplicate" }
+        return { err: "duplicate", bgg_game_id: gId }
+      } else {
+        return { err: "unknown", bgg_game_id: gId, message: e.message }
       }
     }
-  }
-
-  ))).map(qRes => {
+  }))).map(qRes => {
     if (qRes.err) {
       return qRes
     } else {

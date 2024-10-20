@@ -1,3 +1,3 @@
 export function pl(x) {
-    return x > 1 ? 's' : ''
+    return x == 1 ? '' : 's'
 }

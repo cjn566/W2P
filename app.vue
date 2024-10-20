@@ -38,13 +38,15 @@ window.addEventListener('unhandledrejection', function (event) {
 })
 
 function reportErrorToServer(errorData) {
-  fetch('/api/log-error', {
+  $fetch('/api/log-error', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: errorData,
-  });
+  }).catch((error) => {
+    console.error('Error reporting error to server:', error)
+  })
 }
 
 </script>

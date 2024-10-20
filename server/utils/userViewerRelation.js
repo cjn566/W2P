@@ -27,14 +27,14 @@ export async function checkUserViewerRelation(user, event) {
             switch (user.set_private) {
                 case 'set_priv_friends':
                     if (friend_status != 'fr_accept') {
-                        throw new createError({
+                        throw createError({
                             status: 'not_friends',
                             message: "That user is only sharing their info with friends. Try sending them a friend request."
                         })
                     }
                     break
                 case 'set_priv_private':
-                    throw new createError({
+                    throw createError({
                         status: 'private_not_self',
                         message: "That user's info is not available at this time."
                     })
@@ -42,15 +42,15 @@ export async function checkUserViewerRelation(user, event) {
             }
         }
     } else {
-        // Is not logged in, only show profile if public
+        // Is not logged in, only show profile is public
         switch (user.set_private) {
             case 'set_priv_friends':
-                throw new createError({
+                throw createError({
                     status: 'friends_only_logged_out',
                     message: "That user is only sharing their info with friends. If you are their friend, please log in first."
                 })
             case 'set_priv_private':
-                throw new createError({
+                throw createError({
                     status: 'private_logged_out',
                     message: "That user's info is not available. If you are this user, please log in to see your content."
                 })

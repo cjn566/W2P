@@ -1,38 +1,34 @@
 import { makeArray } from '~/utils/makearray'
 
 
-export async function addGames(cId, newGames) {
-  // status.value.gamesReady = false
-  newGames = makeArray(newGames)
-  const gameIDs = newGames.map(x => x.bgg_game_id)
-  const res = (await $fetch('/api/collection/game/add',
+export async function addGames(games, toast, cId = currentCollection.value) {
+  const gameIDs = games.map(g => g.bgg_game_id)
+  $fetch('/api/collection/game/add',
     {
       method: 'post',
       body: { gameIDs, cId }
-    }))
-
-  if (res.err) {
-    toast.add({ severity: 'error', summary: 'Something went wrong', detail: 'it broke.', life: 3000 })
-  } else {
-    res.forEach((r) => {
-      if (r.err && r.msg == "duplicate") {
-        toast.add({ severity: 'error', summary: 'Cannot add that game', detail: 'That game was already in your library', life: 3000 })
-      } else {
-        user.value.collections[cId].gameIDs.push(r.bgg_game_id)
-        // toast.add({ severity: 'success', summary: `${g.name} was added to your library.`, life: 3000 })
-      }
+    }).then(res => {
+      res.forEach((r) => {
+        let gameName = games.find(g => g.bgg_game_id === r.bgg_game_id).name
+        if (r.err == "duplicate") {
+          toast.add({ severity: 'warn', summary: 'Cannot add that game', detail: `'${gameName}' was already in '${user.value.collections[cId].collection_name}'`, life: 3000 })
+        } else {
+          user.value.collections[cId].gameIDs.push(r.bgg_game_id)
+          toast.add({ severity: 'success', summary: `${gameName} was added to '${user.value.collections[cId].collection_name}'.`, life: 2000 })
+        }
+      })
+      buildCollection()
+    }).catch(e => {
+      toast.add({ severity: 'error', summary: 'An unknown error occured', detail: 'Server says: ' + e.statusMessage, life: 3000 })
     })
-  }
-  // TODO: see where callers need to rebuildCollection()
 }
 
-export async function addSelectedToCollection(cId) {
-  await addGames(cId, gamesArray.value.filter(g => g.selected))
+export function addSelectedToCollection(cId) {
+  addGames(cId, gamesArray.value.filter(g => g.selected))
 }
 
 
 export async function removeSelectedGames() {
-  status.value.gamesReady = false
   const gameIDs = gamesArray.value.filter(g => g.selected).map(g => g.bgg_game_id)
   const res = (await $fetch('/api/collection/game/remove',
     {
@@ -77,7 +73,7 @@ export async function removeCollection(cId) {
     await $fetch('/api/collection/remove', {
       method: 'get',
       params: { cId }
-    })    
+    })
     toast.add({ severity: 'success', summary: `Deleted '${user.value.collections[cId].collection_name}'`, life: 3000 })
     delete user.value.collections[cId]
     setCurrentCollection(null)

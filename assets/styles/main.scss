@@ -28,6 +28,34 @@ body {
   font-weight: bold;
 }
 
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  /* High z-index to ensure it's on top */
+}
+
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
 /* Primary and Surface Palettes */
 :root {
   --bgg-bg-color: #3f3a60;

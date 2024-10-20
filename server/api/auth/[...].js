@@ -30,28 +30,22 @@ export default NuxtAuthHandler({
         let slug = ""
         const q_result_user = (await query('SELECT name_slug FROM app.users WHERE email = $1', [user.email]))
         if (q_result_user.rowCount == 0) {
-          // Not in the DB, attempt name slugs until succeeds as unique
-          // First give them a default collection
-          let DCI = (await query('INSERT into app.collections(user_email, collection_name, created_by) VALUES ($1, $2, $3) returning id',
-            [
-              user.email,
-              'Owned Games',
-              user.name
-            ])).rows[0].id
+          // Not in the DB, so make a new user          
+          // attempt name slugs based on their token provided name until succeeds as unique
+
           let counter = 1
           let tryAgain = false
           let slugAttempt = ""
           do {
             try {
               slugAttempt = slugify(user.name + (counter > 1 ? (' ' + counter) : ''), { lower: true })
-              let i_result_user = (await query('INSERT into app.users(email, created_by, name, image, name_slug, default_collection_id) VALUES ($1, $2, $3, $4, $5, $6)',
+              let i_result_user = (await query('INSERT into app.users(email, created_by, name, image, name_slug) VALUES ($1, $2, $3, $4, $5)',
                 [
                   user.email,
                   user.email,
                   user.name,
                   user.image ? user.image : '',
-                  slugAttempt,
-                  DCI
+                  slugAttempt
                 ]))
               tryAgain = false
             } catch (error) {
@@ -63,7 +57,23 @@ export default NuxtAuthHandler({
               }
             }
           } while (tryAgain)
+
+            
+          // Then give them a default collection
+          let DCI = (await query('INSERT into app.collections(user_email, collection_name, created_by) VALUES ($1, $2, $3) returning id',
+            [
+              user.email,
+              'Owned Games',
+              user.email
+            ])).rows[0].id
+
+          // Then update the user to this default collection
+          await query('UPDATE app.users SET default_collection_id = $1 WHERE email = $2',[ DCI, user.email ])
+
           slug = slugAttempt
+          token.isNew = true
+
+          // TODO: when this fails it redirects to nuxtauth generic error page, need to fix
         }
         else {
           slug = q_result_user.rows[0].name_slug
@@ -76,11 +86,9 @@ export default NuxtAuthHandler({
       if (token.slug) {
         session.user.slug = token.slug
       } else {
-        const q_result_slug = (await query('SELECT name_slug FROM app.users WHERE email = $1', [session.user.email]))
-        if (q_result_slug.rowCount > 0) {
-          session.user.slug = q_result_slug.rows[0].name_slug
-        }
+        session.user.slug = (await query('SELECT name_slug FROM app.users WHERE email = $1', [session.user.email])).rows[0]?.name_slug || ""
       }
+      session.user.isNew = token.isNew
       return Promise.resolve(session)
     }
 

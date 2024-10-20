@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (q_result_user.rowCount == 0) {
         // Could not find user
         log({ level: 'warn', source: '/user/[slug]', message: `User not found: ${event.context.params.user}` })
-        throw new createError({ status: StatusCodes.NOT_FOUND, message: 'User not found' })
+        throw createError({ statusCode: StatusCodes.NOT_FOUND, statusMessage: 'User not found. Please check the spelling of the URL.' })
     }
     const user = q_result_user.rows[0]
     try {

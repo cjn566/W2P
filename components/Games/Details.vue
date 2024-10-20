@@ -25,6 +25,8 @@
           </div>
           <div v-if="_game" class="p-4 lg:basis-2/3">
             <GamesStats :game="_game" />
+
+            <!-- TODO show expansions -->
             <div class="text-sm p-3">
               {{ _game.description }}
             </div>
@@ -121,30 +123,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  /* Semi-transparent background */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-  /* High z-index to ensure it's on top */
-}
 
 $content-full-height: 80vh;
 $bgg-footer-height: 4rem;

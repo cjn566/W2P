@@ -22,19 +22,14 @@
 </template>
 
 <script setup>
-import { addGames } from '~/composables/useGames'
+import { addGames, buildCollection } from '~/composables/useGames'
 import { useToast } from 'primevue/usetoast'
 const toast = useToast()
 const props = defineProps(['game'])
 const emit = defineEmits(['added'])
-const loading = ref(false)
 
-async function addGame() {
-  loading.value = true
-  await addGames([props.game])
-  // TODO: Check if it failed
-  toast.add({ severity: 'success', summary: props.game.name, detail: 'has been added to your library', life: 3000 })
-  loading.value = false
+function addGame() {
+  addGames([props.game], toast)
   emit('added')
 }
 
