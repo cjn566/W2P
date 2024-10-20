@@ -282,6 +282,17 @@ const showTable = ref(false)
 const showTags = ref(false)
 const hideSticky = ref(false)
 
+const sortProperties = [
+  { value: 'name', name: 'Name', icon: 'arrow-down-a-z', descLabel: 'A..', ascLabel: 'Z..' },
+  { value: 'rating', name: 'Rating', icon: 'star', descLabel: 'highest', ascLabel: 'lowest' },
+  { value: 'complexity', name: 'Complexity', icon: 'brain', descLabel: 'heaviest', ascLabel: 'easiest' },
+  { value: 'players', name: 'Players', icon: 'people-group', descLabel: 'most', ascLabel: 'fewest' },
+  { value: 'playtime', name: 'Play time', icon: 'hourglass-half', descLabel: 'longest', ascLabel: 'shortest' },
+  { value: 'age', name: 'Maturity', icon: 'person-cane', descLabel: 'NSFW', ascLabel: 'for kids' },
+  { value: 'year', name: 'Publish Date', icon: 'calendar', descLabel: 'newest', ascLabel: 'oldest' }
+]
+
+
 const filterStyleOptions = ref([
   { label: 'Quick Find', value: 'simple', icon: PrimeIcons.SEARCH },
   { label: 'Advanced Search', value: 'advanced', icon: PrimeIcons.FILTER }
